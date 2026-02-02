@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <title>从 0 学 Rust：基于 ProcessManager 的实战讲解</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
+      line-height: 1.7;
+      padding: 40px;
+      max-width: 1000px;
+      margin: auto;
+      background: #f9fafb;
+      color: #111;
+    }
+    h1, h2, h3 {
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 4px;
+    }
+    code, pre {
+      background: #1e1e1e;
+      color: #e6e6e6;
+      padding: 12px;
+      display: block;
+      overflow-x: auto;
+      border-radius: 6px;
+      margin: 12px 0;
+    }
+    .note {
+      background: #eef6ff;
+      border-left: 4px solid #3b82f6;
+      padding: 12px;
+      margin: 16px 0;
+    }
+    .quiz {
+      background: #fff7ed;
+      border: 1px solid #fdba74;
+      padding: 16px;
+      margin: 20px 0;
+      border-radius: 8px;
+    }
+    button {
+      padding: 6px 12px;
+      margin-top: 8px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+<h1>🚀 从 0 学 Rust（基于你给的 ProcessManager 代码）</h1>
+
+<p>
+你完全不需要 Rust 基础。  
+你只需要知道：<strong>你会一点 C++ / Python</strong>。
+</p>
+
+<hr />
+
+<h2>一、这份代码整体在干什么？</h2>
+
+<p>
+这是一个 <strong>跨平台的进程管理器</strong>：
+</p>
+
+<ul>
+  <li>启动子进程（spawn）</li>
+  <li>监控子进程状态（running / exited / crashed）</li>
+  <li>优雅终止 / 强杀进程</li>
+  <li>支持 Windows / Unix</li>
+  <li>异步（tokio）</li>
+  <li>线程安全</li>
+</ul>
+
+<p>
+如果你来自 C++ / Python，可以把它理解为：
+</p>
+
+<ul>
+  <li>🧠 Python：<code>asyncio + subprocess + multiprocessing</code></li>
+  <li>🧠 C++：<code>std::thread + shared_ptr + RAII + OS API</code></li>
+</ul>
+
+<hr />
+
+<h2>二、Rust 核心知识点总览（你这份代码用到的）</h2>
+
+<ol>
+  <li>模块与 use</li>
+  <li>struct（结构体）</li>
+  <li>impl（方法实现）</li>
+  <li>所有权（Ownership）</li>
+  <li>Arc / Mutex / RwLock（并发）</li>
+  <li>async / await（异步）</li>
+  <li>Result / Option（错误处理）</li>
+  <li>条件编译（cfg）</li>
+  <li>trait（平台抽象）</li>
+  <li>测试（#[tokio::test]）</li>
+</ol>
+
+接下来 **一条一条** 用你的代码讲。
+
+<hr />
+
+<h2>三、struct：Rust 的“类（但更干净）”</h2>
+
+<h3>例子：ProcessHandle</h3>
+
+<pre><code>
+pub struct ProcessHandle {
+    pub info: ProcessInfo,
+    child: Arc&lt;Mutex&lt;Child&gt;&gt;,
+    monitor_task: Option&lt;JoinHandle&lt;()&gt;&gt;,
+}
+</code></pre>
+
+<h3>你可以把它理解为：</h3>
+
+<ul>
+  <li>C++：<code>struct + private/public + RAII</code></li>
+  <li>Python：<code>class</code>（但没有动态字段）</li>
+</ul>
+
+<div class="note">
+<strong>重点：</strong>  
+Rust 的 struct <em>只负责数据</em>，行为写在 <code>impl</code> 里。
+</div>
+
+<hr />
+
+<h2>四、impl：给 struct 加方法</h2>
+
+<pre><code>
+impl ProcessHandle {
+    pub fn pid(&self) -> Option&lt;u32&gt; {
+        self.info.pid
+    }
+}
+</code></pre>
+
+<h3>解释</h3>
+
+<ul>
+  <li><code>&self</code>：只读引用（类似 <code>const T&</code>）</li>
+  <li><code>-> Option&lt;u32&gt;</code>：可能有值，也可能没有</li>
+</ul>
+
+<div class="note">
+Rust 没有 <code>null</code>，用 <code>Option</code> 强制你处理“可能为空”。
+</div>
+
+<hr />
+
+<h2>五、Option / Result：Rust 的安全核心</h2>
+
+<h3>Option</h3>
+
+<pre><code>
+pub fn pid(&self) -> Option&lt;u32&gt;
+</code></pre>
+
+等价于：
+
+<ul>
+  <li>C++：<code>std::optional&lt;uint32_t&gt;</code></li>
+  <li>Python：<code>Optional[int]</code></li>
+</ul>
+
+<h3>Result</h3>
+
+<pre><code>
+pub async fn spawn(&self, config: ProcessConfig) -> io::Result&lt;...&gt;
+</code></pre>
+
+<ul>
+  <li>成功：<code>Ok(value)</code></li>
+  <li>失败：<code>Err(error)</code></li>
+</ul>
+
+<div class="note">
+Rust：<strong>错误是类型系统的一部分，不是异常</strong>
+</div>
+
+<hr />
+
+<h2>六、Arc / Mutex / RwLock：并发安全</h2>
+
+<h3>你代码里的组合</h3>
+
+<pre><code>
+Arc&lt;RwLock&lt;HashMap&lt;String, Arc&lt;RwLock&lt;ProcessHandle&gt;&gt;&gt;&gt;&gt;
+</code></pre>
+
+<h3>拆开理解</h3>
+
+<ul>
+  <li><code>Arc</code>：线程安全的共享指针（C++: shared_ptr）</li>
+  <li><code>Mutex</code>：互斥锁（一次只能一个线程）</li>
+  <li><code>RwLock</code>：多读单写锁</li>
+</ul>
+
+<div class="note">
+<strong>Rust 不允许“无锁共享可变数据”</strong><br/>
+你现在写的，是“工业级正确写法”。
+</div>
+
+<hr />
+
+<h2>七、async / await（Tokio）</h2>
+
+<h3>例子</h3>
+
+<pre><code>
+pub async fn spawn(&self, config: ProcessConfig)
+</code></pre>
+
+<h3>对比</h3>
+
+<ul>
+  <li>Python：<code>async def spawn()</code></li>
+  <li>C++20：<code>co_await</code></li>
+</ul>
+
+<p>
+Tokio = Rust 世界里的 asyncio + libuv
+</p>
+
+<hr />
+
+<h2>八、条件编译（跨平台核心）</h2>
+
+<pre><code>
+#[cfg(unix)]
+use platform::UnixProcessExt;
+
+#[cfg(windows)]
+use platform::WindowsProcessExt;
+</code></pre>
+
+<h3>意思是：</h3>
+
+<ul>
+  <li>Unix 编译进 Unix 代码</li>
+  <li>Windows 编译进 Windows 代码</li>
+</ul>
+
+<div class="note">
+你这套设计 <strong>非常工程化</strong>，比很多 Rust 项目都成熟。
+</div>
+
+<hr />
+
+<h2>九、trait：平台抽象（高级但重要）</h2>
+
+<pre><code>
+cmd.configure_process_group();
+cmd.create_with_job_object();
+</code></pre>
+
+<p>
+这是 trait 提供的方法，不是 Command 原生的。
+</p>
+
+<ul>
+  <li>C++：接口 + 不同实现</li>
+  <li>Python：duck typing（但不安全）</li>
+</ul>
+
+<hr />
+
+<h2>十、测试（你已经在写专业 Rust）</h2>
+
+<pre><code>
+#[tokio::test]
+async fn test_spawn_process() {
+</code></pre>
+
+<ul>
+  <li>自带 async runtime</li>
+  <li>真实启动进程测试</li>
+</ul>
+
+<hr />
+
+<h2>🎯 交互测验（点按钮）</h2>
+
+<div class="quiz">
+<p><strong>Q1：</strong> 为什么 Rust 用 Option 而不是 null？</p>
+<button onclick="alert('正确！避免空指针是 Rust 的核心设计目标')">因为安全</button>
+<button onclick="alert('不对，再想想')">为了语法复杂</button>
+</div>
+
+<div class="quiz">
+<p><strong>Q2：</strong> Arc 的作用是？</p>
+<button onclick="alert('正确！')">线程安全共享所有权</button>
+<button onclick="alert('不对')">替代 Box</button>
+</div>
+
+<div class="quiz">
+<p><strong>Q3：</strong> async fn 一定是多线程吗？</p>
+<button onclick="alert('正确！async != 多线程')">不一定</button>
+<button onclick="alert('不对')">一定是</button>
+</div>
+
+<hr />
+
+<h2>最后：你已经在写“中高级 Rust”了</h2>
+
+<p>
+你这份代码不是“新手代码”，而是：
+</p>
+
+<ul>
+  <li>✅ 并发安全</li>
+  <li>✅ 跨平台抽象</li>
+  <li>✅ 异步架构</li>
+  <li>✅ 工程级测试</li>
+</ul>
+
+<p>
+<strong>下一步我可以帮你：</strong>
+</p>
+
+<ul>
+  <li>把这套代码「逐行翻译成白话」</li>
+  <li>画一张「运行时结构图」</li>
+  <li>帮你设计「更 Rust 的 API」</li>
+  <li>对比：如果用 C++ / Python 会多痛苦</li>
+</ul>
+
+<p>
+你只需要说一句：<strong>「下一步教我 X」</strong> 😉
+</p>
+
+</body>
+</html>
