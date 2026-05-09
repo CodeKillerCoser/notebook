@@ -1,0 +1,864 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AI Runtime / Agent Infrastructure 学习与实践路线图</title>
+  <style>
+    :root {
+      --bg: #f7f8fb;
+      --card: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --line: #e5e7eb;
+      --accent: #2563eb;
+      --accent-soft: #dbeafe;
+      --code-bg: #111827;
+      --code-text: #e5e7eb;
+      --warn: #f59e0b;
+      --ok: #10b981;
+      --danger: #ef4444;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+      line-height: 1.75;
+      color: var(--text);
+      background: linear-gradient(180deg, #eef4ff 0%, var(--bg) 320px);
+    }
+
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .layout {
+      max-width: 1160px;
+      margin: 0 auto;
+      padding: 32px 20px 72px;
+      display: grid;
+      grid-template-columns: 260px minmax(0, 1fr);
+      gap: 24px;
+    }
+
+    header {
+      grid-column: 1 / -1;
+      padding: 48px 36px;
+      background: rgba(255, 255, 255, 0.84);
+      border: 1px solid rgba(255, 255, 255, 0.8);
+      border-radius: 28px;
+      box-shadow: 0 20px 50px rgba(37, 99, 235, 0.12);
+      backdrop-filter: blur(10px);
+    }
+
+    header h1 {
+      margin: 0 0 16px;
+      font-size: clamp(32px, 5vw, 52px);
+      line-height: 1.15;
+      letter-spacing: -0.04em;
+    }
+
+    header p {
+      max-width: 860px;
+      margin: 0;
+      color: var(--muted);
+      font-size: 18px;
+    }
+
+    .badge-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 24px;
+    }
+
+    .badge {
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: #1d4ed8;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    aside {
+      position: sticky;
+      top: 20px;
+      align-self: start;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      padding: 18px;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+    }
+
+    aside h2 {
+      font-size: 16px;
+      margin: 0 0 12px;
+    }
+
+    aside ol {
+      margin: 0;
+      padding-left: 20px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    aside li { margin: 8px 0; }
+
+    main {
+      min-width: 0;
+    }
+
+    section {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      padding: 32px;
+      margin-bottom: 24px;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.05);
+    }
+
+    h2 {
+      margin: 0 0 20px;
+      font-size: 28px;
+      line-height: 1.25;
+      letter-spacing: -0.02em;
+    }
+
+    h3 {
+      margin: 30px 0 12px;
+      font-size: 21px;
+    }
+
+    h4 {
+      margin: 22px 0 8px;
+      font-size: 17px;
+    }
+
+    p { margin: 12px 0; }
+
+    ul, ol { padding-left: 24px; }
+    li { margin: 6px 0; }
+
+    .lead {
+      font-size: 18px;
+      color: var(--muted);
+    }
+
+    .goal {
+      border-left: 5px solid var(--accent);
+      background: #f8fbff;
+      padding: 16px 18px;
+      border-radius: 14px;
+      margin: 16px 0;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 18px;
+      background: #fcfcfd;
+    }
+
+    .card h3, .card h4 { margin-top: 0; }
+
+    .timeline {
+      display: grid;
+      gap: 14px;
+      margin-top: 18px;
+    }
+
+    .stage {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 18px;
+      background: #fcfcfd;
+    }
+
+    .stage-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 800;
+      font-size: 18px;
+      margin-bottom: 8px;
+    }
+
+    .num {
+      width: 32px;
+      height: 32px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      background: var(--accent);
+      color: white;
+      font-size: 14px;
+      flex: 0 0 auto;
+    }
+
+    pre {
+      overflow-x: auto;
+      background: var(--code-bg);
+      color: var(--code-text);
+      padding: 18px;
+      border-radius: 16px;
+      line-height: 1.6;
+      font-size: 14px;
+    }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    }
+
+    :not(pre) > code {
+      background: #f3f4f6;
+      color: #111827;
+      padding: 2px 6px;
+      border-radius: 6px;
+      font-size: 0.92em;
+    }
+
+    .checklist li::marker { color: var(--ok); }
+    .avoid li::marker { color: var(--danger); }
+
+    .split {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .ok-box, .bad-box, .warn-box {
+      border-radius: 18px;
+      padding: 18px;
+      border: 1px solid var(--line);
+    }
+
+    .ok-box { background: #ecfdf5; }
+    .bad-box { background: #fef2f2; }
+    .warn-box { background: #fffbeb; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+      overflow: hidden;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+    }
+
+    th, td {
+      border-bottom: 1px solid var(--line);
+      padding: 12px 14px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th { background: #f9fafb; }
+    tr:last-child td { border-bottom: 0; }
+
+    .footer {
+      text-align: center;
+      color: var(--muted);
+      margin-top: 32px;
+      font-size: 14px;
+    }
+
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: 1fr; }
+      aside { position: static; }
+      .grid, .split { grid-template-columns: 1fr; }
+      section { padding: 24px; }
+      header { padding: 36px 24px; }
+    }
+
+    @media print {
+      body { background: white; }
+      .layout { display: block; padding: 0; max-width: none; }
+      aside { display: none; }
+      header, section { box-shadow: none; border: 1px solid #ddd; page-break-inside: avoid; }
+      a { color: #111; text-decoration: underline; }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <header>
+      <h1>AI Runtime / Agent Infrastructure 学习与实践路线图</h1>
+      <p>目标是在 1.5 ~ 3 个月内，围绕 Rust、本地 Agent Runtime、工具调用、浏览器自动化、沙箱权限、验证流水线，构建一个真正可运行的 AI Agent Runtime MVP。</p>
+      <div class="badge-row">
+        <span class="badge">Rust Runtime</span>
+        <span class="badge">Agent Loop</span>
+        <span class="badge">Tool Runtime</span>
+        <span class="badge">Browser Use</span>
+        <span class="badge">Sandbox</span>
+        <span class="badge">Verification</span>
+        <span class="badge">AI CI</span>
+      </div>
+    </header>
+
+    <aside>
+      <h2>目录</h2>
+      <ol>
+        <li><a href="#strategy">整体战略</a></li>
+        <li><a href="#final-target">最终产物</a></li>
+        <li><a href="#route">学习路线</a></li>
+        <li><a href="#phase1">阶段 1：Rust</a></li>
+        <li><a href="#phase2">阶段 2：Agent Runtime</a></li>
+        <li><a href="#phase3">阶段 3：Browser Runtime</a></li>
+        <li><a href="#phase4">阶段 4：Permission / Sandbox</a></li>
+        <li><a href="#phase5">阶段 5：Verification / AI Workflow</a></li>
+        <li><a href="#daily">每日安排</a></li>
+        <li><a href="#pitfalls">避坑原则</a></li>
+      </ol>
+    </aside>
+
+    <main>
+      <section id="strategy">
+        <h2>一、整体战略方向</h2>
+        <p class="lead">你未来的发展方向，不应该再是前端工程师、后端工程师或者 AI API 调用工程师，而应该是 <strong>AI Runtime / Agent Infrastructure Engineer</strong>。</p>
+        <div class="goal">
+          <strong>核心目标：</strong>构建长期运行、可恢复、可验证、可审计、可扩展的 AI 系统。
+        </div>
+        <pre><code>AI Runtime
+├── Agent Loop
+├── Context Engineering
+├── Tool Runtime
+├── Browser Runtime
+├── Sandbox / Permission
+├── Workflow Runtime
+├── Verification
+└── AI CI / Self-healing</code></pre>
+        <p>你的核心竞争力不是“会用 AI”，而是“能构建 AI 如何执行任务的基础设施”。</p>
+      </section>
+
+      <section id="final-target">
+        <h2>二、最终目标：Agent Runtime v0.1</h2>
+        <div class="grid">
+          <div class="card">
+            <h3>Runtime</h3>
+            <ul>
+              <li>Task</li>
+              <li>Step</li>
+              <li>Event</li>
+              <li>Retry</li>
+              <li>Recovery</li>
+              <li>Checkpoint</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>Context / Memory</h3>
+            <ul>
+              <li>Rolling Summary</li>
+              <li>Event Memory</li>
+              <li>Context Window</li>
+              <li>State Reconstruction</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>Tool Runtime</h3>
+            <ul>
+              <li>Shell Tool</li>
+              <li>File Tool</li>
+              <li>Browser Tool</li>
+              <li>HTTP Tool</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>Browser Runtime</h3>
+            <ul>
+              <li>Observe</li>
+              <li>Action</li>
+              <li>Verify</li>
+              <li>DOM IR</li>
+              <li>Accessibility Tree</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>Permission / Sandbox</h3>
+            <ul>
+              <li>Tool Permission</li>
+              <li>Allow / Deny</li>
+              <li>Audit Log</li>
+              <li>Command Fence</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>Verification</h3>
+            <ul>
+              <li>Trace</li>
+              <li>Replay</li>
+              <li>Retry</li>
+              <li>Regression Validation</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section id="route">
+        <h2>三、整体学习路线</h2>
+        <p>不要同时开很多条线。所有学习都围绕一个主线：<strong>用 Rust 构建 Agent Runtime</strong>。</p>
+        <pre><code>Rust 基础
+    ↓
+Rust Runtime 能力
+    ↓
+Agent Loop
+    ↓
+Tool Runtime
+    ↓
+Browser Runtime
+    ↓
+Context / Memory
+    ↓
+Permission / Sandbox
+    ↓
+Verification
+    ↓
+AI Workflow / AI CI</code></pre>
+        <div class="warn-box">
+          <strong>关键原则：</strong>Rust、LangGraph、Browser Use、Sandbox 都不是目的，它们只是 Agent Runtime 的组成部分。
+        </div>
+      </section>
+
+      <section id="phase1">
+        <h2>四、阶段 1（第 1~2 周）：Rust Runtime 基础</h2>
+        <p class="lead">目标：达到 Rust 工程可用水平，而不是成为语言专家。</p>
+        <h3>阶段目标</h3>
+        <ul class="checklist">
+          <li>能独立写 Rust CLI</li>
+          <li>能写 async 程序</li>
+          <li>能操作文件</li>
+          <li>能调用 shell</li>
+          <li>能写 HTTP 请求</li>
+          <li>能读写 JSON</li>
+          <li>能看懂 Tokio 项目</li>
+          <li>能用 Rust 写 LeetCode 简单题和部分中等题</li>
+        </ul>
+
+        <h3>学习重点</h3>
+        <div class="grid">
+          <div class="card">
+            <h4>Rust 基础语法</h4>
+            <ul>
+              <li>Ownership / Borrow</li>
+              <li>Mutable Borrow</li>
+              <li>Enum / Match</li>
+              <li>Result / Option</li>
+              <li>Trait</li>
+              <li>Lifetime：理解即可</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h4>Rust 工程化</h4>
+            <ul>
+              <li>Cargo</li>
+              <li>Module</li>
+              <li>Crate</li>
+              <li>Workspace</li>
+              <li>Feature</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h4>Async Runtime</h4>
+            <ul>
+              <li>Tokio</li>
+              <li>async / await</li>
+              <li>spawn</li>
+              <li>channel</li>
+              <li>Arc / Mutex</li>
+              <li>Semaphore</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h4>常用库</h4>
+            <ul>
+              <li>serde / serde_json</li>
+              <li>anyhow / thiserror</li>
+              <li>clap</li>
+              <li>reqwest</li>
+              <li>tracing</li>
+              <li>tokio::process</li>
+            </ul>
+          </div>
+        </div>
+
+        <h3>推荐资料</h3>
+        <ul>
+          <li><a href="https://doc.rust-lang.org/book/" target="_blank">The Rust Programming Language</a>：重点看 ownership、enum、error、trait、concurrency。</li>
+          <li><a href="https://tokio.rs/tokio/tutorial" target="_blank">Tokio Tutorial</a>：重点看 async、spawn、channel、process。</li>
+          <li><a href="https://github.com/rust-lang/rustlings" target="_blank">Rustlings</a>：用于快速熟悉语法和编译器反馈。</li>
+        </ul>
+
+        <h3>LeetCode 要求</h3>
+        <p>不要把目标变成刷题。LeetCode 只是用来熟悉 Rust 的 ownership、Vec、String、HashMap。</p>
+        <ul>
+          <li>Easy：尽量熟练</li>
+          <li>Medium：做基础题即可</li>
+        </ul>
+
+        <h3>阶段项目：agent-cli</h3>
+        <pre><code>agent-cli/
+├── src/
+│   ├── main.rs
+│   ├── task.rs
+│   ├── logger.rs
+│   └── tools/
+│       ├── shell.rs
+│       ├── file.rs
+│       └── http.rs</code></pre>
+        <p>功能要求：</p>
+        <ul>
+          <li>读取 task 文件</li>
+          <li>输出结构化日志</li>
+          <li>调用 shell 命令</li>
+          <li>读写文件</li>
+          <li>发送 HTTP 请求</li>
+          <li>读取 JSON 配置</li>
+        </ul>
+      </section>
+
+      <section id="phase2">
+        <h2>五、阶段 2（第 3~4 周）：Agent Runtime MVP</h2>
+        <p class="lead">这是核心阶段。你要手撸一个最小但正确的 Agent Loop。</p>
+        <pre><code>Task
+  -> Plan
+  -> Tool Call
+  -> Observation
+  -> Verify
+  -> Retry / Finish</code></pre>
+
+        <h3>必须掌握</h3>
+        <div class="grid">
+          <div class="card">
+            <h4>Agent Loop</h4>
+            <pre><code>Observe
+Plan
+Act
+Verify
+Recover</code></pre>
+          </div>
+          <div class="card">
+            <h4>Event System</h4>
+            <pre><code>enum RuntimeEvent {
+    TaskStarted,
+    ToolCalled,
+    ToolFinished,
+    Retry,
+    Failed,
+    TaskFinished,
+}</code></pre>
+          </div>
+          <div class="card">
+            <h4>Tool Runtime</h4>
+            <pre><code>trait Tool {
+    async fn execute(
+        &self,
+        input: ToolInput
+    ) -> ToolResult;
+}</code></pre>
+          </div>
+          <div class="card">
+            <h4>Context Window</h4>
+            <ul>
+              <li>rolling summary</li>
+              <li>short-term memory</li>
+              <li>event history</li>
+              <li>context pruning</li>
+            </ul>
+          </div>
+        </div>
+
+        <h3>推荐资料</h3>
+        <ul>
+          <li><a href="https://langchain-ai.github.io/langgraph/" target="_blank">LangGraph Docs</a>：重点看 state graph、checkpoint、resumable execution。</li>
+          <li><a href="https://openai.github.io/openai-agents-python/" target="_blank">OpenAI Agents SDK</a>：重点看 tools、memory、tracing、handoff。</li>
+          <li><a href="https://github.com/All-Hands-AI/OpenHands" target="_blank">OpenHands</a>：重点看 runtime、event stream、execution。</li>
+        </ul>
+
+        <h3>阶段项目：agent-runtime v0.1</h3>
+        <pre><code>runtime/
+├── task/
+├── loop/
+├── memory/
+├── context/
+├── tools/
+├── verify/
+├── event/
+└── planner/</code></pre>
+        <p>最低可用能力：</p>
+        <ul>
+          <li>创建 task</li>
+          <li>执行 step</li>
+          <li>调用 tool</li>
+          <li>记录 event log</li>
+          <li>简单 retry</li>
+          <li>简单 checkpoint</li>
+          <li>生成 summary memory</li>
+        </ul>
+      </section>
+
+      <section id="phase3">
+        <h2>六、阶段 3（第 5~6 周）：Browser Runtime</h2>
+        <p class="lead">这是 AI Agent 的关键工具能力，也是你的优势方向。</p>
+        <pre><code>observe()
+act()
+verify()</code></pre>
+
+        <h3>学习重点</h3>
+        <div class="grid">
+          <div class="card">
+            <h4>CDP</h4>
+            <ul>
+              <li>DOM</li>
+              <li>Runtime</li>
+              <li>Input</li>
+              <li>Accessibility</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h4>Browser IR</h4>
+            <p>把网页转换成 AI 可消费结构。</p>
+            <pre><code>{
+  "ref": "btn_login",
+  "role": "button",
+  "text": "登录"
+}</code></pre>
+          </div>
+          <div class="card">
+            <h4>Action Verification</h4>
+            <ul>
+              <li>点击后页面是否变化</li>
+              <li>输入后字段是否有值</li>
+              <li>跳转是否完成</li>
+              <li>目标元素是否出现</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h4>弱模型友好</h4>
+            <ul>
+              <li>减少 DOM 噪音</li>
+              <li>使用稳定 refs</li>
+              <li>限制动作集合</li>
+              <li>每步强制 verify</li>
+            </ul>
+          </div>
+        </div>
+
+        <h3>推荐资料</h3>
+        <ul>
+          <li><a href="https://chromedevtools.github.io/devtools-protocol/" target="_blank">Chrome DevTools Protocol</a></li>
+          <li><a href="https://github.com/browser-use/browser-use" target="_blank">Browser Use</a>：重点看 observe、refs、grounding。</li>
+          <li><a href="https://github.com/browserbase/stagehand" target="_blank">Stagehand</a></li>
+        </ul>
+
+        <h3>阶段项目：browser-runtime</h3>
+        <p>能力要求：</p>
+        <ul>
+          <li>打开页面</li>
+          <li>获取 DOM IR</li>
+          <li>生成 refs</li>
+          <li>click / type</li>
+          <li>action verify</li>
+          <li>失败重试</li>
+        </ul>
+      </section>
+
+      <section id="phase4">
+        <h2>七、阶段 4（第 7 周）：Permission / Sandbox MVP</h2>
+        <p class="lead">先做逻辑沙箱，不要一上来做完整 OS 沙箱。</p>
+        <pre><code>ToolCall
+    ↓
+PermissionCheck
+    ↓
+Execute
+    ↓
+AuditLog</code></pre>
+
+        <h3>学习重点</h3>
+        <div class="grid">
+          <div class="card">
+            <h4>Permission Model</h4>
+            <pre><code>allow browser
+allow read file
+allow write workspace
+ask shell command
+deny rm -rf</code></pre>
+          </div>
+          <div class="card">
+            <h4>Command Fence</h4>
+            <p>所有 Tool 调用必须经过统一入口。不要让模型直接执行系统能力。</p>
+          </div>
+          <div class="card">
+            <h4>Audit Log</h4>
+            <ul>
+              <li>谁调用</li>
+              <li>调了什么</li>
+              <li>参数是什么</li>
+              <li>结果是什么</li>
+              <li>是否通过权限检查</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h4>后续 OS 能力</h4>
+            <ul>
+              <li>macOS App Sandbox</li>
+              <li>Windows Job Object</li>
+              <li>Windows AppContainer</li>
+              <li>Linux namespace / cgroup / seccomp</li>
+            </ul>
+          </div>
+        </div>
+
+        <h3>推荐资料</h3>
+        <ul>
+          <li><a href="https://developer.apple.com/documentation/security/app_sandbox" target="_blank">Apple App Sandbox</a></li>
+          <li><a href="https://learn.microsoft.com/en-us/windows/win32/procthread/job-objects" target="_blank">Windows Job Objects</a></li>
+        </ul>
+
+        <h3>阶段项目：permission-runtime</h3>
+        <p>能力要求：</p>
+        <ul>
+          <li>allow / deny / ask</li>
+          <li>tool policy</li>
+          <li>路径白名单</li>
+          <li>命令黑名单</li>
+          <li>网络域名限制</li>
+          <li>审计日志</li>
+        </ul>
+      </section>
+
+      <section id="phase5">
+        <h2>八、阶段 5（第 8 周）：Verification / AI Workflow</h2>
+        <p class="lead">这是未来最有价值的方向：AI 不是只执行任务，而是能验证、复现、修复和回归。</p>
+        <pre><code>自动执行任务
+自动验证结果
+失败自动重试
+trace / replay
+回归验证</code></pre>
+
+        <h3>学习重点</h3>
+        <div class="grid">
+          <div class="card">
+            <h4>Verification</h4>
+            <p>AI 执行结果如何验证？例如 UI 状态、文件结果、日志输出、接口响应。</p>
+          </div>
+          <div class="card">
+            <h4>Replay</h4>
+            <p>如何根据 trace 复现问题？哪些输入、上下文、工具结果需要保存？</p>
+          </div>
+          <div class="card">
+            <h4>Trace</h4>
+            <p>如何记录完整执行过程？包括模型输入、工具调用、状态变化、错误和重试。</p>
+          </div>
+          <div class="card">
+            <h4>Regression</h4>
+            <p>修复后如何确认没有引入新问题？如何把失败案例变成回归测试？</p>
+          </div>
+        </div>
+
+        <h3>推荐资料</h3>
+        <ul>
+          <li><a href="https://opentelemetry.io/" target="_blank">OpenTelemetry</a></li>
+          <li><a href="https://www.langchain.com/langsmith" target="_blank">LangSmith</a>：重点学习 tracing 思想。</li>
+        </ul>
+
+        <h3>阶段项目：verification-runtime</h3>
+        <p>能力要求：</p>
+        <ul>
+          <li>trace</li>
+          <li>replay</li>
+          <li>retry</li>
+          <li>expectation check</li>
+          <li>regression validation</li>
+        </ul>
+      </section>
+
+      <section id="daily">
+        <h2>九、每日安排</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>时间占比</th>
+              <th>任务</th>
+              <th>说明</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>40%</td>
+              <td>写 Runtime</td>
+              <td>最重要。所有学习都必须落到 agent-runtime 项目里。</td>
+            </tr>
+            <tr>
+              <td>30%</td>
+              <td>读源码</td>
+              <td>重点读 LangGraph、OpenHands、Browser Use 的 state、loop、tool、context。</td>
+            </tr>
+            <tr>
+              <td>20%</td>
+              <td>写文档</td>
+              <td>沉淀架构图、状态图、数据模型、设计取舍。</td>
+            </tr>
+            <tr>
+              <td>10%</td>
+              <td>补基础</td>
+              <td>Rust、Browser、OS、Sandbox 基础。</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="pitfalls">
+        <h2>十、必须避免的坑</h2>
+        <div class="split">
+          <div class="bad-box">
+            <h3>不要做</h3>
+            <ul class="avoid">
+              <li>学一堆框架</li>
+              <li>沉迷 Prompt</li>
+              <li>做 AI 套壳</li>
+              <li>做聊天 UI</li>
+              <li>追热点</li>
+              <li>一上来做 AI OS</li>
+              <li>一上来做多 Agent</li>
+              <li>一上来做完整 OS 沙箱</li>
+            </ul>
+          </div>
+          <div class="ok-box">
+            <h3>应该做</h3>
+            <ul class="checklist">
+              <li>做小而正确的 Runtime</li>
+              <li>做真正能跑的 Agent Loop</li>
+              <li>做可恢复</li>
+              <li>做可验证</li>
+              <li>做 Tool Runtime</li>
+              <li>做 Browser Runtime</li>
+              <li>做 Permission Layer</li>
+              <li>把失败案例沉淀成测试</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section id="summary">
+        <h2>十一、最终定位</h2>
+        <p class="lead">你的最终定位应该是 <strong>AI Runtime Builder</strong> 或 <strong>Agent Infrastructure Engineer</strong>。</p>
+        <div class="goal">
+          <strong>一句话主线：</strong>先用 Rust 写出一个最小 agent runtime，然后用 LangGraph / OpenHands / Browser Use 反向校准设计，最后接入 browser、permission、verification 和 AI CI。
+        </div>
+        <p>这条路线的价值不在于你学了多少框架，而在于你能否构建一个真实可运行、可观测、可恢复、可验证的 AI 执行系统。</p>
+      </section>
+
+      <div class="footer">AI Runtime / Agent Infrastructure Learning Plan</div>
+    </main>
+  </div>
+</body>
+</html>
