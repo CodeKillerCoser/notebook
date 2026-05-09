@@ -6,8 +6,10 @@ generate_index.py — 扫描仓库目录结构，自动生成 index.html 文件�
 
 import os
 import html
+import subprocess
+import re
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timezone
 
 REPO = Path(__file__).resolve().parent
 OUTPUT = REPO / "index.html"
@@ -54,9 +56,10 @@ def collect_tree(base: Path, rel_prefix: str = "") -> list:
     return entries
 
 
-def render_html(tree: list) -> str:
+def render_html(tree: list, activity: list = None) -> str:
     """将目录树渲染为完整的 HTML 页面。"""
     body = _render_tree(tree, depth=0)
+    activity_html = _render_activity(activity) if activity else ""
 
     return f"""<!DOCTYPE html>
 <html lang="zh-CN">
@@ -183,6 +186,74 @@ def render_html(tree: list) -> str:
     text-decoration: none;
   }}
   .readme-link:hover {{ opacity: 0.8; text-decoration: none; }}
+  .section-title {{
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 24px 8px;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text);
+  }}
+  .activity {{
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 24px 32px;
+  }}
+  .activity-item {{
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 14px 18px;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    transition: box-shadow 0.15s;
+  }}
+  .activity-item:hover {{
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+  }}
+  .activity-header {{
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 6px;
+  }}
+  .activity-hash {{
+    font-family: "SF Mono", Consolas, monospace;
+    font-size: 12px;
+    color: var(--accent);
+    background: var(--accent-soft);
+    padding: 2px 6px;
+    border-radius: 4px;
+  }}
+  .activity-subject {{
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
+    min-width: 0;
+  }}
+  .activity-time {{
+    font-size: 12px;
+    color: var(--muted);
+    flex-shrink: 0;
+  }}
+  .activity-files {{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }}
+  .activity-file {{
+    font-family: "SF Mono", Consolas, monospace;
+    font-size: 12px;
+    color: var(--muted);
+    background: var(--hover);
+    padding: 2px 8px;
+    border-radius: 4px;
+  }}
   .footer {{
     text-align: center;
     color: var(--muted);
@@ -208,6 +279,9 @@ def render_html(tree: list) -> str:
 {body}
   </ul>
 </div>
+
+{activity_html}
+
 <div class="footer">
   自动生成于 {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
 </div>
@@ -286,9 +360,78 @@ def _count_summary(tree: list) -> str:
     return " · ".join(parts) if parts else "空仓库"
 
 
+def _render_activity(entries: list) -> str:
+    """渲染最近活动列表 HTML。"""
+    if not entries:
+        return ""
+    parts = ['<div class="section-title">📋 最近更新</div>', '<div class="activity">']
+    for e in entries:
+        subject = html.escape(e["subject"])
+        time_str = html.escape(e["time"])
+        hash_str = html.escape(e["hash"])
+        files_html = "".join(
+            f'<span class="activity-file">{html.escape(f)}</span>'
+            for f in e["files"]
+        )
+        parts.append(
+            f'<div class="activity-item">'
+            f'<div class="activity-header">'
+            f'<span class="activity-hash">{hash_str}</span>'
+            f'<span class="activity-subject">{subject}</span>'
+            f'<span class="activity-time">{time_str}</span>'
+            f'</div>'
+            f'<div class="activity-files">{files_html}</div>'
+            f'</div>'
+        )
+    parts.append("</div>")
+    return "\n".join(parts)
+
+
+def get_recent_activity(max_commits: int = 8) -> list:
+    """从 git log 中提取最近提交及涉及的文件列表。"""
+    try:
+        # 获取最近提交：hash|subject|relative_time
+        log_cmd = [
+            "git", "log", f"-{max_commits}",
+            "--format=%H|%s|%ar",
+            "--name-only"
+        ]
+        result = subprocess.run(log_cmd, capture_output=True, text=True, encoding="utf-8", cwd=REPO, timeout=10)
+        if result.returncode != 0:
+            return []
+
+        entries = []
+        current = None
+        for line in result.stdout.splitlines():
+            line = line.strip()
+            if not line:
+                continue
+            # 匹配提交行：hash|subject|relative_time
+            m = re.match(r"^([0-9a-f]+)\|(.+)\|(.+)$", line)
+            if m:
+                current = {
+                    "hash": m.group(1)[:7],
+                    "subject": m.group(2),
+                    "time": m.group(3),
+                    "files": [],
+                }
+                entries.append(current)
+            elif current is not None and not line.endswith("/"):
+                # 文件行，排除 generate_index.py 和 index.html
+                if line not in ("generate_index.py", "index.html"):
+                    current["files"].append(line)
+
+        # 去掉没有实际文件变更的提交（如 merge commit 空列表）
+        return [e for e in entries if e["files"]]
+
+    except (subprocess.SubprocessError, FileNotFoundError):
+        return []
+
+
 def main():
     tree = collect_tree(REPO)
-    html_content = render_html(tree)
+    activity = get_recent_activity()
+    html_content = render_html(tree, activity)
     OUTPUT.write_text(html_content, encoding="utf-8")
     print(f"[OK] index.html generated, {len(html_content)} bytes")
     print(f"     dirs: {sum(1 for e in tree if e['type']=='dir')}, files: {sum(1 for e in tree if e['type']=='file')} (top-level)")

@@ -123,6 +123,74 @@
     text-decoration: none;
   }
   .readme-link:hover { opacity: 0.8; text-decoration: none; }
+  .section-title {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 24px 8px;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .activity {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 24px 32px;
+  }
+  .activity-item {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 14px 18px;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    transition: box-shadow 0.15s;
+  }
+  .activity-item:hover {
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+  }
+  .activity-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 6px;
+  }
+  .activity-hash {
+    font-family: "SF Mono", Consolas, monospace;
+    font-size: 12px;
+    color: var(--accent);
+    background: var(--accent-soft);
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+  .activity-subject {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
+    min-width: 0;
+  }
+  .activity-time {
+    font-size: 12px;
+    color: var(--muted);
+    flex-shrink: 0;
+  }
+  .activity-files {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .activity-file {
+    font-family: "SF Mono", Consolas, monospace;
+    font-size: 12px;
+    color: var(--muted);
+    background: var(--hover);
+    padding: 2px 8px;
+    border-radius: 4px;
+  }
   .footer {
     text-align: center;
     color: var(--muted);
@@ -209,8 +277,18 @@
     <li><a href="ai_runtime_learning_plan.html"><span class="icon icon-html">🌐</span><span class="name">ai_runtime_learning_plan.html</span><span class="ext">HTML</span></a></li>
   </ul>
 </div>
+
+<div class="section-title">📋 最近更新</div>
+<div class="activity">
+<div class="activity-item"><div class="activity-header"><span class="activity-hash">008f896</span><span class="activity-subject">add-study-notes</span><span class="activity-time">4 minutes ago</span></div><div class="activity-files"><span class="activity-file">Git部署/01-基础入门/GitHub-Pages-部署.html</span><span class="activity-file">Git部署/02-自动化/index-html-自动生成.html</span><span class="activity-file">Git部署/index.html</span><span class="activity-file">rust/02-语法进阶/Two-Sum-实现与Rust知识点.html</span><span class="activity-file">rust/index.html</span></div></div>
+<div class="activity-item"><div class="activity-header"><span class="activity-hash">4d8df83</span><span class="activity-subject">\&quot;docs: add Rust study notes knowledge base\&quot;</span><span class="activity-time">2 hours ago</span></div><div class="activity-files"><span class="activity-file">rust/01-基础入门/Cargo-入门.md</span><span class="activity-file">rust/01-基础入门/Hello-World.md</span><span class="activity-file">rust/02-语法进阶/match-模式匹配陷阱.md</span><span class="activity-file">rust/02-语法进阶/控制台IO.md</span><span class="activity-file">rust/02-语法进阶/流程控制.md</span><span class="activity-file">rust/03-工具链与生态/Cargo-Workspace.md</span><span class="activity-file">rust/03-工具链与生态/VS-Code-配置.md</span><span class="activity-file">rust/03-工具链与生态/rand-crate-版本.md</span><span class="activity-file">rust/04-综合案例/猜数字游戏.md</span><span class="activity-file">rust/README.md</span></div></div>
+<div class="activity-item"><div class="activity-header"><span class="activity-hash">f0963ca</span><span class="activity-subject">auto-generate-index</span><span class="activity-time">3 hours ago</span></div><div class="activity-files"><span class="activity-file">.github/workflows/generate-index.yml</span><span class="activity-file">.gitignore</span></div></div>
+<div class="activity-item"><div class="activity-header"><span class="activity-hash">691e1a9</span><span class="activity-subject">ai learning plan</span><span class="activity-time">4 hours ago</span></div><div class="activity-files"><span class="activity-file">ai_runtime_learning_plan.html</span></div></div>
+<div class="activity-item"><div class="activity-header"><span class="activity-hash">6f5cae8</span><span class="activity-subject">update</span><span class="activity-time">3 months ago</span></div><div class="activity-files"><span class="activity-file">rust/1.html</span></div></div>
+</div>
+
 <div class="footer">
-  自动生成于 2026-05-10 02:11:30
+  自动生成于 2026-05-10 02:14:54
 </div>
 <script>
   document.querySelectorAll('.dir-toggle').forEach(toggle => {
