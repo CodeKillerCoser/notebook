@@ -3,39 +3,71 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Rust 学习笔记知识库</title>
+<title>Rust 学习笔记 · 索引</title>
 <style>
-  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; max-width: 900px; margin: 40px auto; padding: 0 20px; line-height: 1.7; color: #333; background: #fff; }
-  h1 { border-bottom: 2px solid #e36209; padding-bottom: 8px; }
-  h2 { margin-top: 32px; color: #24292e; }
-  table { border-collapse: collapse; width: 100%; margin: 16px 0; }
-  th, td { border: 1px solid #dfe2e5; padding: 8px 12px; text-align: left; }
-  th { background: #f6f8fa; }
-  a { color: #0366d6; }
-  .back { margin-top: 40px; font-size: 14px; }
+  :root {
+    --bg: #f8f9fa; --card-bg: #fff; --text: #212529;
+    --muted: #6c757d; --border: #dee2e6; --accent: #0366d6;
+    --code-bg: #1e1e1e; --code-text: #d4d4d4;
+    --red: #d73a49; --green: #28a745;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: var(--bg); color: var(--text); line-height: 1.7; padding: 2rem; }
+  .container { max-width: 860px; margin: 0 auto; }
+  h1 { font-size: 2rem; margin-bottom: .5rem; }
+  .subtitle { color: var(--muted); margin-bottom: 2rem; font-size: .95rem; }
+  .section { margin-bottom: 2.5rem; }
+  .section h2 { font-size: 1.2rem; color: var(--muted); text-transform: uppercase;
+    letter-spacing: .05em; border-bottom: 1px solid var(--border);
+    padding-bottom: .4rem; margin-bottom: 1rem; }
+  .card { background: var(--card-bg); border: 1px solid var(--border);
+    border-radius: 8px; padding: 1.2rem 1.5rem; margin-bottom: .75rem;
+    transition: box-shadow .15s; }
+  .card:hover { box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+  .card a { color: var(--accent); text-decoration: none; font-weight: 600; font-size: 1.05rem; }
+  .card a:hover { text-decoration: underline; }
+  .card p { color: var(--muted); font-size: .9rem; margin-top: .3rem; }
+  .tag { display: inline-block; background: #e8f0fe; color: var(--accent);
+    font-size: .75rem; padding: .15em .6em; border-radius: 3px; margin-right: .4rem; }
+  footer { text-align: center; color: var(--muted); font-size: .8rem;
+    margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border); }
 </style>
 </head>
 <body>
-<h1>Rust 学习笔记知识库</h1>
-<blockquote>Rust 语言学习笔记，包括智能指针、所有权、线程安全、LeetCode 刷题等。</blockquote>
+<div class="container">
+  <h1>🦀 Rust 学习笔记</h1>
+  <p class="subtitle">基于 DeepSeek 对话整理 · 2026-05-10</p>
 
-<h2>目录</h2>
+  <div class="section">
+    <h2>01 · 基础入门</h2>
+    <div class="card">
+      <a href="01-基础入门/所有权与借用心智模型.html">所有权与借用心智模型</a>
+      <p><span class="tag">核心概念</span>理解 Rust 中「消费」与「借用」的本质区别，掌握 Option 操作前的决策逻辑。</p>
+    </div>
+  </div>
 
-<h3>02 — 语法进阶</h3>
-<table>
-  <tr><th>文档</th><th>内容</th></tr>
-  <tr><td><a href="02-语法进阶/Two-Sum-实现与Rust知识点.html">LeetCode Two Sum — Rust 实现与知识点分析</a></td><td>代码错误分析、涉及 10 个 Rust 核心知识点</td></tr>
-  <tr><td><a href="02-语法进阶/Deref与解引用强制转换.html">Deref Trait 与解引用强制转换</a></td><td>Deref trait 原理、deref coercion 规则、方法调用自动解引用算法</td></tr>
-  <tr><td><a href="02-语法进阶/智能指针全解.html">智能指针全解</a></td><td>Box / Rc / Arc / Cell / RefCell / Mutex / Weak 全解与 C++ 对比</td></tr>
-  <tr><td><a href="02-语法进阶/Send与Sync线程安全标记.html">Send / Sync 线程安全标记</a></td><td>marker trait 定义、判定规则、常见类型的 Send/Sync 状态</td></tr>
-</table>
+  <div class="section">
+    <h2>02 · 语法进阶</h2>
+    <div class="card">
+      <a href="02-语法进阶/Option方法全景图.html">Option 方法全景图</a>
+      <p><span class="tag">速查表</span>6 大类 30+ 方法的完整参考，含签名、行为和记忆技巧。</p>
+    </div>
+    <div class="card">
+      <a href="02-语法进阶/Option常用组合模式.html">Option 常用组合模式</a>
+      <p><span class="tag">实战模式</span>借读取值、链式消费、match 匹配、可变修改 4 个高频模式。</p>
+    </div>
+  </div>
 
-<h3>04 — 综合案例</h3>
-<table>
-  <tr><th>文档</th><th>内容</th></tr>
-  <tr><td><a href="1.html">Rust 进程管理器代码深度解析</a></td><td>结构体与 impl 块、Arc/RwLock、Tokio 异步、条件编译、平台抽象等</td></tr>
-</table>
+  <div class="section">
+    <h2>04 · 综合案例</h2>
+    <div class="card">
+      <a href="04-综合案例/LeetCode-T2两数相加.html">LeetCode T2 · 两数相加</a>
+      <p><span class="tag">链表</span><span class="tag">所有权</span>逐行错误分析、两种修复方案、4 条核心领悟。</p>
+    </div>
+  </div>
 
-<p class="back"><a href="../index.html">← 返回根目录</a></p>
+  <footer>由 DeepSeek TUI 自动生成 · notebook 知识库</footer>
+</div>
 </body>
 </html>
