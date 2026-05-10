@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Send / Sync 线程安全标记</title>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; max-width: 900px; margin: 40px auto; padding: 0 20px; line-height: 1.7; color: #333; background: #fff; }
+  h1 { border-bottom: 2px solid #e36209; padding-bottom: 8px; }
+  h2 { margin-top: 32px; color: #24292e; }
+  h3 { margin-top: 24px; color: #24292e; }
+  pre { background: #f6f8fa; border-radius: 6px; padding: 16px; overflow-x: auto; }
+  code { font-family: "SF Mono", Consolas, "Liberation Mono", Menlo, monospace; font-size: 14px; }
+  pre code { background: none; padding: 0; }
+  table { border-collapse: collapse; width: 100%; margin: 16px 0; }
+  th, td { border: 1px solid #dfe2e5; padding: 8px 12px; text-align: left; }
+  th { background: #f6f8fa; font-weight: 600; }
+  .bad { color: #cb2431; background: #ffeef0; }
+  .good { color: #22863a; background: #f0fff4; }
+  blockquote { border-left: 4px solid #e36209; margin: 16px 0; padding: 4px 16px; background: #fff8f2; }
+  a { color: #0366d6; }
+  .back { margin-top: 40px; font-size: 14px; }
+</style>
+</head>
+<body>
+
+<h1>Send / Sync 线程安全标记 Trait</h1>
+
+<p><code>Send</code> 和 <code>Sync</code> 是 Rust 线程安全体系的基石。它们是 marker trait — 没有方法要实现，标记了类型是否能在线程间安全传递。</p>
+
+<h2>定义</h2>
+
+<pre><code class="language-rust">// Send：价值所有权可以安全地转移到另一个线程
+pub unsafe auto trait Send {}
+
+// Sync：多个线程可以安全地通过共享引用访问
+pub unsafe auto trait Sync {}
+</code></pre>
+
+<ul>
+  <li><code>auto trait</code> — 编译器自动为符合条件的类型实现，你通常不需要手动写</li>
+  <li><code>unsafe</code> — 只有你能保证线程安全时才手动实现</li>
+</ul>
+
+<h2>正向含义</h2>
+
+<pre><code class="language-plain">Send  = "我可以把所有权安全地转移到另一个线程"
+Sync  = "多个线程可以同时通过引用访问我"
+</code></pre>
+
+<h2>反向记忆法（更直观）</h2>
+
+<table>
+  <tr><th>类型</th><th>为什么不是 Send</th><th>为什么不是 Sync</th></tr>
+  <tr><td><code>Rc&lt;T&gt;</code></td><td>非原子引用计数，两个线程同时 <code>clone()</code> / <code>drop()</code> 会数据竞争</td><td>同左，共享引用下计数仍不安全</td></tr>
+  <tr><td><code>RefCell&lt;T&gt;</code></td><td>（RefCell 是 Send 当 T: Send）=</td><td>借用计数非原子，两个线程同时 <code>borrow_mut()</code> 会崩</td></tr>
+  <tr><td><code>Mutex&lt;T&gt;</code></td><td>当 T: Send</td><td>当 T: Send（互斥保证单线程访问）</td></tr>
+  <tr><td>裸指针 <code>*const T</code></td><td>编译器不知道它指向谁、生命周期、所有权</td><td>没有 <code>&amp;T</code> 的保证</td></tr>
+  <tr><td><code>Arc&lt;T&gt;</code></td><td>当 T: Send + Sync</td><td>当 T: Send + Sync</td></tr>
+</table>
+
+<h2>Send 和 Sync 的关系</h2>
+
+<blockquote>
+如果 <code>T: Sync</code>，则 <code>&amp;T: Send</code>。<br>
+如果 <code>&amp;T: Send</code>，则 <code>T: Sync</code>。
+</blockquote>
+
+<p>逻辑：如果能多线程共享引用（Sync），那引用本身就能传到另一个线程（Send）。反之亦然。</p>
+
+<h2>实际约束</h2>
+
+<pre><code class="language-rust">use std::rc::Rc;
+use std::thread;
+
+<span class="bad">// ❌ Rc 不是 Send，不能 move 进线程闭包</span>
+let a = Rc::new(42);
+thread::spawn(move || {
+    println!("{}", a);  // 编译错误：`Rc&lt;i32&gt;` cannot be sent between threads safely
+});
+
+<span class="bad">// ❌ RefCell 不是 Sync，不能通过 Arc 共享</span>
+use std::sync::Arc;
+use std::cell::RefCell;
+let b = Arc::new(RefCell::new(42));
+let b2 = b.clone();
+thread::spawn(move || {
+    b2.borrow_mut();  // 编译错误：`RefCell&lt;i32&gt;` cannot be shared between threads
+});
+</code></pre>
+
+<h2>复合类型的发送规则</h2>
+
+<p>一个类型是 Send 当且仅当其所有字段都是 Send。Sync 同理。因此嵌套类型有"传染性"：</p>
+
+<pre><code class="language-plain">Arc&lt;Mutex&lt;Vec&lt;Rc&lt;String&gt;&gt;&gt;&gt;
+                ↑
+                包含 Rc → 整体不是 Send
+                即使外面包了 Arc + Mutex 也不行
+</code></pre>
+
+<h2>C++ 对比</h2>
+
+<table>
+  <tr><th>Rust</th><th>C++</th></tr>
+  <tr><td><code>Send</code> / <code>Sync</code> — 编译期静态检查</td><td>无等价物 — 依赖文档和约定</td></tr>
+  <tr><td>违反 → 编译错误</td><td>违反 → 运行时数据竞争（UB）</td></tr>
+  <tr><td><code>Rc&lt;T&gt;</code> 单线程 — 编译器阻止你跨线程</td><td><code>shared_ptr&lt;T&gt;</code> — 允许跨线程，但非原子计数是 UB</td></tr>
+  <tr><td><code>Arc&lt;T&gt;</code> — 原子计数的 shared_ptr</td><td><code>shared_ptr&lt;T&gt;</code> 控制块本身有原子计数</td></tr>
+</table>
+
+<blockquote>
+关键区分：在 Rust 里，数据竞争不会出现，因为编译器在编译期就拒绝了所有跨线程不安全的组合。C++ 要靠你记住"shared_ptr 的控制块是线程安全的，但指向的 T 不是"。
+</blockquote>
+
+<p class="back"><a href="../index.html">← 返回索引</a></p>
+
+</body>
+</html>
