@@ -3,99 +3,85 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Rust 学习笔记 · 索引</title>
+<title>Rust 学习笔记知识库</title>
 <style>
-  :root {
-    --bg: #f8f9fa; --card-bg: #fff; --text: #212529;
-    --muted: #6c757d; --border: #dee2e6; --accent: #0366d6;
-    --code-bg: #1e1e1e; --code-text: #d4d4d4;
-    --red: #d73a49; --green: #28a745;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    background: var(--bg); color: var(--text); line-height: 1.7; padding: 2rem; }
-  .container { max-width: 860px; margin: 0 auto; }
-  h1 { font-size: 2rem; margin-bottom: .5rem; }
-  .subtitle { color: var(--muted); margin-bottom: 2rem; font-size: .95rem; }
-  .section { margin-bottom: 2.5rem; }
-  .section h2 { font-size: 1.2rem; color: var(--muted); text-transform: uppercase;
-    letter-spacing: .05em; border-bottom: 1px solid var(--border);
-    padding-bottom: .4rem; margin-bottom: 1rem; }
-  .card { background: var(--card-bg); border: 1px solid var(--border);
-    border-radius: 8px; padding: 1.2rem 1.5rem; margin-bottom: .75rem;
-    transition: box-shadow .15s; }
-  .card:hover { box-shadow: 0 2px 8px rgba(0,0,0,.08); }
-  .card a { color: var(--accent); text-decoration: none; font-weight: 600; font-size: 1.05rem; }
-  .card a:hover { text-decoration: underline; }
-  .card p { color: var(--muted); font-size: .9rem; margin-top: .3rem; }
-  .tag { display: inline-block; background: #e8f0fe; color: var(--accent);
-    font-size: .75rem; padding: .15em .6em; border-radius: 3px; margin-right: .4rem; }
-  footer { text-align: center; color: var(--muted); font-size: .8rem;
-    margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border); }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; max-width: 980px; margin: 40px auto; padding: 0 20px; line-height: 1.75; color: #333; background: #fff; }
+  h1 { border-bottom: 2px solid #e36209; padding-bottom: 8px; }
+  h2 { margin-top: 34px; color: #24292e; }
+  table { border-collapse: collapse; width: 100%; margin: 16px 0; }
+  th, td { border: 1px solid #dfe2e5; padding: 8px 12px; text-align: left; vertical-align: top; }
+  th { background: #f6f8fa; font-weight: 600; }
+  code { font-family: "SF Mono", Consolas, "Liberation Mono", Menlo, monospace; background: #f6f8fa; padding: 0.1em 0.35em; border-radius: 3px; }
+  blockquote { border-left: 4px solid #e36209; margin: 16px 0; padding: 4px 16px; background: #fff8f2; }
+  a { color: #0366d6; }
+  .tag { display: inline-block; background: #e8f0fe; color: #0366d6; font-size: 12px; padding: 0.1em 0.5em; border-radius: 3px; margin-right: 4px; }
+  .back { margin-top: 40px; font-size: 14px; }
 </style>
 </head>
 <body>
-<div class="container">
-  <h1>🦀 Rust 学习笔记</h1>
-  <p class="subtitle">基于 DeepSeek 对话整理 · 2026-05-10</p>
 
-  <div class="section">
-    <h2>01 · 基础入门</h2>
-    <div class="card">
-      <a href="01-基础入门/所有权与借用心智模型.html">所有权与借用心智模型</a>
-      <p><span class="tag">核心概念</span>理解 Rust 中「消费」与「借用」的本质区别，掌握 Option 操作前的决策逻辑。</p>
-    </div>
-  </div>
+<h1>Rust 学习笔记知识库</h1>
 
-  <div class="section">
-    <h2>02 · 语法进阶</h2>
-    <div class="card">
-      <a href="02-语法进阶/String处理与字符遍历.html">String 处理与字符遍历</a>
-      <p><span class="tag">String</span><span class="tag">Unicode</span>对比 <code>char_indices()</code>、<code>as_bytes()</code>、<code>chars().nth()</code> 的性能与适用场景。</p>
-    </div>
-    <div class="card">
-      <a href="02-语法进阶/String-str-完整心智模型.html">String、str 与字符串方法完整心智模型</a>
-      <p><span class="tag">str</span><span class="tag">&amp;str</span><span class="tag">String</span>系统整理字符串字面量、引用层数、<code>to_string()</code>、<code>repeat()</code>、<code>as_str()</code>、<code>bytes()</code>、<code>chars()</code>。</p>
-    </div>
-    <div class="card">
-      <a href="02-语法进阶/HashMap与容器选择.html">HashMap 与容器选择</a>
-      <p><span class="tag">HashMap</span><span class="tag">滑动窗口</span>记录 Rust 容器选型、键值访问和最长子串问题中的边界更新。</p>
-    </div>
-    <div class="card">
-      <a href="02-语法进阶/Option方法全景图.html">Option 方法全景图</a>
-      <p><span class="tag">速查表</span>6 大类 30+ 方法的完整参考，含签名、行为和记忆技巧。</p>
-    </div>
-    <div class="card">
-      <a href="02-语法进阶/Option常用组合模式.html">Option 常用组合模式</a>
-      <p><span class="tag">实战模式</span>借读取值、链式消费、match 匹配、可变修改 4 个高频模式。</p>
-    </div>
-  </div>
+<blockquote>
+  这套笔记按学习路径重排：先建立所有权和借用的心智模型，再进入字符串、Option、Deref、容器、并发与工具链，最后通过 LeetCode 和项目案例串联。
+</blockquote>
 
-  <div class="section">
-    <h2>04 · 综合案例</h2>
-    <div class="card">
-      <a href="04-综合案例/LeetCode-T3无重复字符的最长子串.html">LeetCode T3 · 无重复字符的最长子串</a>
-      <p><span class="tag">滑动窗口</span><span class="tag">HashMap</span>比较 ASCII 数组优化版和 Unicode 友好版，重点记录窗口左边界更新。</p>
-    </div>
-    <div class="card">
-      <a href="04-综合案例/LeetCode-T6-Z字形转换.html">LeetCode T6 · Z 字形转换</a>
-      <p><span class="tag">字符串</span><span class="tag">状态机</span>按行模拟、方向切换、字符串拼接和 Rust 写法优化。</p>
-    </div>
-    <div class="card">
-      <a href="04-综合案例/LeetCode-T7整数反转.html">LeetCode T7 · 整数反转</a>
-      <p><span class="tag">整数边界</span><span class="tag">溢出判断</span>用 <code>i32::MAX / 10</code> 和最后一位边界提前判断反转是否越界。</p>
-    </div>
-    <div class="card">
-      <a href="04-综合案例/LeetCode-T8字符串转换整数.html">LeetCode T8 · 字符串转换整数 atoi</a>
-      <p><span class="tag">状态机</span><span class="tag">截断</span>整理前导空白、符号、数字解析和 <code>i32</code> 上下界截断。</p>
-    </div>
-    <div class="card">
-      <a href="04-综合案例/LeetCode-T2两数相加.html">LeetCode T2 · 两数相加</a>
-      <p><span class="tag">链表</span><span class="tag">所有权</span>逐行错误分析、两种修复方案、4 条核心领悟。</p>
-    </div>
-  </div>
+<h2>推荐学习路径</h2>
+<table>
+  <tr><th>阶段</th><th>目标</th><th>重点文档</th></tr>
+  <tr><td>1. 入门心智模型</td><td>知道 Rust 为什么总在问“谁拥有、谁借用、谁被消费”。</td><td><a href="01-基础入门/所有权与借用心智模型.html">所有权与借用心智模型</a>、<a href="01-基础入门/Hello-World.md">Hello World</a>、<a href="01-基础入门/Cargo-入门.md">Cargo 入门</a></td></tr>
+  <tr><td>2. 核心语法与标准库</td><td>掌握日常写题和写小工具最常碰到的类型与 API。</td><td><a href="02-语法进阶/String-str-完整心智模型.html">Rust 字符串完整心智模型</a>、<a href="02-语法进阶/Option方法全景图.html">Option 方法全景图</a>、<a href="02-语法进阶/Deref与解引用强制转换.html">Deref 与解引用强制转换</a></td></tr>
+  <tr><td>3. 容器与算法表达</td><td>理解 <code>HashMap</code>、数组、切片、<code>Vec</code> 在算法里的选择。</td><td><a href="02-语法进阶/HashMap与容器选择.html">HashMap 与容器选择</a>、<a href="04-综合案例/LeetCode-T3无重复字符的最长子串.html">LeetCode T3</a>、<a href="04-综合案例/LeetCode-T1-Two-Sum-实现与Rust知识点.html">LeetCode T1 Two Sum</a></td></tr>
+  <tr><td>4. 工具链与生态</td><td>能配置 workspace、依赖、编辑器和常用 crate。</td><td><a href="03-工具链与生态/Cargo-Workspace.md">Cargo Workspace</a>、<a href="03-工具链与生态/rand-crate-版本.md">rand crate 版本</a>、<a href="03-工具链与生态/VS-Code-配置.md">VS Code 配置</a></td></tr>
+  <tr><td>5. 综合实践</td><td>把所有权、容器、字符串、错误处理和并发放到完整代码中看。</td><td><a href="04-综合案例/猜数字游戏.md">猜数字游戏</a>、<a href="04-综合案例/Rust进程管理器代码深度解析.html">Rust 进程管理器代码深度解析</a></td></tr>
+</table>
 
-  <footer>由 DeepSeek TUI 自动生成 · notebook 知识库</footer>
-</div>
+<h2>01 - 基础入门</h2>
+<table>
+  <tr><th>文档</th><th>内容</th></tr>
+  <tr><td><a href="01-基础入门/所有权与借用心智模型.html">所有权与借用心智模型</a></td><td><span class="tag">核心概念</span>消费、借用、克隆、<code>Option&lt;Box&lt;T&gt;&gt;</code> 等新手高频困惑的底层判断框架。</td></tr>
+  <tr><td><a href="01-基础入门/Hello-World.md">Hello World</a></td><td>第一个 Rust 程序，<code>fn main()</code>、<code>println!</code>、直接运行。</td></tr>
+  <tr><td><a href="01-基础入门/Cargo-入门.md">Cargo 入门</a></td><td>Cargo 常用命令、<code>Cargo.toml</code>、项目结构、workspace 协作。</td></tr>
+</table>
+
+<h2>02 - 语法进阶</h2>
+<table>
+  <tr><th>文档</th><th>内容</th></tr>
+  <tr><td><a href="02-语法进阶/String-str-完整心智模型.html">Rust 字符串完整心智模型</a></td><td><span class="tag">聚合入口</span><code>str</code>、<code>&amp;str</code>、<code>String</code>、UTF-8、转换、遍历、修改、查找、切分、解析、格式化。</td></tr>
+  <tr><td><a href="02-语法进阶/String处理与字符遍历.html">String 处理与字符遍历</a></td><td><code>char_indices()</code>、<code>as_bytes()</code>、<code>chars().nth()</code> 的性能与正确性取舍。</td></tr>
+  <tr><td><a href="02-语法进阶/HashMap与容器选择.html">HashMap 与容器选择</a></td><td><span class="tag">容器</span><code>HashMap</code>、栈数组、字节视角和字符视角在滑动窗口中的选择。</td></tr>
+  <tr><td><a href="02-语法进阶/Option方法全景图.html">Option 方法全景图</a></td><td><span class="tag">速查</span>检查、取出、借用、映射、替换、组合、转换等方法分类。</td></tr>
+  <tr><td><a href="02-语法进阶/Option常用组合模式.html">Option 常用组合模式</a></td><td>借读取值、链式消费、零方法模式匹配、可变借用修改内部值。</td></tr>
+  <tr><td><a href="02-语法进阶/Deref与解引用强制转换.html">Deref 与解引用强制转换</a></td><td>为什么 <code>&amp;String</code> 能当 <code>&amp;str</code>，为什么智能指针能调用内部类型方法。</td></tr>
+  <tr><td><a href="02-语法进阶/智能指针全解.html">智能指针全解</a></td><td><code>Box</code>、<code>Rc</code>、<code>Arc</code>、<code>RefCell</code>、<code>Mutex</code>、<code>Weak</code> 的选型。</td></tr>
+  <tr><td><a href="02-语法进阶/Send与Sync线程安全标记.html">Send / Sync 线程安全标记</a></td><td>线程间移动、共享引用安全性，以及复合类型的发送规则。</td></tr>
+  <tr><td><a href="02-语法进阶/控制台IO.md">控制台 I/O</a></td><td><code>stdin()</code>、<code>read_line()</code>、<code>trim()</code>、<code>parse()</code>。</td></tr>
+  <tr><td><a href="02-语法进阶/流程控制.md">流程控制</a></td><td><code>loop</code>、<code>while</code>、<code>for</code>、<code>break</code> 带值和选择结构。</td></tr>
+  <tr><td><a href="02-语法进阶/match-模式匹配陷阱.md">match 模式匹配陷阱</a></td><td>裸标识符是新绑定，不是外部变量取值；用 guard 做值比较。</td></tr>
+</table>
+
+<h2>03 - 工具链与生态</h2>
+<table>
+  <tr><th>文档</th><th>内容</th></tr>
+  <tr><td><a href="03-工具链与生态/Cargo-Workspace.md">Cargo Workspace</a></td><td>多项目 workspace、members、resolver 版本。</td></tr>
+  <tr><td><a href="03-工具链与生态/rand-crate-版本.md">rand crate 版本</a></td><td><code>rand</code> 0.7/0.8/0.10+ API 差异。</td></tr>
+  <tr><td><a href="03-工具链与生态/VS-Code-配置.md">VS Code 配置</a></td><td>rust-analyzer、打开 workspace、代码跳转。</td></tr>
+</table>
+
+<h2>04 - 综合案例</h2>
+<table>
+  <tr><th>文档</th><th>内容</th></tr>
+  <tr><td><a href="04-综合案例/LeetCode-T1-Two-Sum-实现与Rust知识点.html">LeetCode T1 - Two Sum</a></td><td><code>HashMap</code> 查询、插入时机、所有权和索引返回。</td></tr>
+  <tr><td><a href="04-综合案例/LeetCode-T2两数相加.html">LeetCode T2 - 两数相加</a></td><td>链表、<code>Option&lt;Box&lt;ListNode&gt;&gt;</code>、借用与消费。</td></tr>
+  <tr><td><a href="04-综合案例/LeetCode-T3无重复字符的最长子串.html">LeetCode T3 - 无重复字符的最长子串</a></td><td>滑动窗口、字符串遍历、ASCII 优化和 Unicode 友好版。</td></tr>
+  <tr><td><a href="04-综合案例/LeetCode-T6-Z字形转换.html">LeetCode T6 - Z 字形转换</a></td><td>按行模拟、状态维护、字符串拼接。</td></tr>
+  <tr><td><a href="04-综合案例/LeetCode-T7整数反转.html">LeetCode T7 - 整数反转</a></td><td>符号保持和溢出提前判断。</td></tr>
+  <tr><td><a href="04-综合案例/LeetCode-T8字符串转换整数.html">LeetCode T8 - 字符串转换整数 atoi</a></td><td>状态机、ASCII 字节扫描、边界截断。</td></tr>
+  <tr><td><a href="04-综合案例/猜数字游戏.md">猜数字游戏</a></td><td>控制台输入、随机数、match、循环和错误处理的综合入门案例。</td></tr>
+  <tr><td><a href="04-综合案例/Rust进程管理器代码深度解析.html">Rust 进程管理器代码深度解析</a></td><td>结构体、智能指针、并发锁、异步运行时、HashMap 和平台抽象的项目级案例。</td></tr>
+</table>
+
+<p class="back"><a href="../index.html">返回根目录</a></p>
+
 </body>
 </html>
