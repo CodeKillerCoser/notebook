@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>String、str 与字符串方法完整心智模型 | Rust 笔记</title>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; max-width: 920px; margin: 40px auto; padding: 0 20px; line-height: 1.75; color: #333; background: #fff; }
+  h1 { border-bottom: 2px solid #e36209; padding-bottom: 8px; }
+  h2 { margin-top: 32px; color: #24292e; }
+  h3 { margin-top: 24px; color: #24292e; }
+  pre { background: #f6f8fa; border-radius: 6px; padding: 16px; overflow-x: auto; }
+  code { font-family: "SF Mono", Consolas, "Liberation Mono", Menlo, monospace; font-size: 14px; }
+  pre code { background: none; padding: 0; }
+  p > code, li > code, td > code { background: #f6f8fa; padding: 0.1em 0.35em; border-radius: 3px; }
+  table { border-collapse: collapse; width: 100%; margin: 16px 0; }
+  th, td { border: 1px solid #dfe2e5; padding: 8px 12px; text-align: left; vertical-align: top; }
+  th { background: #f6f8fa; font-weight: 600; }
+  blockquote { border-left: 4px solid #e36209; margin: 16px 0; padding: 4px 16px; background: #fff8f2; }
+  .bad { color: #cb2431; font-weight: 600; }
+  .good { color: #22863a; font-weight: 600; }
+  a { color: #0366d6; }
+  .back { margin-top: 40px; font-size: 14px; }
+</style>
+</head>
+<body>
+
+<h1>String、str 与字符串方法完整心智模型</h1>
+
+<p>这篇笔记整理 Rust 字符串里最容易混淆的一组概念：<code>str</code>、<code>&amp;str</code>、<code>String</code>、<code>&amp;&amp;str</code>，以及常见方法 <code>to_string()</code>、<code>repeat()</code>、<code>as_str()</code>、<code>as_bytes()</code>、<code>bytes()</code>、<code>chars()</code>。</p>
+
+<h2>1. 三个核心类型</h2>
+
+<table>
+  <tr><th>类型</th><th>一句话</th><th>C/C++ 类比</th><th>常见用法</th></tr>
+  <tr><td><code>str</code></td><td>字符串内容本体，不定长，通常不能裸用。</td><td>不定长 <code>char[]</code> / UTF-8 字节序列的语义版本。</td><td>几乎总是藏在 <code>&amp;str</code>、<code>Box&lt;str&gt;</code> 后面。</td></tr>
+  <tr><td><code>&amp;str</code></td><td>对一段字符串内容的借用视图。</td><td>更像 <code>std::string_view</code>，不是简单的 <code>char*</code>。</td><td>函数参数只读字符串时优先用它。</td></tr>
+  <tr><td><code>String</code></td><td>拥有所有权、可增长、可修改的堆字符串。</td><td><code>std::string</code>。</td><td>需要构造、修改、保存、返回字符串时用它。</td></tr>
+</table>
+
+<blockquote>
+  记忆：<code>String</code> 是拥有者，<code>&amp;str</code> 是观察窗口，<code>str</code> 是窗口背后的字符串内容本体。
+</blockquote>
+
+<h2>2. 为什么不能直接写裸 <code>str</code></h2>
+
+<p><code>str</code> 是动态大小类型。<code>"hi"</code> 是 2 字节，<code>"hello"</code> 是 5 字节，<code>"你好"</code> 是 6 字节。编译器无法给裸 <code>str</code> 在栈上分配固定大小。</p>
+
+<pre><code class="language-rust"><span class="bad">// 错误：裸 str 不知道大小</span>
+// let s: str = "hello";
+
+<span class="good">// 正确：用 &amp;str 借用一段字符串内容</span>
+let s: &amp;str = "hello";</code></pre>
+
+<p><code>&amp;str</code> 是一个胖指针，包含两部分：</p>
+
+<pre><code class="language-plain">&amp;str
+┌──────────────┐
+│ ptr ─────────┼──&gt; UTF-8 字节起点
+│ len          │
+└──────────────┘</code></pre>
+
+<p>所以 <code>&amp;str</code> 不依赖 <code>\0</code> 结尾，且保证内容是合法 UTF-8。</p>
+
+<h2>3. 字符串字面量是什么</h2>
+
+<pre><code class="language-rust">let s = "hello";</code></pre>
+
+<p>这里 <code>s</code> 的类型是：</p>
+
+<pre><code class="language-rust">&amp;'static str</code></pre>
+
+<p>意思是：它借用程序静态只读区域里的一段字符串数据，生命周期贯穿整个程序。</p>
+
+<pre><code class="language-rust">let borrowed: &amp;str = "hello";
+let owned: String = String::from("hello");
+let owned2: String = "hello".to_string();</code></pre>
+
+<h2>4. <code>String</code> 和 <code>&amp;str</code> 如何互转</h2>
+
+<table>
+  <tr><th>目标</th><th>写法</th><th>是否分配新内存</th><th>说明</th></tr>
+  <tr><td><code>&amp;str -&gt; String</code></td><td><code>"abc".to_string()</code></td><td>是</td><td>复制字符串内容，生成拥有者。</td></tr>
+  <tr><td><code>&amp;str -&gt; String</code></td><td><code>String::from("abc")</code></td><td>是</td><td>和 <code>to_string()</code> 在这里效果接近。</td></tr>
+  <tr><td><code>String -&gt; &amp;str</code></td><td><code>s.as_str()</code></td><td>否</td><td>借用 <code>String</code> 的内容。</td></tr>
+  <tr><td><code>String -&gt; &amp;str</code></td><td><code>&amp;s</code></td><td>否</td><td>依靠 deref coercion，从 <code>&amp;String</code> 转成 <code>&amp;str</code>。</td></tr>
+  <tr><td><code>String -&gt; &amp;[u8]</code></td><td><code>s.as_bytes()</code></td><td>否</td><td>借用底层 UTF-8 字节。</td></tr>
+</table>
+
+<pre><code class="language-rust">fn read_only(text: &amp;str) {
+    println!("{}", text);
+}
+
+let a = "hello";
+let b = String::from("world");
+
+read_only(a);       // &amp;str
+read_only(&amp;b);      // &amp;String 自动转成 &amp;str
+read_only(b.as_str());</code></pre>
+
+<blockquote>
+  函数只是读取字符串时，参数优先写 <code>&amp;str</code>。这样既能接收字符串字面量，也能接收 <code>String</code> 的借用。
+</blockquote>
+
+<h2>5. <code>&amp;&amp;str</code> 是什么</h2>
+
+<p><code>&amp;&amp;str</code> 是“对 <code>&amp;str</code> 的引用”。先有一个字符串切片变量：</p>
+
+<pre><code class="language-rust">let s: &amp;str = "M";
+let r: &amp;&amp;str = &amp;s;
+
+let a: &amp;str = s;
+let b: &amp;str = *r; // 解一层引用</code></pre>
+
+<p>图上看是这样：</p>
+
+<pre><code class="language-plain">r: &amp;&amp;str
+   │
+   ▼
+s: &amp;str
+   │ ptr + len
+   ▼
+"M"</code></pre>
+
+<h3>为什么 <code>HashMap&lt;i32, &amp;str&gt;::get</code> 返回 <code>&amp;&amp;str</code></h3>
+
+<p><code>HashMap::get</code> 的签名可以简化成：</p>
+
+<pre><code class="language-rust">fn get(&amp;self, key: &amp;K) -&gt; Option&lt;&amp;V&gt;</code></pre>
+
+<p>如果表是：</p>
+
+<pre><code class="language-rust">let table = HashMap::from([
+    (1000, "M"),
+    (900, "CM"),
+]);</code></pre>
+
+<p>那么 value 类型是 <code>&amp;str</code>，也就是：</p>
+
+<pre><code class="language-rust">V = &amp;str
+&amp;V = &amp;&amp;str</code></pre>
+
+<p>所以：</p>
+
+<pre><code class="language-rust">if let Some(roman) = table.get(&amp;1000) {
+    // roman: &amp;&amp;str
+    result.push_str(roman);  // 自动解引用成 &amp;str
+    result.push_str(*roman); // 显式写法
+}</code></pre>
+
+<h2>6. 对临时值取引用：<code>table.get(&amp;(digit * base))</code></h2>
+
+<p>这句代码的含义是：先算出临时 key，再临时借用它一下，交给 <code>get</code> 查表。</p>
+
+<pre><code class="language-rust">table.get(&amp;(digit * base))</code></pre>
+
+<p>等价于：</p>
+
+<pre><code class="language-rust">let key = digit * base;
+table.get(&amp;key);</code></pre>
+
+<p>临时值的引用只需要活到这次函数调用结束。<code>get</code> 不会保存这个 key 引用，它只用它计算哈希和比较 key。返回值指向的是 <code>HashMap</code> 内部保存的 value，不是这个临时 key。</p>
+
+<blockquote>
+  这就是为什么 <code>some_map.get(&amp;42)</code> 是合法的：<code>42</code> 也是一个临时值，借用它只用于本次查找。
+</blockquote>
+
+<h2>7. 常见字符串方法速查</h2>
+
+<table>
+  <tr><th>方法</th><th>调用者</th><th>返回值</th><th>作用</th><th>是否分配</th></tr>
+  <tr><td><code>to_string()</code></td><td>通常是 <code>&amp;str</code> 或实现了 <code>Display</code> 的值</td><td><code>String</code></td><td>转换为拥有所有权的字符串。</td><td>通常是</td></tr>
+  <tr><td><code>as_str()</code></td><td><code>String</code></td><td><code>&amp;str</code></td><td>借用字符串内容。</td><td>否</td></tr>
+  <tr><td><code>repeat(n)</code></td><td><code>&amp;str</code></td><td><code>String</code></td><td>重复字符串 n 次。</td><td>是</td></tr>
+  <tr><td><code>as_bytes()</code></td><td><code>String</code> / <code>&amp;str</code></td><td><code>&amp;[u8]</code></td><td>借用底层 UTF-8 字节。</td><td>否</td></tr>
+  <tr><td><code>bytes()</code></td><td><code>String</code> / <code>&amp;str</code></td><td><code>Iterator&lt;Item = u8&gt;</code></td><td>逐字节遍历。</td><td>否</td></tr>
+  <tr><td><code>chars()</code></td><td><code>String</code> / <code>&amp;str</code></td><td><code>Iterator&lt;Item = char&gt;</code></td><td>逐 Unicode 标量值遍历。</td><td>否</td></tr>
+  <tr><td><code>char_indices()</code></td><td><code>String</code> / <code>&amp;str</code></td><td><code>Iterator&lt;Item = (usize, char)&gt;</code></td><td>返回字节下标和字符。</td><td>否</td></tr>
+</table>
+
+<h3><code>repeat()</code> 的返回值为什么是 <code>String</code></h3>
+
+<pre><code class="language-rust">let x = "I".repeat(3);
+assert_eq!(x, "III");</code></pre>
+
+<p>重复后的内容是新构造出来的字符串，必须有人拥有它，所以返回 <code>String</code>。</p>
+
+<h3><code>as_str()</code> 和 <code>to_string()</code> 是相反方向</h3>
+
+<pre><code class="language-rust">let owned: String = "hello".to_string(); // &amp;str -&gt; String，复制内容
+let view: &amp;str = owned.as_str();         // String -&gt; &amp;str，只借用</code></pre>
+
+<p><code>to_string()</code> 会创建拥有者；<code>as_str()</code> 只是拿一个视图。</p>
+
+<h2>8. <code>bytes()</code>、<code>as_bytes()</code>、<code>chars()</code> 的选择</h2>
+
+<table>
+  <tr><th>场景</th><th>推荐</th><th>原因</th></tr>
+  <tr><td>只处理 ASCII，例如 LeetCode 8 的数字字符</td><td><code>as_bytes()</code> 或 <code>bytes()</code></td><td>按字节处理更直接，速度快。</td></tr>
+  <tr><td>需要处理中文、emoji、非 ASCII 字符</td><td><code>chars()</code> / <code>char_indices()</code></td><td>不会把一个字符拆成多个字节。</td></tr>
+  <tr><td>既要字符，又要下标</td><td><code>char_indices()</code></td><td>返回的是字节下标，不是第几个字符。</td></tr>
+  <tr><td>循环里按下标取第 i 个字符</td><td>避免 <code>chars().nth(i)</code></td><td><code>nth(i)</code> 每次从头走，容易 O(n²)。</td></tr>
+</table>
+
+<pre><code class="language-rust">let s = "a你";
+
+assert_eq!(s.as_bytes().len(), 4); // a: 1 字节，你: 3 字节
+assert_eq!(s.chars().count(), 2);  // 两个 Unicode 标量值</code></pre>
+
+<h2>9. 一套实用判断规则</h2>
+
+<ul>
+  <li>要返回新拼出来的字符串：用 <code>String</code>。</li>
+  <li>函数只读字符串参数：写 <code>&amp;str</code>。</li>
+  <li>看到 <code>&amp;&amp;str</code>：通常是“容器返回 value 的引用，而 value 本身又是引用”。</li>
+  <li>想从 <code>String</code> 暂时看一眼内容：用 <code>as_str()</code> 或 <code>&amp;s</code>。</li>
+  <li>想从 <code>&amp;str</code> 变成可拥有、可修改的字符串：用 <code>to_string()</code> 或 <code>String::from()</code>。</li>
+  <li>ASCII 算法可以用字节；通用字符串算法优先用字符迭代。</li>
+</ul>
+
+<p class="back"><a href="../index.html">返回 Rust 索引</a></p>
+
+</body>
+</html>
