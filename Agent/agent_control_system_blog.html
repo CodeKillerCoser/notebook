@@ -1,0 +1,789 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>把 Agent 当作控制系统来设计：从工具调用到闭环智能工程</title>
+  <style>
+
+    :root{
+      --bg:#ffffff;
+      --paper:#ffffff;
+      --text:#24292f;
+      --muted:#6a737d;
+      --muted-2:#8c959f;
+      --line:#d8dee4;
+      --line-soft:#eaeef2;
+      --ink:#0f172a;
+      --accent:#2563eb;
+      --accent-soft:#eff6ff;
+      --green:#0f766e;
+      --green-soft:#f0fdfa;
+      --orange:#b45309;
+      --orange-soft:#fffbeb;
+      --purple:#6d28d9;
+      --purple-soft:#faf5ff;
+      --red:#b91c1c;
+      --red-soft:#fef2f2;
+      --gray-soft:#f6f8fa;
+      --code-bg:#f6f8fa;
+      --sidebar:220px;
+      --content:820px;
+      --radius:10px;
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth;scroll-padding-top:28px}
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--text);
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",Arial,sans-serif;
+      line-height:1.82;
+      letter-spacing:.005em;
+      font-size:16px;
+    }
+    .page{max-width:1180px;margin:0 auto;padding:34px 28px 72px}
+    header.hero{
+      max-width:var(--content);
+      margin-left:calc(var(--sidebar) + 42px);
+      padding:22px 0 28px;
+      border-bottom:1px solid var(--line-soft);
+      background:transparent;
+      box-shadow:none;
+      border-radius:0;
+      overflow:visible;
+    }
+    .eyebrow{
+      margin:0 0 12px;
+      color:var(--muted);
+      font-size:12px;
+      font-weight:700;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+    }
+    h1{
+      margin:0 0 16px;
+      color:#111827;
+      font-size:40px;
+      line-height:1.18;
+      letter-spacing:-.035em;
+      font-weight:760;
+    }
+    .subtitle{max-width:760px;margin:0;color:#4b5563;font-size:17px;line-height:1.85}
+    .meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
+    .chip{display:inline-flex;align-items:center;padding:3px 9px;border:1px solid var(--line-soft);border-radius:999px;background:#fafbfc;color:#57606a;font-size:12px;line-height:1.6;font-weight:500}
+    .content{display:grid;grid-template-columns:var(--sidebar) minmax(0,var(--content));gap:42px;align-items:start;margin-top:26px}
+    main.article{min-width:0;background:transparent;border:none;border-radius:0;box-shadow:none;padding:0 0 20px}
+    aside.toc{
+      position:sticky;
+      top:22px;
+      max-height:calc(100vh - 44px);
+      overflow:auto;
+      background:transparent;
+      border:none;
+      border-right:1px solid var(--line-soft);
+      border-radius:0;
+      padding:8px 18px 8px 0;
+      box-shadow:none;
+      backdrop-filter:none;
+      color:var(--muted);
+    }
+    aside.toc h3{margin:0 0 10px;font-size:12px;line-height:1.5;color:#8c959f;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+    aside.toc a{display:block;color:#6b7280;text-decoration:none;font-size:13px;line-height:1.45;padding:5px 0;border-bottom:none;transition:color .15s ease, transform .15s ease}
+    aside.toc a:hover{color:#111827;transform:translateX(2px)}
+    h2{font-size:26px;line-height:1.38;margin:56px 0 18px;color:#111827;letter-spacing:-.018em;padding-top:0;font-weight:720;border-top:1px solid var(--line-soft);padding-top:30px}
+    h2:first-child{margin-top:0;border-top:none;padding-top:0}
+    h3{font-size:19px;line-height:1.5;margin:34px 0 12px;color:#111827;font-weight:690;letter-spacing:-.01em}
+    p{margin:14px 0;color:var(--text)}
+    strong{color:#111827;font-weight:700}
+    a{color:var(--accent)}
+    .lead{font-size:17px;color:#374151;border-left:3px solid var(--accent);padding:10px 0 10px 16px;background:transparent;border-radius:0;margin:18px 0 24px}
+    .note,.warning,.principle,.casebox{border-radius:10px;padding:16px 18px;margin:24px 0;border:1px solid var(--line-soft);box-shadow:none}
+    .note{background:var(--accent-soft);border-color:#dbeafe}
+    .principle{background:var(--green-soft);border-color:#ccfbf1}
+    .warning{background:var(--orange-soft);border-color:#fde68a}
+    .casebox{background:var(--purple-soft);border-color:#ede9fe}
+    .note b,.principle b,.warning b,.casebox b{display:block;margin-bottom:4px;color:#111827;font-size:14px}
+    blockquote{margin:24px 0;padding:13px 18px;border-left:3px solid var(--accent);background:#f6f8fa;border-radius:0;color:#374151;font-weight:550}
+    code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;background:var(--code-bg);border:1px solid var(--line-soft);border-radius:5px;padding:.08em .34em;font-size:.92em;color:#0f172a}
+    pre{background:#0f172a;color:#e5e7eb;padding:18px 20px;border-radius:10px;overflow:auto;line-height:1.62;margin:22px 0;font-size:14px;border:1px solid #1f2937}
+    pre code{background:transparent;border:none;color:inherit;padding:0}
+    ul,ol{padding-left:1.35em;margin:12px 0 18px}
+    li{margin:6px 0}
+    table{width:100%;border-collapse:collapse;margin:22px 0;border:1px solid var(--line-soft);border-radius:0;overflow:hidden;font-size:14px;background:#fff}
+    th,td{padding:10px 12px;border-bottom:1px solid var(--line-soft);vertical-align:top}
+    th{background:#f6f8fa;color:#111827;text-align:left;font-weight:700}
+    tr:last-child td{border-bottom:none}
+    .figure{margin:30px 0;border:1px solid var(--line-soft);border-radius:12px;background:#fff;box-shadow:none;overflow:hidden}
+    .figure .fig-title{padding:14px 18px 0;font-weight:700;color:#111827;font-size:15px}
+    .figure .fig-caption{padding:0 18px 16px;color:#6b7280;font-size:13px;line-height:1.7}
+    .figure svg{display:block;width:100%;height:auto;padding:8px 8px 2px;background:#fff}
+    .svg-text{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",Arial,sans-serif;fill:#111827}
+    .svg-muted{fill:#6b7280}
+    .svg-small{font-size:13px}
+    .svg-mid{font-size:16px;font-weight:700}
+    .svg-title{font-size:19px;font-weight:800}
+    .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:22px 0}
+    .card{border:1px solid var(--line-soft);border-radius:10px;background:#fff;padding:16px 18px;box-shadow:none}
+    .card h3{margin-top:0}
+    .kpi{font-size:30px;font-weight:800;color:#111827;letter-spacing:-.035em}
+    .footer{max-width:var(--content);margin:34px 0 0 calc(var(--sidebar) + 42px);padding-top:18px;border-top:1px solid var(--line-soft);color:#8c959f;font-size:12px;text-align:left}
+    .checklist li{list-style:none;position:relative;padding-left:22px}
+    .checklist li::before{content:"✓";position:absolute;left:0;color:var(--green);font-weight:800}
+    .badlist li{list-style:none;position:relative;padding-left:22px}
+    .badlist li::before{content:"×";position:absolute;left:0;color:var(--red);font-weight:800}
+    .section-number{display:inline-flex;align-items:center;justify-content:center;min-width:28px;height:28px;margin-right:8px;vertical-align:2px;border-radius:6px;background:#f6f8fa;border:1px solid var(--line-soft);color:#6b7280;font-size:13px;font-weight:700}
+    .formula{font-size:15px;background:#f6f8fa;border:1px solid var(--line-soft);border-radius:10px;padding:14px 16px;text-align:center;margin:20px 0;color:#111827;font-weight:650}
+    @media(max-width:1020px){
+      .page{max-width:880px;padding:26px 22px 60px}
+      header.hero{margin-left:0;max-width:none}
+      .content{display:block;margin-top:22px}
+      aside.toc{position:relative;top:auto;max-height:none;overflow:visible;border-right:none;border-bottom:1px solid var(--line-soft);padding:0 0 16px;margin-bottom:26px;columns:2}
+      aside.toc h3{break-after:avoid;columns:auto}
+      aside.toc a{break-inside:avoid;font-size:12.5px;padding:4px 0}
+      .footer{margin-left:0;max-width:none}
+    }
+    @media(max-width:720px){
+      body{font-size:15.5px}
+      .page{padding:22px 18px 52px}
+      h1{font-size:30px}
+      h2{font-size:23px;margin-top:46px}
+      .subtitle{font-size:16px}
+      aside.toc{columns:1}
+      .grid-2{grid-template-columns:1fr}
+      pre{font-size:13px}
+    }
+    @media print{body{background:white}.page{max-width:none;padding:0}.content{display:block}aside.toc{display:none}header.hero{margin-left:0;max-width:none}header.hero,main.article{box-shadow:none;border:none;border-radius:0}.figure{break-inside:avoid}h2,h3{break-after:avoid}.footer{margin-left:0}}
+
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="hero">
+      <div class="eyebrow">Agent Systems × Control Theory</div>
+      <h1>把 Agent 当作控制系统来设计：从工具调用到闭环智能工程</h1>
+      <p class="subtitle">如果操作系统视角回答的是“Agent 如何被安全地运行”，控制系统视角回答的就是“Agent 如何在不确定环境中稳定逼近目标”。这篇文章尝试把 Agent、AI-native 开发、多 Agent 协作、自动验证与自愈，统一放进一个闭环控制框架里。</p>
+      <div class="meta">
+        <span class="chip">技术报告版</span>
+        <span class="chip">闭环控制视角</span>
+        <span class="chip">内嵌 SVG 图表</span>
+      </div>
+    </header>
+
+    <div class="content">
+      <aside class="toc">
+        <h3>目录</h3>
+        <a href="#intro">1. 为什么需要控制系统视角</a>
+        <a href="#open-loop">2. 从开环生成到闭环控制</a>
+        <a href="#mapping">3. 控制系统映射</a>
+        <a href="#reference">4. Spec 是目标信号</a>
+        <a href="#state">5. 状态估计</a>
+        <a href="#feedback">6. 误差与反馈</a>
+        <a href="#controller">7. MPC 式 Planner</a>
+        <a href="#gain">8. 自主性调参</a>
+        <a href="#stability">9. 稳定性与阻尼</a>
+        <a href="#constraints">10. 约束与安全滤波</a>
+        <a href="#multi-agent">11. 分布式多 Agent</a>
+        <a href="#qoder">12. 真实实践解释</a>
+        <a href="#failure">13. 失败模式</a>
+        <a href="#architecture">14. Runtime 架构</a>
+        <a href="#metrics">15. 控制系统化指标</a>
+        <a href="#checklist">16. 实践清单</a>
+        <a href="#conclusion">17. 结语</a>
+      </aside>
+
+      <main class="article">
+        <h2 id="intro"><span class="section-number">1</span>为什么需要控制系统视角？</h2>
+        <p class="lead">过去我们常把 Agent 系统描述成 <strong>LLM + Tools + Memory</strong>。这个描述能解释 Agent 的组成，却不足以解释 Agent 如何稳定工作。真正进入生产场景后，关键问题不是“它能不能生成答案”，而是“它能不能在复杂、动态、带噪声的环境中持续逼近目标，并且不失控”。</p>
+        <p>在前面的讨论里，我们曾经用操作系统类比 Agent：Agent 像进程，工具调用像系统调用，Agent Runtime 像内核，权限、隔离、调度、审计都是基础设施。这个视角非常适合回答一类问题：</p>
+        <ul>
+          <li>Agent 能调用哪些工具？</li>
+          <li>Agent 的权限边界在哪里？</li>
+          <li>多个 Agent 如何隔离和调度？</li>
+          <li>如何记录、审计、回放一次执行？</li>
+        </ul>
+        <p>但它还没有完整回答另一个问题：<strong>Agent 如何稳定地把系统从当前状态推进到目标状态？</strong></p>
+        <p>这正是控制系统关心的问题。一个控制系统不会只看“控制器聪不聪明”，而会同时看目标、状态估计、执行器、传感器、误差、反馈、扰动、稳定性和约束。把这套语言迁移到 Agent 系统后，我们会得到一个更工程化的结论：</p>
+        <blockquote>Agent 不是一个会调用工具的聊天机器人，而是一个在不确定环境中，通过反馈持续控制系统状态、逼近目标，同时保持稳定和安全的闭环控制器。</blockquote>
+
+        <div class="figure">
+          <div class="fig-title">图 1：操作系统视角与控制系统视角的分工</div>
+          <svg viewBox="0 0 980 360" role="img" aria-label="OS view and control view">
+            <defs>
+              <marker id="arrow1" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#334155"/></marker>
+              <linearGradient id="g1" x1="0" x2="1"><stop offset="0" stop-color="#dbeafe"/><stop offset="1" stop-color="#ede9fe"/></linearGradient>
+            </defs>
+            <rect x="28" y="40" width="420" height="260" rx="22" fill="#fff" stroke="#cbd5e1"/>
+            <rect x="532" y="40" width="420" height="260" rx="22" fill="#fff" stroke="#cbd5e1"/>
+            <text x="238" y="80" text-anchor="middle" class="svg-text svg-title">操作系统视角</text>
+            <text x="742" y="80" text-anchor="middle" class="svg-text svg-title">控制系统视角</text>
+            <rect x="86" y="115" width="304" height="48" rx="13" fill="#dbeafe"/>
+            <text x="238" y="145" text-anchor="middle" class="svg-text svg-mid">如何安全运行 Agent？</text>
+            <text x="238" y="190" text-anchor="middle" class="svg-text svg-small">资源 · 权限 · 隔离 · 调度 · 工具调用</text>
+            <text x="238" y="222" text-anchor="middle" class="svg-text svg-small">日志 · 审计 · 回放 · 沙箱</text>
+            <rect x="590" y="115" width="304" height="48" rx="13" fill="#d1fae5"/>
+            <text x="742" y="145" text-anchor="middle" class="svg-text svg-mid">如何稳定达成目标？</text>
+            <text x="742" y="190" text-anchor="middle" class="svg-text svg-small">目标 · 反馈 · 误差 · 状态估计</text>
+            <text x="742" y="222" text-anchor="middle" class="svg-text svg-small">扰动 · 稳定性 · 收敛 · 自适应</text>
+            <path d="M450 170 C485 170 495 170 530 170" stroke="#334155" stroke-width="2.5" marker-end="url(#arrow1)" fill="none"/>
+            <rect x="372" y="274" width="236" height="44" rx="14" fill="url(#g1)" stroke="#cbd5e1"/>
+            <text x="490" y="302" text-anchor="middle" class="svg-text svg-mid">成熟 Agent 平台需要两者</text>
+          </svg>
+          <div class="fig-caption">OS 视角更偏“运行边界”，控制系统视角更偏“目标收敛”。前者让 Agent 不越界，后者让 Agent 不发散。</div>
+        </div>
+
+        <h2 id="open-loop"><span class="section-number">2</span>从开环生成到闭环控制</h2>
+        <p>最朴素的大模型应用是开环系统：</p>
+        <pre><code>用户输入 → LLM 生成结果 → 结束</code></pre>
+        <p>这个结构没有持续观察，没有误差修正，也没有稳定性机制。模型一次性输出，对了就对了，错了就错了。很多早期“AI 写代码”或“AI 生成文档”的体验，问题正出在这里：它只有生成能力，没有控制能力。</p>
+        <p>真正的 Agent 应该是闭环系统：</p>
+        <pre><code>目标 / Spec → Agent 决策 → 工具执行 → 环境变化 → 观察结果 → 误差评估 → 修正计划 → 继续执行</code></pre>
+        <p>闭环的含义不是“多调用几次模型”，而是每一次行动之后，系统都能观测真实结果，把结果和目标比较，计算差距，再决定下一步动作。</p>
+
+        <div class="figure">
+          <div class="fig-title">图 2：Agent 作为闭环控制器</div>
+          <svg viewBox="0 0 980 440" role="img" aria-label="Agent control loop">
+            <defs>
+              <marker id="arrow2" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#334155"/></marker>
+            </defs>
+            <rect x="62" y="52" width="170" height="62" rx="16" fill="#dbeafe" stroke="#93c5fd"/>
+            <text x="147" y="78" text-anchor="middle" class="svg-text svg-mid">Reference</text>
+            <text x="147" y="101" text-anchor="middle" class="svg-muted svg-small">目标 / Spec / SLO</text>
+            <rect x="318" y="52" width="170" height="62" rx="16" fill="#f1f5f9" stroke="#cbd5e1"/>
+            <text x="403" y="78" text-anchor="middle" class="svg-text svg-mid">Error</text>
+            <text x="403" y="101" text-anchor="middle" class="svg-muted svg-small">当前状态与目标差距</text>
+            <rect x="574" y="52" width="170" height="62" rx="16" fill="#d1fae5" stroke="#6ee7b7"/>
+            <text x="659" y="78" text-anchor="middle" class="svg-text svg-mid">Controller</text>
+            <text x="659" y="101" text-anchor="middle" class="svg-muted svg-small">Planner / Agent Runtime</text>
+            <rect x="574" y="186" width="170" height="62" rx="16" fill="#ffedd5" stroke="#fdba74"/>
+            <text x="659" y="212" text-anchor="middle" class="svg-text svg-mid">Actuator</text>
+            <text x="659" y="235" text-anchor="middle" class="svg-muted svg-small">工具 / API / 代码修改</text>
+            <rect x="318" y="186" width="170" height="62" rx="16" fill="#ede9fe" stroke="#c4b5fd"/>
+            <text x="403" y="212" text-anchor="middle" class="svg-text svg-mid">Plant</text>
+            <text x="403" y="235" text-anchor="middle" class="svg-muted svg-small">代码库 / 产品 / 业务系统</text>
+            <rect x="62" y="186" width="170" height="62" rx="16" fill="#fee2e2" stroke="#fca5a5"/>
+            <text x="147" y="212" text-anchor="middle" class="svg-text svg-mid">Sensor</text>
+            <text x="147" y="235" text-anchor="middle" class="svg-muted svg-small">测试 / 日志 / Review</text>
+            <path d="M232 83 L318 83" stroke="#334155" stroke-width="2.3" marker-end="url(#arrow2)" fill="none"/>
+            <path d="M488 83 L574 83" stroke="#334155" stroke-width="2.3" marker-end="url(#arrow2)" fill="none"/>
+            <path d="M659 114 L659 186" stroke="#334155" stroke-width="2.3" marker-end="url(#arrow2)" fill="none"/>
+            <path d="M574 217 L488 217" stroke="#334155" stroke-width="2.3" marker-end="url(#arrow2)" fill="none"/>
+            <path d="M318 217 L232 217" stroke="#334155" stroke-width="2.3" marker-end="url(#arrow2)" fill="none"/>
+            <path d="M147 186 C147 140 230 136 318 99" stroke="#334155" stroke-width="2.3" marker-end="url(#arrow2)" fill="none"/>
+            <path d="M147 248 C145 330 842 330 660 248" stroke="#94a3b8" stroke-width="2" stroke-dasharray="7 7" marker-end="url(#arrow2)" fill="none"/>
+            <text x="490" y="357" text-anchor="middle" class="svg-text svg-small">反馈不是附加功能，而是 Agent 能够收敛的前提</text>
+          </svg>
+          <div class="fig-caption">控制系统把“生成结果”变成“根据误差不断修正动作”。测试、监控、日志和人工 Review 都是 Agent 的传感器。</div>
+        </div>
+
+        <h2 id="mapping"><span class="section-number">3</span>核心映射：控制系统语言如何翻译成 Agent 架构</h2>
+        <p>下面这张映射表可以作为全文的骨架。它把控制系统中的关键概念翻译到 Agent 系统中。</p>
+        <table>
+          <thead><tr><th>控制系统概念</th><th>Agent 系统中的对应物</th><th>设计问题</th></tr></thead>
+          <tbody>
+            <tr><td>Reference / Setpoint</td><td>目标、Spec、验收标准、SLO</td><td>到底要达成什么？什么叫完成？</td></tr>
+            <tr><td>Error</td><td>当前状态与目标之间的差距</td><td>怎么知道还差多少？</td></tr>
+            <tr><td>Controller</td><td>LLM、Planner、Agent Runtime、Team Lead Agent</td><td>如何决定下一步动作？</td></tr>
+            <tr><td>Actuator</td><td>Tool call、代码修改、API 调用、部署脚本</td><td>Agent 能对世界做什么？</td></tr>
+            <tr><td>Plant</td><td>代码库、业务系统、用户环境、外部服务</td><td>被控制的对象是什么？</td></tr>
+            <tr><td>Sensor</td><td>测试、日志、监控、Review、用户反馈</td><td>如何观察真实结果？</td></tr>
+            <tr><td>State Estimator</td><td>上下文管理、Repo Wiki、知识图谱、Memory、RAG</td><td>如何估计当前状态？</td></tr>
+            <tr><td>Disturbance</td><td>需求变化、API 失败、测试抖动、文档过期、权限不足</td><td>如何抗扰动？</td></tr>
+            <tr><td>Stability</td><td>不死循环、不震荡、不越改越坏</td><td>系统是否会收敛？</td></tr>
+            <tr><td>Constraints</td><td>权限、安全策略、预算、合规、人工审批</td><td>哪些动作绝对不能做？</td></tr>
+            <tr><td>Supervisor</td><td>人类、策略引擎、审批系统</td><td>谁负责最终安全边界？</td></tr>
+          </tbody>
+        </table>
+        <p>从这张表开始，Agent 系统的核心问题不再是“模型聪不聪明”，而是：</p>
+        <div class="formula">这个闭环系统能否稳定、可控、可验证地把世界从当前状态推向目标状态？</div>
+
+        <h2 id="reference"><span class="section-number">4</span>Reference：Spec 不是文档，而是目标信号</h2>
+        <p>控制器首先需要一个目标值。例如恒温器需要知道目标温度，自动驾驶需要知道目标路线、速度、安全距离。Agent 系统同样需要明确目标，而这个目标就是 Spec。</p>
+        <p>问题在于，大多数需求文档并不是好的控制目标。它们通常写给人看，依赖人的背景知识、隐性约束和工程经验。例如：</p>
+        <pre><code>实现多 workspace 并行，每个 workspace 独立维护 Quest session，互不干扰。</code></pre>
+        <p>这句话作为产品意图是可以的，但作为 Agent 的目标信号远远不够。Agent 还需要知道路径格式如何兼容、存量锁表任务如何处理、Worktree 场景是否支持、旧接口是否不能动、哪些行为属于非目标、如何证明完成。</p>
+        <p>因此，AI-native 开发真正需要的是 <strong>Executable Spec</strong>，或者更强一点叫 <strong>Ultra Spec</strong>：它不是简单描述功能，而是把模糊意图转换成可控制、可观测、可验证的目标信号。</p>
+
+        <div class="figure">
+          <div class="fig-title">图 3：从模糊意图到可执行目标信号</div>
+          <svg viewBox="0 0 980 420" role="img" aria-label="Spec as reference signal">
+            <defs>
+              <marker id="arrow3" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#334155"/></marker>
+            </defs>
+            <rect x="50" y="155" width="190" height="82" rx="18" fill="#fee2e2" stroke="#fca5a5"/>
+            <text x="145" y="187" text-anchor="middle" class="svg-text svg-mid">模糊意图</text>
+            <text x="145" y="215" text-anchor="middle" class="svg-muted svg-small">“实现某功能”</text>
+            <path d="M240 196 L330 196" stroke="#334155" stroke-width="2.3" marker-end="url(#arrow3)"/>
+            <rect x="330" y="70" width="320" height="252" rx="22" fill="#fff" stroke="#cbd5e1"/>
+            <text x="490" y="106" text-anchor="middle" class="svg-text svg-title">Ultra Spec</text>
+            <text x="365" y="148" class="svg-text svg-small">✓ Goal / Non-goals</text>
+            <text x="365" y="178" class="svg-text svg-small">✓ 当前系统上下文</text>
+            <text x="365" y="208" class="svg-text svg-small">✓ 兼容性与影响范围</text>
+            <text x="365" y="238" class="svg-text svg-small">✓ 安全 / 性能 / SLO</text>
+            <text x="365" y="268" class="svg-text svg-small">✓ Test Plan / Rollback</text>
+            <text x="365" y="298" class="svg-text svg-small">✓ Human Decision Gates</text>
+            <path d="M650 196 L740 196" stroke="#334155" stroke-width="2.3" marker-end="url(#arrow3)"/>
+            <rect x="740" y="155" width="190" height="82" rx="18" fill="#d1fae5" stroke="#6ee7b7"/>
+            <text x="835" y="187" text-anchor="middle" class="svg-text svg-mid">目标信号</text>
+            <text x="835" y="215" text-anchor="middle" class="svg-muted svg-small">可执行 · 可验证 · 可上抛</text>
+            <text x="490" y="370" text-anchor="middle" class="svg-muted svg-small">Spec 的质量决定了控制目标是否清晰。目标不清晰，Agent 越强也可能越快偏航。</text>
+          </svg>
+          <div class="fig-caption">Ultra Spec 的价值在于把“想要什么”翻译成 Agent 可以执行、系统可以验证、人类可以审查的目标结构。</div>
+        </div>
+
+        <div class="principle"><b>设计原则</b>AI-native 不是 Code-first，而是 Spec-first；更准确地说，是 Executable-Spec-first。人类最重要的工作不再是亲手写每一行代码，而是在 Agent 行动前把目标、边界和验收标准定义清楚。</div>
+
+        <h2 id="state"><span class="section-number">5</span>State Estimation：Agent 看到的是“状态估计”，不是世界本身</h2>
+        <p>控制系统中，很多真实状态无法直接测量，只能通过传感器估计。例如自动驾驶并不知道“世界真相”，只能通过摄像头、雷达、地图、GPS 融合出一个当前状态。</p>
+        <p>Agent 也一样。它看到的不是代码库、产品和业务系统的全部真相，而是一个由多种信息拼出来的 <strong>belief state</strong>：</p>
+        <ul>
+          <li>当前上下文窗口；</li>
+          <li>检索到的文档和代码片段；</li>
+          <li>Repo Wiki、代码知识图谱和架构文档；</li>
+          <li>测试结果、日志、监控指标；</li>
+          <li>历史 Spec、决策记录、团队记忆；</li>
+          <li>工具调用返回结果。</li>
+        </ul>
+        <p>这个状态估计可能出错。文档可能过期，知识图谱可能没更新，检索可能漏掉关键文件，历史记忆可能已经不适用，测试也可能是 flaky 的。因此，成熟 Agent 系统不应该简单地“把更多内容塞进上下文”，而应该建立一个 <strong>Context Estimator / Belief Manager</strong>。</p>
+        <p>它至少需要做几件事：融合多源信息，标注来源，标注时间，识别冲突，判断置信度，发现过期信息，并在不确定时主动补充观测。</p>
+
+        <div class="figure">
+          <div class="fig-title">图 4：Agent 的状态估计器</div>
+          <svg viewBox="0 0 980 500" role="img" aria-label="State estimator">
+            <defs>
+              <marker id="arrow4" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#334155"/></marker>
+            </defs>
+            <rect x="58" y="62" width="190" height="58" rx="15" fill="#dbeafe" stroke="#93c5fd"/>
+            <text x="153" y="96" text-anchor="middle" class="svg-text svg-mid">Repo Wiki</text>
+            <rect x="58" y="148" width="190" height="58" rx="15" fill="#ede9fe" stroke="#c4b5fd"/>
+            <text x="153" y="182" text-anchor="middle" class="svg-text svg-mid">代码知识图谱</text>
+            <rect x="58" y="234" width="190" height="58" rx="15" fill="#d1fae5" stroke="#6ee7b7"/>
+            <text x="153" y="268" text-anchor="middle" class="svg-text svg-mid">测试 / 日志 / 监控</text>
+            <rect x="58" y="320" width="190" height="58" rx="15" fill="#ffedd5" stroke="#fdba74"/>
+            <text x="153" y="354" text-anchor="middle" class="svg-text svg-mid">历史 Spec / 决策</text>
+            <rect x="355" y="140" width="270" height="172" rx="24" fill="#fff" stroke="#cbd5e1"/>
+            <text x="490" y="178" text-anchor="middle" class="svg-text svg-title">State Estimator</text>
+            <text x="490" y="216" text-anchor="middle" class="svg-muted svg-small">融合 · 去噪 · 冲突识别</text>
+            <text x="490" y="246" text-anchor="middle" class="svg-muted svg-small">来源 · 时间 · 置信度</text>
+            <text x="490" y="276" text-anchor="middle" class="svg-muted svg-small">主动探测缺失上下文</text>
+            <rect x="735" y="162" width="190" height="128" rx="22" fill="#f8fafc" stroke="#cbd5e1"/>
+            <text x="830" y="200" text-anchor="middle" class="svg-text svg-title">Belief State</text>
+            <text x="830" y="232" text-anchor="middle" class="svg-muted svg-small">Agent 对当前世界</text>
+            <text x="830" y="260" text-anchor="middle" class="svg-muted svg-small">最可信的结构化估计</text>
+            <path d="M248 91 C295 105 310 146 355 178" stroke="#334155" stroke-width="2" marker-end="url(#arrow4)" fill="none"/>
+            <path d="M248 177 C300 182 315 194 355 208" stroke="#334155" stroke-width="2" marker-end="url(#arrow4)" fill="none"/>
+            <path d="M248 263 C300 260 315 250 355 242" stroke="#334155" stroke-width="2" marker-end="url(#arrow4)" fill="none"/>
+            <path d="M248 349 C300 336 315 306 355 274" stroke="#334155" stroke-width="2" marker-end="url(#arrow4)" fill="none"/>
+            <path d="M625 226 L735 226" stroke="#334155" stroke-width="2.3" marker-end="url(#arrow4)" fill="none"/>
+            <text x="490" y="432" text-anchor="middle" class="svg-muted svg-small">Agent 的幻觉很多时候不是“推理错”，而是“状态估计错”。</text>
+          </svg>
+          <div class="fig-caption">Repo Wiki、代码知识图谱和历史决策不只是文档，它们是提高 Agent 可观测性的传感器和状态模型。</div>
+        </div>
+
+        <h2 id="feedback"><span class="section-number">6</span>Error 与 Feedback：测试、Review 和监控都是传感器</h2>
+        <p>控制系统的核心不是动作，而是误差：</p>
+        <div class="formula">Error = Target State − Current State</div>
+        <p>在 Agent 系统中，误差信号可以来自许多地方：测试失败、类型检查失败、Lint 失败、E2E 失败、性能指标不达标、安全扫描失败、Review Agent 发现风险、用户验收不通过、线上监控异常，或者 Spec checklist 没有完成。</p>
+        <p>如果没有误差信号，Agent 就不知道自己做得对不对。很多 AI 代码生成 demo 看起来很酷，但不能进入生产，就是因为它们有生成能力，却没有误差反馈。</p>
+        <p>更进一步，一个成熟 Agent 系统应该有多层反馈回路，而不是一个单一反馈点。</p>
+        <table>
+          <thead><tr><th>反馈层级</th><th>反馈来源</th><th>时间尺度</th><th>主要作用</th></tr></thead>
+          <tbody>
+            <tr><td>工具调用级</td><td>命令输出、API 返回、文件修改结果</td><td>秒级</td><td>确认动作是否成功执行</td></tr>
+            <tr><td>代码级</td><td>单测、类型检查、Lint</td><td>秒到分钟</td><td>快速发现局部错误</td></tr>
+            <tr><td>PR 级</td><td>集成测试、Review、静态分析</td><td>分钟到小时</td><td>判断能否合入</td></tr>
+            <tr><td>发布级</td><td>监控、告警、用户反馈</td><td>小时到天</td><td>判断线上状态是否稳定</td></tr>
+            <tr><td>组织级</td><td>复盘、规则沉淀、评估集更新</td><td>天到周</td><td>让下一次执行更好</td></tr>
+          </tbody>
+        </table>
+
+        <div class="figure">
+          <div class="fig-title">图 5：多速率反馈回路</div>
+          <svg viewBox="0 0 980 430" role="img" aria-label="Multi-rate feedback loops">
+            <defs>
+              <marker id="arrow5" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#334155"/></marker>
+            </defs>
+            <rect x="80" y="70" width="820" height="280" rx="28" fill="#fff" stroke="#cbd5e1"/>
+            <rect x="135" y="112" width="710" height="210" rx="24" fill="#f8fafc" stroke="#cbd5e1"/>
+            <rect x="190" y="154" width="600" height="140" rx="22" fill="#eff6ff" stroke="#bfdbfe"/>
+            <rect x="245" y="196" width="490" height="70" rx="18" fill="#dcfce7" stroke="#86efac"/>
+            <text x="490" y="238" text-anchor="middle" class="svg-text svg-title">Tool / Code Loop</text>
+            <text x="490" y="180" text-anchor="middle" class="svg-text svg-mid">Task / PR Loop</text>
+            <text x="490" y="138" text-anchor="middle" class="svg-text svg-mid">Release Monitoring Loop</text>
+            <text x="490" y="96" text-anchor="middle" class="svg-text svg-mid">Learning Loop</text>
+            <text x="140" y="385" text-anchor="start" class="svg-muted svg-small">快反馈修小错：工具结果、单测、类型检查</text>
+            <text x="610" y="385" text-anchor="start" class="svg-muted svg-small">慢反馈修方向：Review、线上监控、复盘</text>
+          </svg>
+          <div class="fig-caption">反馈越慢，Agent 的行动步长越要小；反馈越快，Agent 可以拥有更高自主性。</div>
+        </div>
+
+        <h2 id="controller"><span class="section-number">7</span>Controller：Agent Planner 更像 MPC，而不是一次性计划器</h2>
+        <p>很多 Agent 系统会让模型先生成一个完整计划，然后按计划执行。但在复杂环境中，一次性计划很容易失效：代码状态会变化，测试会暴露新问题，外部依赖会失败，需求也可能被澄清。</p>
+        <p>更适合 Agent 的控制方式是 <strong>MPC，Model Predictive Control，模型预测控制</strong>。它的基本思想是：</p>
+        <pre><code>基于当前状态预测未来几步
+生成一个短期计划
+只执行第一步或少数几步
+观察结果
+重新估计状态
+重新规划</code></pre>
+        <p>这正是 Agent 应该采用的模式：Plan → Act → Observe → Replan。它比“一口气大改所有文件”稳定得多。</p>
+        <div class="figure">
+          <div class="fig-title">图 6：MPC 式 Agent Planner</div>
+          <svg viewBox="0 0 980 390" role="img" aria-label="MPC Agent Planner">
+            <defs>
+              <marker id="arrow6" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#334155"/></marker>
+            </defs>
+            <rect x="70" y="145" width="150" height="70" rx="18" fill="#dbeafe" stroke="#93c5fd"/>
+            <text x="145" y="174" text-anchor="middle" class="svg-text svg-mid">当前状态</text>
+            <text x="145" y="198" text-anchor="middle" class="svg-muted svg-small">State Estimate</text>
+            <rect x="290" y="100" width="180" height="160" rx="22" fill="#fff" stroke="#cbd5e1"/>
+            <text x="380" y="132" text-anchor="middle" class="svg-text svg-title">预测未来几步</text>
+            <text x="380" y="168" text-anchor="middle" class="svg-muted svg-small">Plan A</text>
+            <text x="380" y="198" text-anchor="middle" class="svg-muted svg-small">Plan B</text>
+            <text x="380" y="228" text-anchor="middle" class="svg-muted svg-small">Constraints</text>
+            <rect x="540" y="145" width="150" height="70" rx="18" fill="#d1fae5" stroke="#6ee7b7"/>
+            <text x="615" y="174" text-anchor="middle" class="svg-text svg-mid">只执行第一步</text>
+            <text x="615" y="198" text-anchor="middle" class="svg-muted svg-small">小步行动</text>
+            <rect x="760" y="145" width="150" height="70" rx="18" fill="#ffedd5" stroke="#fdba74"/>
+            <text x="835" y="174" text-anchor="middle" class="svg-text svg-mid">观察反馈</text>
+            <text x="835" y="198" text-anchor="middle" class="svg-muted svg-small">测试 / 日志 / Review</text>
+            <path d="M220 180 L290 180" stroke="#334155" stroke-width="2.3" marker-end="url(#arrow6)"/>
+            <path d="M470 180 L540 180" stroke="#334155" stroke-width="2.3" marker-end="url(#arrow6)"/>
+            <path d="M690 180 L760 180" stroke="#334155" stroke-width="2.3" marker-end="url(#arrow6)"/>
+            <path d="M835 215 C815 322 170 322 145 215" stroke="#94a3b8" stroke-width="2" stroke-dasharray="7 7" marker-end="url(#arrow6)" fill="none"/>
+            <text x="490" y="348" text-anchor="middle" class="svg-muted svg-small">不要一次性信任长计划；每一步行动后都要重新估计状态和规划下一步。</text>
+          </svg>
+          <div class="fig-caption">MPC 思路让 Agent 更保守、更可控：预测多步，但只执行少数步骤，然后根据反馈重新规划。</div>
+        </div>
+
+        <h2 id="gain"><span class="section-number">8</span>Gain：Agent 的自主性需要动态调参</h2>
+        <p>控制系统里，增益太高会震荡，增益太低会迟钝。Agent 也有“增益”：它决定 Agent 多大胆、多主动、多大范围地修改系统。</p>
+        <p>高增益 Agent 的表现是快速行动、大胆修改、少问问题、主动重构；低增益 Agent 则小步修改、频繁确认、严格遵守 Spec、更多上抛。</p>
+        <p>问题不在于高增益或低增益谁更好，而在于不同任务应该使用不同增益。</p>
+        <table>
+          <thead><tr><th>任务类型</th><th>推荐 Agent Gain</th><th>原因</th></tr></thead>
+          <tbody>
+            <tr><td>文档生成、注释补齐</td><td>高</td><td>风险低、反馈快、可回滚</td></tr>
+            <tr><td>单元测试补齐</td><td>中高</td><td>目标清晰，测试本身也是反馈</td></tr>
+            <tr><td>小 bug 修复、UI 微调</td><td>中</td><td>可自动验证，但仍需控制 diff 范围</td></tr>
+            <tr><td>跨模块重构</td><td>中低</td><td>影响面大，容易局部最优全局变差</td></tr>
+            <tr><td>权限系统、数据迁移、安全逻辑</td><td>低</td><td>不可逆风险高，需要强审批</td></tr>
+            <tr><td>删除历史兼容逻辑</td><td>极低</td><td>隐藏依赖多，必须人类主导</td></tr>
+          </tbody>
+        </table>
+        <p>成熟 Agent Runtime 应该支持模式切换，而不是所有任务都一个自主性档位：</p>
+        <pre><code>explore mode   ：大胆调研，少写入
+implement mode ：受控实现，小步提交
+review mode    ：保守检查，独立上下文
+repair mode    ：局部修复，限制 diff
+incident mode  ：只读优先，谨慎操作</code></pre>
+
+        <div class="figure">
+          <div class="fig-title">图 7：Agent 自主性应随风险和反馈质量动态调整</div>
+          <svg viewBox="0 0 980 470" role="img" aria-label="Agent autonomy gain scheduling">
+            <defs>
+              <marker id="arrow7" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#334155"/></marker>
+            </defs>
+            <line x1="150" y1="360" x2="850" y2="360" stroke="#334155" stroke-width="2.5" marker-end="url(#arrow7)"/>
+            <line x1="150" y1="360" x2="150" y2="70" stroke="#334155" stroke-width="2.5" marker-end="url(#arrow7)"/>
+            <text x="500" y="405" text-anchor="middle" class="svg-text svg-mid">反馈质量 / 验证完备度 →</text>
+            <text x="78" y="220" text-anchor="middle" transform="rotate(-90 78 220)" class="svg-text svg-mid">风险等级 →</text>
+            <rect x="190" y="90" width="250" height="110" rx="18" fill="#fee2e2" stroke="#fca5a5"/>
+            <text x="315" y="132" text-anchor="middle" class="svg-text svg-mid">低自主性</text>
+            <text x="315" y="162" text-anchor="middle" class="svg-muted svg-small">人类主导 / 强审批</text>
+            <rect x="520" y="90" width="250" height="110" rx="18" fill="#ffedd5" stroke="#fdba74"/>
+            <text x="645" y="132" text-anchor="middle" class="svg-text svg-mid">受控自主</text>
+            <text x="645" y="162" text-anchor="middle" class="svg-muted svg-small">小步执行 / 强验证</text>
+            <rect x="190" y="230" width="250" height="110" rx="18" fill="#ede9fe" stroke="#c4b5fd"/>
+            <text x="315" y="272" text-anchor="middle" class="svg-text svg-mid">先补传感器</text>
+            <text x="315" y="302" text-anchor="middle" class="svg-muted svg-small">目标不清 / 反馈不足</text>
+            <rect x="520" y="230" width="250" height="110" rx="18" fill="#d1fae5" stroke="#6ee7b7"/>
+            <text x="645" y="272" text-anchor="middle" class="svg-text svg-mid">高自主性</text>
+            <text x="645" y="302" text-anchor="middle" class="svg-muted svg-small">快速并行 / 自动修复</text>
+          </svg>
+          <div class="fig-caption">自主性不是固定开关，而是根据风险、反馈质量、目标清晰度动态调度的控制参数。</div>
+        </div>
+
+        <h2 id="stability"><span class="section-number">9</span>Stability：Agent 最大的问题不是出错，而是不收敛</h2>
+        <p>控制系统最怕不稳定。恒温器如果调得太激进，就会“太冷 → 猛烈加热 → 太热 → 猛烈制冷 → 太冷”，形成震荡。Agent 也会震荡。</p>
+        <p>常见表现包括：</p>
+        <ul class="badlist">
+          <li>修一个测试，坏三个测试；</li>
+          <li>改了 A，又改回 A；</li>
+          <li>两个 Agent 互相覆盖对方代码；</li>
+          <li>Review Agent 和 Coding Agent 反复争执；</li>
+          <li>Agent 不断重构，却没有让任务更接近完成；</li>
+          <li>Auto-Heal 越修越大，最后超出原始需求范围。</li>
+        </ul>
+        <p>因此，Agent Runtime 必须内置阻尼机制：</p>
+        <ul class="checklist">
+          <li>限制最大步数、最大工具调用次数和最大 diff 范围；</li>
+          <li>采用小步提交、checkpoint 和 rollback；</li>
+          <li>对高风险文件启用只读或审批模式；</li>
+          <li>连续失败后降低自主性，停止自动修复并上抛人类；</li>
+          <li>用单调进展指标判断“是否真的更接近目标”。</li>
+        </ul>
+        <p>一个非常有用的类比是 Lyapunov function：为任务定义一个“未完成度”指标，要求 Agent 的每一步动作尽量让它下降。</p>
+        <pre><code>V = 未满足验收项数量
+  + 失败测试数量
+  + 高风险 Review 问题数量
+  + 未解决开放问题数量
+  + 未通过安全检查数量
+  + Diff 风险分</code></pre>
+        <p>如果 V 连续上升，或者 V 没有下降但代码改动越来越大，系统就应该停止、回滚或上抛。</p>
+        <div class="warning"><b>稳定性原则</b>每一步不仅要问“Agent 做了什么”，还要问“系统是否更接近目标”。忙碌不等于收敛，自动修复不等于稳定。</div>
+
+        <h2 id="constraints"><span class="section-number">10</span>Constraints 与 Safety Filter：受约束的智能才可生产化</h2>
+        <p>控制系统不能为了更快到达目标而违反安全边界。自动驾驶不能闯红灯，工业控制不能让压力超过安全阈值。Agent 同样不能只优化“完成任务”。</p>
+        <p>它必须在约束下行动：</p>
+        <pre><code>maximize: task_success
+subject to:
+  security_policy
+  permission_scope
+  budget_limit
+  compatibility_constraints
+  human_approval_required_for_irreversible_actions
+  rollback_available</code></pre>
+        <p>这意味着所有高风险动作前都需要 Safety Filter：权限检查、参数校验、风险分类、模拟执行、人工审批、审计记录和回滚计划确认。</p>
+
+        <div class="figure">
+          <div class="fig-title">图 8：Agent 动作输出端的安全滤波器</div>
+          <svg viewBox="0 0 980 360" role="img" aria-label="Safety filter">
+            <defs>
+              <marker id="arrow8" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#334155"/></marker>
+            </defs>
+            <rect x="58" y="132" width="170" height="78" rx="18" fill="#dbeafe" stroke="#93c5fd"/>
+            <text x="143" y="164" text-anchor="middle" class="svg-text svg-mid">Agent</text>
+            <text x="143" y="190" text-anchor="middle" class="svg-muted svg-small">Proposed Action</text>
+            <path d="M228 171 L315 171" stroke="#334155" stroke-width="2.3" marker-end="url(#arrow8)"/>
+            <rect x="315" y="80" width="260" height="182" rx="24" fill="#fff" stroke="#cbd5e1"/>
+            <text x="445" y="118" text-anchor="middle" class="svg-text svg-title">Safety Filter</text>
+            <text x="445" y="154" text-anchor="middle" class="svg-muted svg-small">权限 · 预算 · 数据安全</text>
+            <text x="445" y="184" text-anchor="middle" class="svg-muted svg-small">参数校验 · 模拟执行</text>
+            <text x="445" y="214" text-anchor="middle" class="svg-muted svg-small">审批 · 审计 · 回滚</text>
+            <path d="M575 150 L700 100" stroke="#334155" stroke-width="2.3" marker-end="url(#arrow8)" fill="none"/>
+            <path d="M575 190 L700 242" stroke="#334155" stroke-width="2.3" marker-end="url(#arrow8)" fill="none"/>
+            <rect x="700" y="62" width="210" height="78" rx="18" fill="#d1fae5" stroke="#6ee7b7"/>
+            <text x="805" y="96" text-anchor="middle" class="svg-text svg-mid">允许执行</text>
+            <text x="805" y="121" text-anchor="middle" class="svg-muted svg-small">低风险 / 已授权</text>
+            <rect x="700" y="222" width="210" height="78" rx="18" fill="#fee2e2" stroke="#fca5a5"/>
+            <text x="805" y="256" text-anchor="middle" class="svg-text svg-mid">拒绝或上抛</text>
+            <text x="805" y="281" text-anchor="middle" class="svg-muted svg-small">高风险 / 不可逆</text>
+          </svg>
+          <div class="fig-caption">OS 视角下这是受控 syscall；控制系统视角下，这是输出端的安全滤波器。</div>
+        </div>
+
+        <h2 id="multi-agent"><span class="section-number">11</span>多 Agent 是分布式控制系统，不是群聊</h2>
+        <p>一旦进入多 Agent，我们面对的就不是单控制器问题，而是分布式控制问题。前端 Agent、后端 Agent、测试 Agent、Review Agent、文档 Agent 都在影响同一个系统状态。</p>
+        <p>这会带来一系列新问题：</p>
+        <ul>
+          <li>多个 Agent 是否共享同一个目标？</li>
+          <li>它们的状态估计是否一致？</li>
+          <li>是否会同时修改同一文件或同一接口？</li>
+          <li>局部最优是否会导致全局复杂度上升？</li>
+          <li>冲突发生时由谁仲裁？</li>
+        </ul>
+        <p>因此，多 Agent 不能只是“几个角色在一个聊天室里对话”。工程化的多 Agent 应该是：</p>
+        <pre><code>Spec → Task DAG → Agent Assignment → Isolated Context → Artifact Handoff → Verification</code></pre>
+        <p>全局控制器负责拆任务、识别依赖、控制并行边界、处理冲突和上抛不可逆决策；局部 Agent 在各自上下文中完成前端、后端、测试、调研、审查等专项任务。</p>
+
+        <div class="figure">
+          <div class="fig-title">图 9：多 Agent 作为分布式控制系统</div>
+          <svg viewBox="0 0 980 520" role="img" aria-label="Distributed multi-agent control system">
+            <defs>
+              <marker id="arrow9" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#334155"/></marker>
+            </defs>
+            <rect x="352" y="48" width="276" height="78" rx="20" fill="#dbeafe" stroke="#93c5fd"/>
+            <text x="490" y="80" text-anchor="middle" class="svg-text svg-title">Global Controller</text>
+            <text x="490" y="106" text-anchor="middle" class="svg-muted svg-small">Team Lead Agent / Scheduler</text>
+            <rect x="70" y="198" width="170" height="72" rx="18" fill="#d1fae5" stroke="#6ee7b7"/>
+            <text x="155" y="228" text-anchor="middle" class="svg-text svg-mid">前端 Agent</text>
+            <text x="155" y="252" text-anchor="middle" class="svg-muted svg-small">独立上下文</text>
+            <rect x="294" y="198" width="170" height="72" rx="18" fill="#ede9fe" stroke="#c4b5fd"/>
+            <text x="379" y="228" text-anchor="middle" class="svg-text svg-mid">后端 Agent</text>
+            <text x="379" y="252" text-anchor="middle" class="svg-muted svg-small">独立上下文</text>
+            <rect x="518" y="198" width="170" height="72" rx="18" fill="#ffedd5" stroke="#fdba74"/>
+            <text x="603" y="228" text-anchor="middle" class="svg-text svg-mid">测试 Agent</text>
+            <text x="603" y="252" text-anchor="middle" class="svg-muted svg-small">独立上下文</text>
+            <rect x="742" y="198" width="170" height="72" rx="18" fill="#fee2e2" stroke="#fca5a5"/>
+            <text x="827" y="228" text-anchor="middle" class="svg-text svg-mid">Review Agent</text>
+            <text x="827" y="252" text-anchor="middle" class="svg-muted svg-small">独立上下文</text>
+            <rect x="230" y="358" width="520" height="84" rx="22" fill="#f8fafc" stroke="#cbd5e1"/>
+            <text x="490" y="392" text-anchor="middle" class="svg-text svg-title">Shared Plant：代码库 / 产品 / 业务系统</text>
+            <text x="490" y="420" text-anchor="middle" class="svg-muted svg-small">通过接口契约、任务锁、文件锁、统一验证保持全局一致</text>
+            <path d="M430 126 L155 198" stroke="#334155" stroke-width="2" marker-end="url(#arrow9)" fill="none"/>
+            <path d="M470 126 L379 198" stroke="#334155" stroke-width="2" marker-end="url(#arrow9)" fill="none"/>
+            <path d="M510 126 L603 198" stroke="#334155" stroke-width="2" marker-end="url(#arrow9)" fill="none"/>
+            <path d="M550 126 L827 198" stroke="#334155" stroke-width="2" marker-end="url(#arrow9)" fill="none"/>
+            <path d="M155 270 L300 358" stroke="#334155" stroke-width="2" marker-end="url(#arrow9)" fill="none"/>
+            <path d="M379 270 L420 358" stroke="#334155" stroke-width="2" marker-end="url(#arrow9)" fill="none"/>
+            <path d="M603 270 L560 358" stroke="#334155" stroke-width="2" marker-end="url(#arrow9)" fill="none"/>
+            <path d="M827 270 L680 358" stroke="#334155" stroke-width="2" marker-end="url(#arrow9)" fill="none"/>
+          </svg>
+          <div class="fig-caption">多 Agent 的关键不是“更多角色”，而是全局控制器、任务 DAG、上下文隔离、结构化交接和全局验证。</div>
+        </div>
+
+        <h2 id="qoder"><span class="section-number">12</span>真实实践的控制系统解释：从认知地基到 Auto-Heal</h2>
+        <p>前面讨论过的真实 AI 开发实践，给了一个非常好的校准样本。这个案例里，团队没有直接让几十个 Agent 上来写代码，而是先刷新 Repo Wiki、补全代码知识图谱、整理历史 Spec 和决策原文。用控制系统语言说，这是在建立 <strong>Plant Model</strong> 和 <strong>State Estimator</strong>。</p>
+        <p>随后他们通过 Ultra Spec 把目标、边界、兼容性、风险和验证方式明确下来。这是 Reference Signal。再通过 Team Lead Agent 按 DAG 拆任务，分配给前端、后端、测试、审查、调研等专家 Agent。这是分布式控制。最后通过 Ultra Review 和 Nightly Auto-Heal，把代码生成能力接入验证与自愈闭环。</p>
+        <table>
+          <thead><tr><th>实践中的组件</th><th>控制系统含义</th></tr></thead>
+          <tbody>
+            <tr><td>Repo Wiki</td><td>被控对象的结构模型</td></tr>
+            <tr><td>代码知识图谱</td><td>依赖、接口、数据流的状态模型</td></tr>
+            <tr><td>历史 Spec / 决策原文</td><td>系统历史状态与隐性约束</td></tr>
+            <tr><td>Ultra Spec</td><td>Reference signal + constraints</td></tr>
+            <tr><td>Team Lead Agent</td><td>高层控制器 / 调度器</td></tr>
+            <tr><td>专家 Agent</td><td>分布式局部控制器</td></tr>
+            <tr><td>测试 / Review Agent</td><td>Sensor + verifier</td></tr>
+            <tr><td>Ultra Review</td><td>合入前稳定性检查</td></tr>
+            <tr><td>Nightly Auto-Heal</td><td>自动纠偏闭环</td></tr>
+            <tr><td>Expert Skill</td><td>自适应控制参数和经验沉淀</td></tr>
+            <tr><td>人类拍板</td><td>Supervisory control</td></tr>
+          </tbody>
+        </table>
+        <p>这个案例真正值得关注的不是“生成了多少行代码”，而是它显示出一套 Agentic Engineering Operating Model：认知先行，规格驱动，分布式执行，验证闭环，自愈修复，经验沉淀。</p>
+
+        <div class="figure">
+          <div class="fig-title">图 10：AI-native 开发的闭环控制流程</div>
+          <svg viewBox="0 0 980 520" role="img" aria-label="AI-native development as control loop">
+            <defs>
+              <marker id="arrow10" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#334155"/></marker>
+            </defs>
+            <rect x="54" y="70" width="180" height="58" rx="16" fill="#dbeafe" stroke="#93c5fd"/><text x="144" y="105" text-anchor="middle" class="svg-text svg-mid">Model</text><text x="144" y="126" text-anchor="middle" class="svg-muted svg-small">认知地基</text>
+            <rect x="284" y="70" width="180" height="58" rx="16" fill="#ede9fe" stroke="#c4b5fd"/><text x="374" y="105" text-anchor="middle" class="svg-text svg-mid">Spec</text><text x="374" y="126" text-anchor="middle" class="svg-muted svg-small">目标与约束</text>
+            <rect x="514" y="70" width="180" height="58" rx="16" fill="#d1fae5" stroke="#6ee7b7"/><text x="604" y="105" text-anchor="middle" class="svg-text svg-mid">Estimate</text><text x="604" y="126" text-anchor="middle" class="svg-muted svg-small">当前状态</text>
+            <rect x="744" y="70" width="180" height="58" rx="16" fill="#ffedd5" stroke="#fdba74"/><text x="834" y="105" text-anchor="middle" class="svg-text svg-mid">Control</text><text x="834" y="126" text-anchor="middle" class="svg-muted svg-small">DAG / 调度</text>
+            <rect x="744" y="230" width="180" height="58" rx="16" fill="#fee2e2" stroke="#fca5a5"/><text x="834" y="265" text-anchor="middle" class="svg-text svg-mid">Act</text><text x="834" y="286" text-anchor="middle" class="svg-muted svg-small">代码 / 工具</text>
+            <rect x="514" y="230" width="180" height="58" rx="16" fill="#f1f5f9" stroke="#cbd5e1"/><text x="604" y="265" text-anchor="middle" class="svg-text svg-mid">Sense</text><text x="604" y="286" text-anchor="middle" class="svg-muted svg-small">测试 / Review</text>
+            <rect x="284" y="230" width="180" height="58" rx="16" fill="#fff7ed" stroke="#fed7aa"/><text x="374" y="265" text-anchor="middle" class="svg-text svg-mid">Error</text><text x="374" y="286" text-anchor="middle" class="svg-muted svg-small">差距评估</text>
+            <rect x="54" y="230" width="180" height="58" rx="16" fill="#ecfdf5" stroke="#a7f3d0"/><text x="144" y="265" text-anchor="middle" class="svg-text svg-mid">Replan</text><text x="144" y="286" text-anchor="middle" class="svg-muted svg-small">修复 / 上抛</text>
+            <rect x="284" y="382" width="180" height="58" rx="16" fill="#e0f2fe" stroke="#7dd3fc"/><text x="374" y="417" text-anchor="middle" class="svg-text svg-mid">Stabilize</text><text x="374" y="438" text-anchor="middle" class="svg-muted svg-small">合入 / 灰度</text>
+            <rect x="514" y="382" width="180" height="58" rx="16" fill="#f5f3ff" stroke="#c4b5fd"/><text x="604" y="417" text-anchor="middle" class="svg-text svg-mid">Learn</text><text x="604" y="438" text-anchor="middle" class="svg-muted svg-small">Skill / 规则</text>
+            <path d="M234 99 L284 99" stroke="#334155" stroke-width="2.1" marker-end="url(#arrow10)"/><path d="M464 99 L514 99" stroke="#334155" stroke-width="2.1" marker-end="url(#arrow10)"/><path d="M694 99 L744 99" stroke="#334155" stroke-width="2.1" marker-end="url(#arrow10)"/>
+            <path d="M834 128 L834 230" stroke="#334155" stroke-width="2.1" marker-end="url(#arrow10)"/><path d="M744 259 L694 259" stroke="#334155" stroke-width="2.1" marker-end="url(#arrow10)"/><path d="M514 259 L464 259" stroke="#334155" stroke-width="2.1" marker-end="url(#arrow10)"/><path d="M284 259 L234 259" stroke="#334155" stroke-width="2.1" marker-end="url(#arrow10)"/>
+            <path d="M144 288 C145 345 320 330 374 382" stroke="#334155" stroke-width="2.1" marker-end="url(#arrow10)" fill="none"/><path d="M464 411 L514 411" stroke="#334155" stroke-width="2.1" marker-end="url(#arrow10)"/>
+            <path d="M604 382 C624 330 620 160 604 128" stroke="#94a3b8" stroke-width="2" stroke-dasharray="7 7" marker-end="url(#arrow10)" fill="none"/>
+          </svg>
+          <div class="fig-caption">AI-native 开发不再是“需求 → 编码 → 测试 → 上线”的直线，而是围绕状态、误差和反馈持续收敛的闭环。</div>
+        </div>
+
+        <h2 id="failure"><span class="section-number">13</span>从控制系统看 Agent 的失败模式</h2>
+        <p>控制系统视角最有价值的地方之一，是它能帮我们分类 Agent 失败模式，并给出对应的系统性解法。</p>
+        <table>
+          <thead><tr><th>失败模式</th><th>表现</th><th>系统性解法</th></tr></thead>
+          <tbody>
+            <tr><td>开环幻觉</td><td>一次性生成看似合理但实际错误的结果</td><td>强制验证闭环</td></tr>
+            <tr><td>传感器缺失</td><td>没有测试、日志或监控，不知道自己错了</td><td>补观测能力</td></tr>
+            <tr><td>状态估计错误</td><td>基于过期文档、错误记忆或缺失上下文行动</td><td>来源、时间戳、置信度、冲突检测</td></tr>
+            <tr><td>控制增益过高</td><td>过度重构、越界修改、修复震荡</td><td>小步提交、diff 限制、审批 gate</td></tr>
+            <tr><td>积分饱和</td><td>历史上下文太重，过度响应长期问题</td><td>记忆裁剪、过期、作用域限制</td></tr>
+            <tr><td>正反馈失控</td><td>错误经验被写入记忆并影响后续 Agent</td><td>知识入库前验证、可撤销、可版本化</td></tr>
+            <tr><td>多控制器冲突</td><td>多个 Agent 同时改同一模块，互相覆盖</td><td>DAG、文件锁、接口契约、中心仲裁</td></tr>
+            <tr><td>反馈延迟</td><td>完整 CI 太慢，Agent 在错误方向上走太远</td><td>快慢反馈分层，小步推进</td></tr>
+            <tr><td>执行器饱和</td><td>工具权限不足、API 限流、预算耗尽</td><td>任务开始前评估可控性</td></tr>
+            <tr><td>目标函数错误</td><td>完成表面指标，却违背真实意图</td><td>Non-goals、SLO、验收测试、人类监督</td></tr>
+          </tbody>
+        </table>
+
+        <h2 id="architecture"><span class="section-number">14</span>面向控制的 Agent Runtime 参考架构</h2>
+        <p>如果完全按照控制系统思路重新设计 Agent Runtime，它不应该只是 LLM、Tools 和 Memory 的松散组合，而应该包含 Reference Manager、State Estimator、Controller、Safety Filter、Actuator、Sensor、Error Evaluator 和 Learning System。</p>
+        <div class="figure">
+          <div class="fig-title">图 11：控制系统式 Agent Runtime</div>
+          <svg viewBox="0 0 980 620" role="img" aria-label="Control oriented Agent Runtime architecture">
+            <defs>
+              <marker id="arrow11" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#334155"/></marker>
+            </defs>
+            <rect x="360" y="40" width="260" height="56" rx="16" fill="#dbeafe" stroke="#93c5fd"/><text x="490" y="75" text-anchor="middle" class="svg-text svg-mid">Reference Manager</text>
+            <rect x="360" y="126" width="260" height="56" rx="16" fill="#ede9fe" stroke="#c4b5fd"/><text x="490" y="161" text-anchor="middle" class="svg-text svg-mid">State Estimator</text>
+            <rect x="360" y="212" width="260" height="56" rx="16" fill="#d1fae5" stroke="#6ee7b7"/><text x="490" y="247" text-anchor="middle" class="svg-text svg-mid">Controller / Planner</text>
+            <rect x="360" y="298" width="260" height="56" rx="16" fill="#ffedd5" stroke="#fdba74"/><text x="490" y="333" text-anchor="middle" class="svg-text svg-mid">Safety Filter</text>
+            <rect x="360" y="384" width="260" height="56" rx="16" fill="#fee2e2" stroke="#fca5a5"/><text x="490" y="419" text-anchor="middle" class="svg-text svg-mid">Actuator Layer</text>
+            <rect x="360" y="470" width="260" height="56" rx="16" fill="#f8fafc" stroke="#cbd5e1"/><text x="490" y="505" text-anchor="middle" class="svg-text svg-mid">Plant</text>
+            <rect x="70" y="470" width="210" height="56" rx="16" fill="#e0f2fe" stroke="#7dd3fc"/><text x="175" y="505" text-anchor="middle" class="svg-text svg-mid">Sensor Layer</text>
+            <rect x="70" y="342" width="210" height="56" rx="16" fill="#fff7ed" stroke="#fed7aa"/><text x="175" y="377" text-anchor="middle" class="svg-text svg-mid">Error Evaluator</text>
+            <rect x="700" y="342" width="210" height="56" rx="16" fill="#f5f3ff" stroke="#c4b5fd"/><text x="805" y="377" text-anchor="middle" class="svg-text svg-mid">Learning System</text>
+            <path d="M490 96 L490 126" stroke="#334155" stroke-width="2" marker-end="url(#arrow11)"/><path d="M490 182 L490 212" stroke="#334155" stroke-width="2" marker-end="url(#arrow11)"/><path d="M490 268 L490 298" stroke="#334155" stroke-width="2" marker-end="url(#arrow11)"/><path d="M490 354 L490 384" stroke="#334155" stroke-width="2" marker-end="url(#arrow11)"/><path d="M490 440 L490 470" stroke="#334155" stroke-width="2" marker-end="url(#arrow11)"/>
+            <path d="M360 498 L280 498" stroke="#334155" stroke-width="2" marker-end="url(#arrow11)"/><path d="M175 470 L175 398" stroke="#334155" stroke-width="2" marker-end="url(#arrow11)"/>
+            <path d="M280 370 C315 330 335 292 360 240" stroke="#334155" stroke-width="2" marker-end="url(#arrow11)" fill="none"/>
+            <path d="M620 370 L700 370" stroke="#334155" stroke-width="2" marker-end="url(#arrow11)"/>
+            <path d="M805 342 C805 135 650 145 620 154" stroke="#94a3b8" stroke-width="2" stroke-dasharray="7 7" marker-end="url(#arrow11)" fill="none"/>
+            <text x="490" y="580" text-anchor="middle" class="svg-muted svg-small">核心不是让模型“自由发挥”，而是让智能在目标、状态、约束和反馈构成的系统内稳定发挥。</text>
+          </svg>
+          <div class="fig-caption">传统 Agent 架构强调 LLM + Tools + Memory；控制系统式架构强调目标、状态估计、误差、约束、反馈和长期自适应。</div>
+        </div>
+
+        <h2 id="metrics"><span class="section-number">15</span>指标也要控制系统化</h2>
+        <p>如果我们用控制系统视角评价 Agent，就不能只看任务成功率、耗时和成本。还应该关注是否稳定、是否过度修改、是否对扰动鲁棒、是否需要频繁人工介入。</p>
+        <table>
+          <thead><tr><th>控制指标</th><th>Agent 指标</th><th>解释</th></tr></thead>
+          <tbody>
+            <tr><td>Settling Time</td><td>从任务开始到稳定完成的时间</td><td>不仅是生成速度，而是验证通过并可交付的速度</td></tr>
+            <tr><td>Overshoot</td><td>过度修改、超出 scope 的程度</td><td>Agent 是否为了完成任务改了太多不该改的东西</td></tr>
+            <tr><td>Steady-state Error</td><td>最终仍未满足的验收项</td><td>任务结束后仍存在的差距</td></tr>
+            <tr><td>Stability</td><td>是否循环、震荡、反复改动</td><td>能不能收敛</td></tr>
+            <tr><td>Robustness</td><td>异常输入、工具失败、测试抖动下是否可控</td><td>是否只在理想 demo 场景下有效</td></tr>
+            <tr><td>Control Effort</td><td>token、工具调用、代码 diff、计算成本</td><td>完成任务消耗了多少控制资源</td></tr>
+            <tr><td>Intervention Rate</td><td>需要人类介入的频率和质量</td><td>低价值打扰多不多，高风险上抛准不准</td></tr>
+            <tr><td>Constraint Violation Rate</td><td>越权、超预算、越界修改次数</td><td>是否安全可控</td></tr>
+          </tbody>
+        </table>
+        <p>从这个角度看，“生成了多少行代码”不是核心指标。更好的指标是：</p>
+        <div class="formula">单位人类决策成本下，稳定交付了多少可验证、可维护的能力。</div>
+
+        <h2 id="checklist"><span class="section-number">16</span>给 Agent 系统设计者的实践清单</h2>
+        <div class="grid-2">
+          <div class="card">
+            <h3>目标与状态</h3>
+            <ul class="checklist">
+              <li>是否把模糊需求转成可执行 Spec？</li>
+              <li>是否有明确 Non-goals 和约束？</li>
+              <li>是否知道当前系统状态？</li>
+              <li>上下文是否有来源、时间和置信度？</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>反馈与误差</h3>
+            <ul class="checklist">
+              <li>是否有测试、日志、监控和 Review 传感器？</li>
+              <li>是否能计算和 Spec 的差距？</li>
+              <li>是否区分代码错误、环境扰动和测试抖动？</li>
+              <li>是否存在快慢反馈分层？</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>控制与稳定</h3>
+            <ul class="checklist">
+              <li>是否小步执行、持续重新规划？</li>
+              <li>是否限制最大 diff、最大步数和最大成本？</li>
+              <li>连续失败后是否会降级或上抛？</li>
+              <li>是否有 checkpoint 与 rollback？</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>多 Agent 与学习</h3>
+            <ul class="checklist">
+              <li>多 Agent 是否通过 DAG 协作，而不是群聊？</li>
+              <li>是否有任务锁、文件锁和接口契约？</li>
+              <li>经验沉淀是否有版本、适用范围和过期机制？</li>
+              <li>错误知识是否可撤销、可审计？</li>
+            </ul>
+          </div>
+        </div>
+
+        <h2 id="conclusion"><span class="section-number">17</span>结语：从自主性走向可控自主性</h2>
+        <p>很多关于 Agent 的讨论都在强调 autonomy，自主性。但控制系统视角提醒我们：<strong>自主性本身不是目标，可控自主性才是目标。</strong></p>
+        <p>一个完全自主但不可控的 Agent，是风险；一个完全受控但不能自主的 Agent，只是脚本。理想的 Agent 应该在低风险、反馈充分、目标清晰的区域高度自主；在高风险、反馈不足、目标模糊的区域主动降级；在不可逆、跨边界、责任重大的地方上抛人类。</p>
+        <p>因此，成熟 Agent 平台应该同时具备两种系统能力：</p>
+        <ul>
+          <li><strong>Agent OS</strong> 负责运行边界：权限、资源、隔离、调度、审计、沙箱。</li>
+          <li><strong>Agent Control System</strong> 负责目标收敛：Spec、状态估计、反馈、误差、稳定性、自适应。</li>
+        </ul>
+        <blockquote>真正成熟的 Agent 系统，不是让模型自由发挥，而是让智能在正确的边界内，通过持续反馈稳定逼近目标。</blockquote>
+        <p>如果说操作系统视角让我们学会管理 Agent，那么控制系统视角让我们学会调教 Agent、观测 Agent、约束 Agent，并最终让 Agent 从“会生成”走向“会收敛”。</p>
+      </main>
+    </div>
+    <div class="footer">自包含 HTML 技术报告 · 左侧弱目录 · 内嵌 SVG 图表 · 无外部依赖</div>
+  </div>
+</body>
+</html>
