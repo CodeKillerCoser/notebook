@@ -1,0 +1,91 @@
+---
+title: "所有权与借用心智模型 · Rust 笔记"
+date: "2026-05-10T21:43:14+08:00"
+category: "Rust"
+tags:
+  - "Rust"
+  - "基础入门"
+breadcrumbs:
+  - title: "Notebook"
+    url: "/index.html"
+  - title: "Rust"
+    url: "/rust/index.html"
+  - title: "基础入门"
+    url: "/rust/01-基础入门/index.html"
+  - title: "所有权与借用心智模型 · Rust 笔记"
+    url: "/rust/01-基础入门/所有权与借用心智模型.html"
+layout: layouts/article.njk
+type: article
+comments: true
+permalink: "/rust/01-基础入门/所有权与借用心智模型.html"
+---
+<div class="container">
+  <p class="breadcrumb"><a href="../index.html">Rust 笔记</a> › 01-基础入门</p>
+  <h1>所有权与借用心智模型</h1>
+  <p><span class="tag">核心概念</span><span class="tag">Option</span></p>
+
+  <h2>核心矛盾</h2>
+  <p>Rust 不允许直接碰 <code>Option&lt;Box&lt;T&gt;&gt;</code> 里面的 <code>Box&lt;T&gt;</code>——碰了就意味着所有权转移，原变量就废了。</p>
+  <p>其他语言里直接 <code>node.val</code> 就行（背后是 GC 引用/指针拷贝），Rust 没有 GC，所有权的账必须算清楚。于是催生了 <code>as_ref / as_mut / map / and_then / unwrap</code> 这一整套工具方法。</p>
+
+  <h2>根本思路切换</h2>
+  <div class="decision-tree">其他语言思维：我有一个值 → 我直接用
+
+Rust 思维：
+  我有没有所有权？
+    ├── 有 → 可以 unwrap / map / and_then（消费式）
+    └── 没有 → 只能 as_ref / match / if let（借用式）</div>
+
+  <div class="block warn">
+    <strong>核心困境：</strong>想用"消费式"方法（<code>unwrap</code>）取出值，但又想保留原变量给后面用。这在 Rust 里是矛盾的。
+  </div>
+
+  <h3>解法只有两个</h3>
+  <ul>
+    <li><strong>路径 A</strong>：提前 <code>clone</code>，各自消费各自的</li>
+    <li><strong>路径 B</strong>：用借用式方法（<code>as_ref</code>、<code>as_deref</code>、<code>match</code>、<code>if let</code>），不消费原值</li>
+  </ul>
+
+  <h2>两条路径对照</h2>
+
+  <h3>路径 A：消费式（变量用完即废）</h3>
+  <pre><code>let p: Option&lt;Box&lt;ListNode&gt;&gt; = ...;
+
+// 一次性取出，之后 p 不能再用了
+let val = p.unwrap().val;
+
+// 一次性转换，生成新的 Option
+let next: Option&lt;Box&lt;ListNode&gt;&gt; = p.and_then(|node| node.next);</code></pre>
+
+  <h3>路径 B：借用式（变量保留）</h3>
+  <pre><code>let p: Option&lt;Box&lt;ListNode&gt;&gt; = ...;
+
+// 借出来看一眼，p 还在
+let val = p.as_ref().map_or(0, |node| node.val);
+
+// 用 match + 引用，同样不消费 p
+let val = match &amp;p {
+    Some(node) =&gt; node.val,
+    None =&gt; 0,
+};
+
+// if let 也是借用
+if let Some(ref node) = p {
+    println!("{}", node.val);
+}</code></pre>
+
+  <h2>动手前的第一问</h2>
+  <div class="decision-tree">我还要继续用这个变量吗？
+  ├── 不用了 → 消费式：unwrap / map / and_then / unwrap_or ...
+  └── 还要用 → 借用式：as_ref / as_deref / match &amp; / if let</div>
+
+  <div class="block good">
+    <strong>记住：</strong>方法签名中 <code>self</code>（不是 <code>&amp;self</code>）的参数一定会消费原值。看签名就能判断会不会 move。
+  </div>
+
+  <h2>Related</h2>
+  <ul>
+    <li><a href="../02-语法进阶/Option方法全景图.html">Option 方法全景图</a> — 完整方法分类速查</li>
+    <li><a href="../04-综合案例/LeetCode-T2两数相加.html">LeetCode T2 实战</a> — 真实错误演示</li>
+  </ul>
+</div>

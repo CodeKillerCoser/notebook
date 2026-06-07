@@ -1,0 +1,111 @@
+---
+title: "流程控制"
+date: "2026-05-09T23:49:00+08:00"
+category: "Rust"
+tags:
+  - "Rust"
+  - "语法进阶"
+breadcrumbs:
+  - title: "Notebook"
+    url: "/index.html"
+  - title: "Rust"
+    url: "/rust/index.html"
+  - title: "语法进阶"
+    url: "/rust/02-语法进阶/index.html"
+  - title: "流程控制"
+    url: "/rust/02-语法进阶/流程控制.html"
+layout: layouts/article.njk
+type: article
+comments: true
+permalink: "/rust/02-语法进阶/流程控制.html"
+---
+<h1>流程控制</h1>
+<h2><code>loop</code> — Rust 原生无限循环</h2>
+<pre><code class="language-rust">loop {
+    println!("永远执行");
+}
+</code></pre>
+<ul>
+<li><code>loop</code> 是 Rust 的原生无限循环关键字</li>
+<li>编译器对 <code>loop</code> 有特殊优化——不生成条件判断指令</li>
+<li><code>break</code> 可以跳出循环</li>
+</ul>
+<h2><code>while true</code> 为什么不推荐</h2>
+<pre><code class="language-rust">// ❌ 编译器会警告: denote infinite loops with `loop { ... }`
+while true {
+    // ...
+}
+</code></pre>
+<h3>原因</h3>
+<ul>
+<li><code>while true</code> 每次迭代前都会<strong>对布尔值 <code>true</code> 做一次求值</strong>，多此一举</li>
+<li>Rust 编译器建议用 <code>loop</code> 表达"我要的就是无限循环"的意思</li>
+<li><code>loop</code> 更明确地传达了程序员的意图</li>
+</ul>
+<h2><code>break</code> 可以带出值</h2>
+<p>这是 <code>loop</code> 独有的特性——<code>while</code> 和 <code>for</code> 不行：</p>
+<pre><code class="language-rust">let x = loop {
+    break 42;
+};
+// x = 42
+</code></pre>
+<h3>猜数字游戏中的应用</h3>
+<pre><code class="language-rust">let secret_number = 42;
+
+loop {
+    let mut guess = String::new();
+    io::stdin().read_line(&amp;mut guess).expect("读取失败");
+
+    let guess: i32 = guess.trim().parse().expect("请输入数字");
+
+    if guess == secret_number {
+        println!("You win!");
+        break;  // 猜对时退出循环
+    }
+}
+</code></pre>
+<h2>条件循环：<code>while</code></h2>
+<pre><code class="language-rust">let mut n = 3;
+while n &gt; 0 {
+    println!("{}", n);
+    n -= 1;
+}
+println!("发射！");
+</code></pre>
+<h2>遍历集合：<code>for</code></h2>
+<pre><code class="language-rust">let arr = [10, 20, 30];
+
+// 推荐写法
+for elem in arr {
+    println!("{}", elem);
+}
+
+// 范围语法
+for i in 1..=5 {    // 包含 5
+    println!("{}", i);
+}
+
+for i in 1..5 {     // 不包含 5
+    println!("{}", i);
+}
+</code></pre>
+<h2>选择结构</h2>
+<h3><code>if</code> 表达式</h3>
+<pre><code class="language-rust">let num = 7;
+
+if num &lt; 5 {
+    println!("小于 5");
+} else if num == 5 {
+    println!("等于 5");
+} else {
+    println!("大于 5");
+}
+</code></pre>
+<h3><code>if</code> 是表达式（可以赋值）</h3>
+<pre><code class="language-rust">let condition = true;
+let x = if condition { 5 } else { 6 };
+// x = 5
+</code></pre>
+<blockquote>
+<p><strong>注意</strong>: Rust 是静态类型语言，<code>if</code> 的两个分支必须返回<strong>同一类型</strong>。</p>
+</blockquote>

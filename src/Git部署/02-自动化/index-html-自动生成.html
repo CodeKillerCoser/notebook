@@ -1,0 +1,106 @@
+---
+title: "GitHub Actions 自动生成 index.html"
+date: "2026-05-10T02:11:09+08:00"
+category: "Git 部署"
+tags:
+  - "Git 部署"
+  - "自动化"
+breadcrumbs:
+  - title: "Notebook"
+    url: "/index.html"
+  - title: "Git 部署"
+    url: "/Git部署/index.html"
+  - title: "自动化"
+    url: "/Git部署/02-自动化/index.html"
+  - title: "GitHub Actions 自动生成 index.html"
+    url: "/Git部署/02-自动化/index-html-自动生成.html"
+layout: layouts/article.njk
+type: article
+comments: true
+permalink: "/Git部署/02-自动化/index-html-自动生成.html"
+---
+<h1>GitHub Actions 自动生成 index.html</h1>
+
+<p>通过 GitHub Actions 在每次 push 时自动扫描目录结构、生成 <code>index.html</code> 并推送回仓库，无需手动维护文件浏览器。</p>
+
+<h2>整体流程</h2>
+
+<pre><code class="language-plain">
+push → GitHub Actions(ubuntu) → python generate_index.py → git commit → git push → Pages 自动更新
+</code></pre>
+
+<h2>核心文件结构</h2>
+
+<pre><code class="language-plain">
+notebook/
+├── generate_index.py              ← 扫描目录、生成 index.html 的 Python 脚本
+├── .github/workflows/
+│   └── generate-index.yml         ← GitHub Actions workflow
+└── index.html                     ← 自动生成的结果
+</code></pre>
+
+<h2>generate_index.py 工作逻辑</h2>
+
+<h3>目录扫描</h3>
+<ul>
+  <li>递归遍历仓库所有文件和目录</li>
+  <li>排除 <code>.git</code>、<code>.deepseek</code>、<code>__pycache__</code>、<code>node_modules</code></li>
+  <li>排除 <code>generate_index.py</code>、<code>index.html</code>、<code>README.md</code> 自身</li>
+  <li>目录排在文件前面，按名称排序</li>
+</ul>
+
+<h3>HTML 生成特性</h3>
+<ul>
+  <li><strong>可折叠目录</strong> — 点击 ▶ 展开/收起子目录</li>
+  <li><strong>文件图标</strong> — 按扩展名区分（.md 蓝、.html 红、.rs 紫等）</li>
+  <li><strong>深色模式</strong> — 跟随系统 <code>prefers-color-scheme</code></li>
+  <li><strong>README 快捷链接</strong> — 顶部单独展示，树中不重复</li>
+  <li><strong>自动生成时间戳</strong> — 页脚标注生成时间</li>
+</ul>
+
+<h2>GitHub Actions Workflow</h2>
+
+<pre><code class="language-yaml">name: Generate index.html
+
+on:
+  push:
+    branches: [main]    # 每次 push 到 main 触发
+  workflow_dispatch:    # 也支持手动触发
+
+permissions:
+  contents: write       # 需要写权限才能 push 回仓库
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python generate_index.py
+      - run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          if git diff --staged --exit-code; then
+            echo "No changes"
+          else
+            git commit -m "auto: regenerate index.html"
+            git push
+          fi
+</code></pre>
+
+<h2>关键点</h2>
+
+<ul>
+  <li>Workflow 使用 <code>contents: write</code> 权限，需要 GitHub 授予</li>
+  <li>commit 前检查 <code>git diff --staged --exit-code</code>，无变化不提交，避免产生空 commit</li>
+  <li>GitHub Pages 配置 Source 为 <code>main</code> / <code>/</code> (root)</li>
+</ul>
+
+<blockquote>
+每次添加新笔记文件 → push 到 main → 自动重新生成 index.html → 无需手动维护。
+</blockquote>
+
+<p class="back"><a href="../index.html">← 返回索引</a></p>

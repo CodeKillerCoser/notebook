@@ -1,0 +1,76 @@
+---
+title: "Option 常用组合模式 · Rust 笔记"
+date: "2026-05-10T21:43:14+08:00"
+category: "Rust"
+tags:
+  - "Rust"
+  - "语法进阶"
+breadcrumbs:
+  - title: "Notebook"
+    url: "/index.html"
+  - title: "Rust"
+    url: "/rust/index.html"
+  - title: "语法进阶"
+    url: "/rust/02-语法进阶/index.html"
+  - title: "Option 常用组合模式 · Rust 笔记"
+    url: "/rust/02-语法进阶/Option常用组合模式.html"
+layout: layouts/article.njk
+type: article
+comments: true
+permalink: "/rust/02-语法进阶/Option常用组合模式.html"
+---
+<div class="container">
+  <p class="breadcrumb"><a href="../index.html">Rust 笔记</a> › 02-语法进阶</p>
+  <h1>Option 常用组合模式</h1>
+  <p><span class="tag">实战模式</span><span class="tag">4 个高频场景</span></p>
+
+  <h2><span class="pattern-num">1</span> 借读取值</h2>
+  <p>场景：我有一个 <code>Option&lt;Box&lt;ListNode&gt;&gt;</code>，需要读 <code>val</code>，但不想消费它。</p>
+  <pre><code>// p: Option&lt;Box&lt;ListNode&gt;&gt;，我要读 val，但不消费 p
+let x = p.as_ref().map_or(0, |node| node.val);
+//      ^^^^^^^^ 借出引用
+//               ^^^^^^^ 有值就处理，无值给默认</code></pre>
+  <p><strong>原理</strong>：<code>as_ref()</code> 把 <code>Option&lt;Box&lt;T&gt;&gt;</code> 变成 <code>Option&lt;&amp;Box&lt;T&gt;&gt;</code>，不拿走所有权。<code>map_or</code> 的签名是 <code>&amp;self</code>，同样不消费。</p>
+
+  <h2><span class="pattern-num">2</span> 链式消费</h2>
+  <p>场景：链表遍历中，消费当前节点，取出 <code>next</code> 赋给自己。</p>
+  <pre><code>// 消费 p，取出 next 赋值给 p（典型链表遍历）
+p = p.and_then(|node| node.next);
+//  ^^^^^^^^ node.next 是 Option&lt;Box&lt;ListNode&gt;&gt;，正好是 p 的类型</code></pre>
+  <p><strong>原理</strong>：<code>and_then</code> 接收 <code>FnOnce(T) → Option&lt;U&gt;</code>。如果 p 是 None，返回 None；如果是 Some，取出内部值传给闭包，闭包返回 <code>node.next</code>。</p>
+
+  <h2><span class="pattern-num">3</span> 零方法模式匹配</h2>
+  <p>场景：对方法调用还不熟时，用 match 最安全直观。</p>
+  <pre><code>let (x, next_p) = match p {
+    Some(node) =&gt; (node.val, node.next),
+    None =&gt; (0, None),
+};</code></pre>
+  <p><strong>注意事项</strong>：</p>
+  <ul>
+    <li>如果不想消费 <code>p</code>，用 <code>match &amp;p</code>（引用匹配）</li>
+    <li>如果想消费 <code>p</code>，用 <code>match p</code>（值匹配）</li>
+  </ul>
+
+  <h2><span class="pattern-num">4</span> 可变借用修改内部值</h2>
+  <p>场景：拿到链表尾节点的可变引用，修改其内部字段。</p>
+  <pre><code>// tail: &amp;mut Box&lt;ListNode&gt;
+tail.next = Some(Box::new(ListNode::new(42)));  // 追加新节点
+
+// 或修改已有节点
+tail.next.as_mut().unwrap().val = 42;  // 修改链表节点的值</code></pre>
+  <p><strong>原理</strong>：<code>as_mut()</code> 把 <code>&amp;mut Option&lt;T&gt;</code> 变成 <code>Option&lt;&amp;mut T&gt;</code>，拿到内部的可变引用但不消费。</p>
+
+  <div class="block">
+    <strong>记忆法则：</strong><br>
+    读值 → <code>as_ref</code> + <code>map_or</code><br>
+    推进 → <code>and_then</code><br>
+    拆解 → <code>match</code><br>
+    修改 → <code>as_mut</code> + <code>unwrap</code>
+  </div>
+
+  <h2>Related</h2>
+  <ul>
+    <li><a href="Option方法全景图.html">Option 方法全景图</a> — 完整方法分类速查</li>
+    <li><a href="../04-综合案例/LeetCode-T2两数相加.html">LeetCode T2 实战</a> — 真实场景应用</li>
+  </ul>
+</div>

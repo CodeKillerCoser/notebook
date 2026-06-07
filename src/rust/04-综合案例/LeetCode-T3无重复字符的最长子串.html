@@ -1,0 +1,103 @@
+---
+title: "LeetCode T3 无重复字符的最长子串 · Rust 笔记"
+date: "2026-05-13T00:33:57+08:00"
+category: "Rust"
+tags:
+  - "Rust"
+  - "综合案例"
+breadcrumbs:
+  - title: "Notebook"
+    url: "/index.html"
+  - title: "Rust"
+    url: "/rust/index.html"
+  - title: "综合案例"
+    url: "/rust/04-综合案例/index.html"
+  - title: "LeetCode T3 无重复字符的最长子串 · Rust 笔记"
+    url: "/rust/04-综合案例/LeetCode-T3无重复字符的最长子串.html"
+layout: layouts/article.njk
+type: article
+comments: true
+permalink: "/rust/04-综合案例/LeetCode-T3无重复字符的最长子串.html"
+---
+<h1>LeetCode T3 · 无重复字符的最长子串</h1>
+
+<p>这题的核心是滑动窗口：窗口右端不断扩张，遇到重复字符时把左端移动到重复字符上一次出现位置之后。</p>
+
+<h2>原始思路</h2>
+
+<pre><code class="language-rust">pub fn length_of_longest_substring(s: String) -&gt; i32 {
+    let len = s.len();
+    let mut index_map = std::collections::HashMap::new();
+    let mut start = 0;
+    let mut max_len = 0;
+    for (i, c) in s.char_indices() {
+        if let Some(pre) = index_map.get(&amp;c) {
+            max_len = max_len.max(i - start);
+            start = start.max(pre + 1);
+        }
+        index_map.insert(c, i);
+    }
+    return max_len.max(len - start) as i32;
+}</code></pre>
+
+<h2>关键问题</h2>
+
+<table>
+  <tbody><tr><th>点</th><th>说明</th></tr>
+  <tr><td><code>char_indices()</code></td><td>返回的是字节下标，不是字符下标。纯 ASCII 场景没问题；遇到中文或 emoji 时长度会偏大。</td></tr>
+  <tr><td><code>max_len</code> 更新时机</td><td>只在遇到重复字符时更新，最后再补一次是可行的，但每轮更新更直观。</td></tr>
+  <tr><td><code>HashMap::get</code></td><td><code>if let Some(&amp;pre)</code> 比 <code>Some(pre)</code> 再处理引用更清晰。</td></tr>
+</tbody></table>
+
+<h2>LeetCode ASCII 优化版</h2>
+
+<p>这题约束通常是英文字母、数字、符号和空格，可以用数组代替 <code>HashMap</code>，常数性能更好。</p>
+
+<pre><code class="language-rust">impl Solution {
+    pub fn length_of_longest_substring(s: String) -&gt; i32 {
+        let bytes = s.as_bytes();
+        let mut last = [usize::MAX; 128];
+        let mut start = 0usize;
+        let mut ans = 0usize;
+
+        for (i, &amp;b) in bytes.iter().enumerate() {
+            let idx = b as usize;
+
+            if last[idx] != usize::MAX &amp;&amp; last[idx] &gt;= start {
+                start = last[idx] + 1;
+            }
+
+            ans = ans.max(i - start + 1);
+            last[idx] = i;
+        }
+
+        ans as i32
+    }
+}</code></pre>
+
+<h2>Unicode 友好版</h2>
+
+<pre><code class="language-rust">use std::collections::HashMap;
+
+impl Solution {
+    pub fn length_of_longest_substring(s: String) -&gt; i32 {
+        let mut last = HashMap::new();
+        let mut start = 0usize;
+        let mut ans = 0usize;
+
+        for (i, c) in s.chars().enumerate() {
+            if let Some(&amp;pre) = last.get(&amp;c) {
+                start = start.max(pre + 1);
+            }
+
+            ans = ans.max(i - start + 1);
+            last.insert(c, i);
+        }
+
+        ans as i32
+    }
+}</code></pre>
+
+<blockquote>记忆点：窗口左边界只前进不后退，所以更新时要用 <code>start.max(pre + 1)</code>。</blockquote>
+
+<p class="back"><a href="../index.html">← 返回 Rust 索引</a></p>

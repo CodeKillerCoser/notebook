@@ -1,0 +1,63 @@
+---
+title: "Git 本地仓库配置远端推送"
+date: "2026-05-13T00:33:57+08:00"
+category: "Git 部署"
+tags:
+  - "Git 部署"
+  - "基础入门"
+breadcrumbs:
+  - title: "Notebook"
+    url: "/index.html"
+  - title: "Git 部署"
+    url: "/Git部署/index.html"
+  - title: "基础入门"
+    url: "/Git部署/01-基础入门/index.html"
+  - title: "Git 本地仓库配置远端推送"
+    url: "/Git部署/01-基础入门/Git-本地仓库配置远端推送.html"
+layout: layouts/article.njk
+type: article
+comments: true
+permalink: "/Git部署/01-基础入门/Git-本地仓库配置远端推送.html"
+---
+<h1>Git 本地仓库配置远端推送</h1>
+
+<p>在本地新建 Git 仓库后，即使已经能正常 <code>git commit</code>，也不代表可以直接 <code>git push</code>。推送需要先配置远端仓库。</p>
+
+<h2>现象</h2>
+
+<pre><code class="language-bash">git push</code></pre>
+
+<pre><code class="language-plain">fatal: No configured push destination.
+Either specify the URL from the command-line or configure a remote repository using
+
+    git remote add &lt;name&gt; &lt;url&gt;
+
+and then push using the remote name
+
+    git push &lt;name&gt;</code></pre>
+
+<h2>原因</h2>
+
+<p>当前分支已经有本地 commit，但仓库没有 <code>origin</code> 或其他 remote，因此 Git 不知道要把提交推送到哪里。</p>
+
+<h2>检查方式</h2>
+
+<pre><code class="language-bash">git status --short
+git branch --show-current
+git remote -v</code></pre>
+
+<p>如果 <code>git remote -v</code> 没有任何输出，说明还没有配置远端。</p>
+
+<h2>解决方式</h2>
+
+<pre><code class="language-bash">git remote add origin &lt;你的仓库地址&gt;
+git push -u origin master</code></pre>
+
+<p>如果远端默认分支是 <code>main</code>，则推送到 <code>main</code>：</p>
+
+<pre><code class="language-bash">git branch -M main
+git push -u origin main</code></pre>
+
+<blockquote>记忆点：<code>commit</code> 只发生在本地仓库，<code>push</code> 需要远端地址和上游分支。</blockquote>
+
+<p class="back"><a href="../index.html">← 返回 Git 部署索引</a></p>

@@ -1,0 +1,57 @@
+---
+title: "Notebook"
+date: "2026-05-13T23:34:13+08:00"
+category: "Notebook"
+tags:
+  - "Notebook"
+breadcrumbs:
+  - title: "Notebook"
+    url: "/index.html"
+  - title: "Notebook"
+    url: "/README.html"
+layout: layouts/article.njk
+type: article
+comments: true
+permalink: "/README.html"
+---
+<h1>Notebook</h1>
+<p>个人知识库。这里不是临时文件堆，而是按主题维护的学习材料与实践笔记。</p>
+<h2>主题入口</h2>
+<table>
+<thead>
+<tr>
+<th>主题</th>
+<th>入口</th>
+<th>内容定位</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Rust</td>
+<td><a href="rust/index.html">rust/index.html</a></td>
+<td>Rust 语言、工具链、容器、字符串、智能指针、并发与 LeetCode 实战</td>
+</tr>
+<tr>
+<td>Git 部署</td>
+<td><a href="Git%E9%83%A8%E7%BD%B2/index.html">Git部署/index.html</a></td>
+<td>GitHub Pages、远端推送、自动生成索引</td>
+</tr>
+<tr>
+<td>AI 工程</td>
+<td><a href="AI%E5%B7%A5%E7%A8%8B/index.html">AI工程/index.html</a></td>
+<td>Agent Runtime / Browser Runtime / Sandbox / Verification 学习路线</td>
+</tr>
+<tr>
+<td>代码大全阅读笔记</td>
+<td><a href="%E4%BB%A3%E7%A0%81%E5%A4%A7%E5%85%A8%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0/index.html">代码大全阅读笔记/index.html</a></td>
+<td>《代码大全》阅读摘记与工程实践原则</td>
+</tr>
+</tbody>
+</table>
+<h2>维护原则</h2>
+<ul>
+<li>每个主题目录都应有自己的 <code>index.html</code>，作为体系化入口。</li>
+<li>临时草稿不要长期放在根目录；成熟后归入对应主题。</li>
+<li>综合案例放在主题内的案例目录中，不和基础语法笔记混在一起。</li>
+<li>根目录 <code>index.html</code> 由 <code>generate_index.py</code> 自动生成，只作为文件浏览器。</li>
+</ul>

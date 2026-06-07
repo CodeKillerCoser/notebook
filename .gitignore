@@ -1,1 +1,6 @@
 .deepseek/
+node_modules/
+_site/
+.cache/
+.pagefind/
+npm-debug.log*

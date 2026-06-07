@@ -1,0 +1,18 @@
+---
+layout: layouts/base.njk
+title: 标签 | Notebook
+permalink: /tags/index.html
+breadcrumbs:
+  - title: Notebook
+    url: /index.html
+  - title: 标签
+    url: /tags/index.html
+---
+<section class="tag-index">
+  <h1>标签</h1>
+  <div class="tag-cloud">
+    {% for tag in notebook.tags %}
+      <a href="{{ tag.permalink | relativeUrl(page.url) }}">{{ tag.name }} <span>{{ tag.articles.length }}</span></a>
+    {% endfor %}
+  </div>
+</section>

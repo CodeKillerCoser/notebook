@@ -1,0 +1,216 @@
+---
+title: "02 — HashMap 与容器选择 | Rust 笔记"
+date: "2026-05-13T01:41:31+08:00"
+category: "Rust"
+tags:
+  - "Rust"
+  - "语法进阶"
+breadcrumbs:
+  - title: "Notebook"
+    url: "/index.html"
+  - title: "Rust"
+    url: "/rust/index.html"
+  - title: "语法进阶"
+    url: "/rust/02-语法进阶/index.html"
+  - title: "02 — HashMap 与容器选择 | Rust 笔记"
+    url: "/rust/02-语法进阶/HashMap与容器选择.html"
+layout: layouts/article.njk
+type: article
+comments: true
+permalink: "/rust/02-语法进阶/HashMap与容器选择.html"
+---
+<div class="nav">
+  <a href="../index.html">← Rust 索引</a>
+  <a href="String处理与字符遍历.html">← 上一篇 String</a>
+</div>
+
+<h1>02 — HashMap 与容器选择</h1>
+
+<p>
+  在滑动窗口等算法中，需要快速判断「某个字符是否已出现过」并记录位置。
+  Rust 提供了两种典型选择：<code>HashMap</code>（通用堆容器）和
+  <code>[i32; 128]</code>（专用栈数组）。它们的 API 设计和内存特性差异显著。
+</p>
+
+<h2>1. HashMap 核心 API 详解</h2>
+
+<h3>1.1 <code>get(&amp;key)</code> — 一次查找的完整生命周期</h3>
+
+<pre><code>use std::collections::HashMap;
+
+let mut map: HashMap&lt;char, usize&gt; = HashMap::new();
+
+//            ┌── 为什么这里要 &amp;ch？
+//            │
+if let Some(&amp;prev) = map.get(&amp;ch) {
+//         ^^^^^         ^^^
+//      (2) 剥引用     (1) 传引用
+    start = start.max(prev + 1);
+}
+map.insert(ch, i);
+</code></pre>
+
+<p>
+  这一行涉及两个 <code>&amp;</code>，方向相反：
+</p>
+
+<div class="mermaid">
+                  map.get(&amp;ch)
+                        │
+    (1) 传入 &amp;ch ───────┘
+        get 的签名：fn get&lt;Q&gt;(&amp;self, k: &amp;Q) -&gt; Option&lt;&amp;V&gt;
+        要求传 key 的<strong>引用</strong>，传 ch 值的话类型不匹配。
+                        │
+    (2) 返回 Some(&amp;prev) ◄──── 桶中找到值，返回指向桶内 usize 的指针
+        &amp;prev 是模式匹配的<strong>解引用</strong>，剥掉 &amp;，让 prev: usize
+</div>
+
+<h3>1.2 <code>Some(prev)</code> 也能编译？— 自动解引用</h3>
+
+<pre><code>// 写法 A — 模式里剥引用
+if let Some(&amp;prev) = map.get(&amp;ch) {
+    start = start.max(prev + 1);   // prev: usize
+}
+
+// 写法 B — 引用保留，用时自动解
+if let Some(prev) = map.get(&amp;ch) {
+    start = start.max(prev + 1);   // prev: &amp;usize, 但 + 触发自动解引用
+}
+</code></pre>
+
+<p>
+  写法 B 能工作是因为 Rust 运算符解析时遇到 <code>prev + 1</code>：
+</p>
+
+<pre><code>
+prev: &amp;usize
+  │
+  │  prev + 1   →  找 &amp;usize 的 Add 实现 → 没找到
+  │                    ↓
+  │               自动解引用 *prev: usize
+  │                    ↓
+  │               usize 有 Add&lt;usize&gt; ✅
+  │                    ↓
+  │               (*prev) + 1
+  ▼
+start.max((*prev) + 1)
+</code></pre>
+
+<div class="note">
+  ✅ <strong>建议用 <code>Some(&amp;prev)</code></strong>：在模式匹配阶段就把引用剥掉，让
+  <code>prev</code> 一诞生就是 <code>usize</code> 值。后续代码不需要心智负担去记"这是引用还是值"。
+  编译优化后两者机器码完全一样。
+</div>
+
+<h3>1.3 <code>contains_key</code> + <code>[&amp;k]</code> — 两次查找</h3>
+
+<pre><code>// ❌ 两次哈希计算
+if map.contains_key(&amp;c) {
+    start = map[&amp;c] + 1;   // 又一次定位桶
+}
+
+// ✅ 一次查找
+if let Some(&amp;prev) = map.get(&amp;c) {
+    start = start.max(prev + 1);
+}
+</code></pre>
+
+<table>
+  <tbody><tr><th>写法</th><th>哈希计算次数</th><th>Option 匹配</th></tr>
+  <tr><td><code>contains_key + [&amp;k]</code></td>
+    <td><span class="bad">2 次</span></td><td>隐式（panic 风险）</td></tr>
+  <tr><td><code>get(&amp;k)</code></td>
+    <td><span class="good">1 次</span></td><td>显式（安全）</td></tr>
+</tbody></table>
+
+<h2>2. 栈数组 vs 堆容器：性能差异的根源</h2>
+
+<h3>2.1 内存布局对比</h3>
+
+<div class="mermaid">
+HashMap&lt;char, usize&gt;          [usize; 128]
+─────────────────────        ───────────────
+    堆 (heap)                    栈 (stack)
+    ┌─────────┐                  ┌─────┬─────┬─────┬─────┐
+    │ bucket  │ ← 指针            │  0  │  0  │  0  │ ... │  共 128 个 usize
+    │ bucket  │ ← 可能跨 cache    │     │     │     │     │  = 512 字节（64位）
+    │ bucket  │    line           ├─────┴─────┴─────┴─────┤
+    │ ...     │                  │   一整行在 L1 cache     │
+    │ bucket  │ ← rehash 时搬    └─────────────────────────┘
+    └─────────┘
+    哈希+碰撞+扩容开销           基址+偏移 → 1 个 CPU 周期
+</div>
+
+<h3>2.2 操作开销拆解</h3>
+
+<table>
+  <tbody><tr><th>操作</th><th>HashMap</th><th>[usize; 128]</th></tr>
+  <tr><td>查找 <code>cnt[ch]</code></td>
+    <td>计算哈希 → 定位桶 → 比较 key</td>
+    <td><code>*(base + ch * 8)</code></td>
+  </tr>
+  <tr><td>插入 <code>get_or_insert</code></td>
+    <td>可能触发 rehash / 扩容 → 堆分配</td>
+    <td>栈上原地写入</td>
+  </tr>
+  <tr><td>Cache 行为</td>
+    <td>桶散列分布 → cache miss 概率高</td>
+    <td>紧凑 512 字节 → 大概率全在 L1</td>
+  </tr>
+</tbody></table>
+
+<h3>2.3 两种容器的正确场景</h3>
+
+<pre><code>
+s: &amp;str
+
+   │
+   ├── 仅含 ASCII 字符 (0~127)？
+   │       │
+   │       └── Yes → [i32; 128] 栈数组  【最快，O(n)】
+   │                  ✅ 无堆分配、无哈希、cache 友好
+   │                  ❌ 多字节字符逻辑错误
+   │
+   └── 需要通用 Unicode 支持？
+           │
+           └── Yes → HashMap&lt;char, usize&gt; 【正确，O(n)】
+                      ✅ 正确识别所有 Unicode 字符
+                      ⚠️ 有哈希开销，但现代硬件下完全可接受
+</code></pre>
+
+<div class="note">
+  <strong>结论</strong>：对 LeetCode 测试用例（纯 ASCII 字母），字节数组版利用了对输入的 <em>先验知识</em>
+  做了特化优化。作为通用算法，<code>HashMap + char_indices</code> 才是正确且足够快的选择。
+</div>
+
+<h2>3. 本次讨论的最终代码</h2>
+
+<pre><code>use std::collections::HashMap;
+
+struct Solution;
+
+impl Solution {
+    pub fn length_of_longest_substring(s: String) -&gt; i32 {
+        let mut last_seen: HashMap&lt;char, usize&gt; = HashMap::new();
+        let mut start = 0;
+        let mut max_len = 0;
+
+        for (end, ch) in s.char_indices() {
+            // 一次 get，同时完成「是否存在」和「取值」
+            if let Some(&amp;prev) = last_seen.get(&amp;ch) {
+                // 取 max 防止 start 回退（如 "abba"）
+                start = start.max(prev + 1);
+            }
+            max_len = max_len.max(end - start + 1);
+            last_seen.insert(ch, end);
+        }
+
+        max_len as i32
+    }
+}
+</code></pre>
+
+<div class="nav" style="margin-top:2rem;">
+  <a href="../index.html">← Rust 索引</a>
+  <a href="String处理与字符遍历.html">← 上一篇 String</a>
+</div>

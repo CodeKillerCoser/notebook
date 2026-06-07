@@ -1,0 +1,103 @@
+---
+title: "Cargo 入门"
+date: "2026-05-09T23:49:00+08:00"
+category: "Rust"
+tags:
+  - "Rust"
+  - "基础入门"
+breadcrumbs:
+  - title: "Notebook"
+    url: "/index.html"
+  - title: "Rust"
+    url: "/rust/index.html"
+  - title: "基础入门"
+    url: "/rust/01-基础入门/index.html"
+  - title: "Cargo 入门"
+    url: "/rust/01-基础入门/Cargo-入门.html"
+layout: layouts/article.njk
+type: article
+comments: true
+permalink: "/rust/01-基础入门/Cargo-入门.html"
+---
+<h1>Cargo 入门</h1>
+<p>Cargo 是 Rust 的包管理器和构建工具，类似 Node.js 的 npm/pnpm 或 Python 的 pip/poetry。</p>
+<h2>常用命令</h2>
+<table>
+<thead>
+<tr>
+<th>命令</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>cargo new project_name</code></td>
+<td>创建新项目</td>
+</tr>
+<tr>
+<td><code>cargo build</code></td>
+<td>编译（Debug 模式）</td>
+</tr>
+<tr>
+<td><code>cargo build --release</code></td>
+<td>编译（Release 模式，含优化）</td>
+</tr>
+<tr>
+<td><code>cargo run</code></td>
+<td>编译并运行</td>
+</tr>
+<tr>
+<td><code>cargo check</code></td>
+<td>仅检查能否编译（不生成可执行文件，速度快）</td>
+</tr>
+<tr>
+<td><code>cargo add crate_name</code></td>
+<td>添加依赖</td>
+</tr>
+<tr>
+<td><code>cargo update</code></td>
+<td>更新依赖（按 semver 兼容范围）</td>
+</tr>
+</tbody>
+</table>
+<h2>Cargo.toml 结构</h2>
+<pre><code class="language-toml">[package]
+name = "hello_cargo"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+</code></pre>
+<h3>字段说明</h3>
+<ul>
+<li><strong>name</strong>: 包名，也是二进制文件名</li>
+<li><strong>version</strong>: 语义化版本号</li>
+<li><strong>edition</strong>: Rust 版本版次
+<ul>
+<li><code>2015</code> — 最初版</li>
+<li><code>2018</code> — 引入了模块系统改进</li>
+<li><code>2021</code> — 闭包捕获改进、数组迭代器</li>
+<li><code>2024</code> — 最新版（Rust 1.85+），包含 borrow checker 改进等</li>
+</ul>
+</li>
+</ul>
+<h2>项目结构</h2>
+<pre><code>hello_cargo/
+├── Cargo.toml        # 项目配置
+├── Cargo.lock        # 依赖锁文件（自动生成，需提交到版本控制）
+└── src/
+    └── main.rs       # 源代码入口
+</code></pre>
+<h3>命名约定</h3>
+<ul>
+<li><code>src/main.rs</code> — 可执行二进制包入口</li>
+<li><code>src/lib.rs</code> — 库包入口</li>
+<li>二进制包名与 <code>Cargo.toml</code> 中的 <code>[package].name</code> 一致</li>
+</ul>
+<h2>Cargo.lock 说明</h2>
+<ul>
+<li><strong>可执行程序</strong>: 将 <code>Cargo.lock</code> 提交到版本控制，确保所有人拿到相同依赖</li>
+<li><strong>库</strong>: 通常不提交 <code>Cargo.lock</code>，让下游用户灵活选择依赖版本</li>
+</ul>
+<h2>Cargo Workspace 协作</h2>
+<p>当多个 Rust 项目在同一个目录下时，需要 workspace 统一管理（见 Cargo Workspace 文档）。</p>

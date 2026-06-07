@@ -1,0 +1,54 @@
+---
+title: "Hello World — 第一个 Rust 程序"
+date: "2026-05-09T23:49:00+08:00"
+category: "Rust"
+tags:
+  - "Rust"
+  - "基础入门"
+breadcrumbs:
+  - title: "Notebook"
+    url: "/index.html"
+  - title: "Rust"
+    url: "/rust/index.html"
+  - title: "基础入门"
+    url: "/rust/01-基础入门/index.html"
+  - title: "Hello World — 第一个 Rust 程序"
+    url: "/rust/01-基础入门/Hello-World.html"
+layout: layouts/article.njk
+type: article
+comments: true
+permalink: "/rust/01-基础入门/Hello-World.html"
+---
+<h1>Hello World — 第一个 Rust 程序</h1>
+<h2>最简单的 Rust 程序</h2>
+<pre><code class="language-rust">fn main() {
+    println!("Hello, world!");
+}
+</code></pre>
+<h3>要点</h3>
+<ul>
+<li><code>fn</code> 声明函数，<code>main()</code> 是程序入口</li>
+<li><code>println!</code> 是<strong>宏</strong>（macro），不是普通函数——后缀 <code>!</code> 标识宏调用</li>
+<li>语句以分号 <code>;</code> 结尾</li>
+<li>字符串用双引号 <code>""</code>，字符用单引号 <code>''</code></li>
+</ul>
+<h2>直接运行 .rs 文件</h2>
+<p>Rust 不直接解释执行 <code>.rs</code> 文件，必须先编译：</p>
+<pre><code class="language-bash">rustc hello.rs     # 编译 → 生成 hello.exe（Windows）或 hello（Unix）
+./hello           # 运行
+</code></pre>
+<h3>适用场景</h3>
+<ul>
+<li><strong>单文件</strong>、小型实验代码可以用 <code>rustc</code> 直接编译</li>
+<li><strong>多文件项目</strong>请用 Cargo（见 Cargo 入门文档）</li>
+</ul>
+<h2>完整示例</h2>
+<pre><code class="language-rust">// ch1/1.2/hello.rs
+fn main() {
+    println!("hello rust");
+}
+</code></pre>
+<p>编译运行：</p>
+<pre><code class="language-bash">rustc ch1/1.2/hello.rs
+./hello       # 输出: hello rust
+</code></pre>

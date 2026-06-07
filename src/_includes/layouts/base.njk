@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  {% if title %}
+    {% set pageTitle = title %}
+  {% elif directory %}
+    {% set pageTitle = directory.title ~ " | Notebook" %}
+  {% elif tagPage %}
+    {% set pageTitle = "标签：" ~ tagPage.name ~ " | Notebook" %}
+  {% else %}
+    {% set pageTitle = site.title %}
+  {% endif %}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ pageTitle }}</title>
+  <meta name="description" content="{{ description or site.description }}">
+  <link rel="alternate" type="application/rss+xml" title="{{ site.title }} RSS" href="{{ '/feed.xml' | relativeUrl(page.url) }}">
+  <link rel="stylesheet" href="{{ '/assets/site.css' | relativeUrl(page.url) }}">
+  {% block head %}{% endblock %}
+</head>
+<body>
+  {% set activeBreadcrumbs = breadcrumbs or directory.breadcrumbs or tagPage.breadcrumbs %}
+  <header class="site-header">
+    <div class="site-header__inner">
+      <a class="site-brand" href="{{ '/index.html' | relativeUrl(page.url) }}">{{ site.title }}</a>
+      <nav class="site-nav" aria-label="站点导航">
+        <a href="{{ '/search.html' | relativeUrl(page.url) }}">搜索</a>
+        <a href="{{ '/tags/index.html' | relativeUrl(page.url) }}">标签</a>
+        <a href="{{ '/feed.xml' | relativeUrl(page.url) }}">RSS</a>
+        <a href="https://github.com/{{ site.repository }}">GitHub</a>
+      </nav>
+    </div>
+    <nav class="breadcrumbs" aria-label="博客路径">
+      {% if activeBreadcrumbs %}
+        {% for crumb in activeBreadcrumbs %}
+          <a href="{{ crumb.url | relativeUrl(page.url) }}">{{ crumb.title }}</a>
+          {% if not loop.last %}<span aria-hidden="true">›</span>{% endif %}
+        {% endfor %}
+      {% else %}
+        <a href="{{ '/index.html' | relativeUrl(page.url) }}">Notebook</a>
+      {% endif %}
+    </nav>
+  </header>
+
+  <main class="content" data-pagefind-body>
+    {{ content | safe }}
+  </main>
+
+  <footer class="site-footer">
+    <span>{{ site.description }}</span>
+    <a href="{{ '/feed.xml' | relativeUrl(page.url) }}">RSS</a>
+  </footer>
+</body>
+</html>

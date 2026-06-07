@@ -1,0 +1,150 @@
+---
+title: "猜数字游戏 — 综合案例"
+date: "2026-05-09T23:49:00+08:00"
+category: "Rust"
+tags:
+  - "Rust"
+  - "综合案例"
+breadcrumbs:
+  - title: "Notebook"
+    url: "/index.html"
+  - title: "Rust"
+    url: "/rust/index.html"
+  - title: "综合案例"
+    url: "/rust/04-综合案例/index.html"
+  - title: "猜数字游戏 — 综合案例"
+    url: "/rust/04-综合案例/猜数字游戏.html"
+layout: layouts/article.njk
+type: article
+comments: true
+permalink: "/rust/04-综合案例/猜数字游戏.html"
+---
+<h1>猜数字游戏 — 综合案例</h1>
+<h2>完整代码</h2>
+<pre><code class="language-rust">use std::io;
+use rand;
+use std::cmp::Ordering;
+
+fn main() {
+    // 1. 生成随机数
+    let secret_number = rand::random_range(1..=100);
+
+    println!("Guess the number!");
+
+    // 2. 无限循环，直到猜对
+    loop {
+        println!("Please input your guess.");
+
+        // 3. 读取用户输入
+        let mut guess = String::new();
+
+        // 4. 用 match 处理输入错误
+        match io::stdin().read_line(&amp;mut guess) {
+            Ok(_) =&gt; {
+                println!("You guessed: {}", guess);
+
+                // 5. 解析数字，匹配比较结果
+                match guess.trim().parse::&lt;i32&gt;() {
+                    Ok(guess_num) =&gt; {
+                        match guess_num.cmp(&amp;secret_number) {
+                            Ordering::Less =&gt; println!("Too small!"),
+                            Ordering::Greater =&gt; println!("Too big!"),
+                            Ordering::Equal =&gt; {
+                                println!("You win!");
+                                break;
+                            }
+                        }
+                    },
+                    _ =&gt; println!("Try again!"),  // 解析失败
+                }
+            },
+            Err(e) =&gt; {
+                println!("Error: {}", e);
+                continue;
+            }
+        }
+    }
+}
+</code></pre>
+<h2>涉及的知识点</h2>
+<h3>1. 模块导入</h3>
+<pre><code class="language-rust">use std::io;            // 标准库 I/O
+use rand;               // 外部 crate：随机数
+use std::cmp::Ordering; // 比较结果枚举
+</code></pre>
+<h3>2. 随机数生成（rand crate 0.10+）</h3>
+<pre><code class="language-rust">let secret_number = rand::random_range(1..=100);
+</code></pre>
+<p>详见 <a href="/rust/03-%E5%B7%A5%E5%85%B7%E9%93%BE%E4%B8%8E%E7%94%9F%E6%80%81/rand-crate-%E7%89%88%E6%9C%AC.html">rand crate 版本兼容</a> 文档。</p>
+<h3>3. 控制台输入</h3>
+<pre><code class="language-rust">let mut guess = String::new();
+io::stdin().read_line(&amp;mut guess)
+</code></pre>
+<p>详见 <a href="/rust/02-%E8%AF%AD%E6%B3%95%E8%BF%9B%E9%98%B6/%E6%8E%A7%E5%88%B6%E5%8F%B0IO.html">控制台 I/O</a> 文档。</p>
+<h3>4. 错误处理</h3>
+<p>两层错误处理：</p>
+<pre><code class="language-rust">// 外层：I/O 错误
+match io::stdin().read_line(&amp;mut guess) {
+    Ok(_) =&gt; { /* 继续 */ },
+    Err(e) =&gt; { /* 处理 I/O 错误 */ }
+}
+
+// 内层：数字解析错误
+match guess.trim().parse::&lt;i32&gt;() {
+    Ok(num) =&gt; { /* 比较 */ },
+    _ =&gt; { /* 输入不是数字 */ }
+}
+</code></pre>
+<h3>5. 字符串转数字</h3>
+<pre><code class="language-rust">guess.trim().parse::&lt;i32&gt;()
+</code></pre>
+<ul>
+<li><code>.trim()</code> — 去掉 <code>read_line</code> 包含的换行符</li>
+<li><code>.parse::&lt;i32&gt;()</code> — 解析为 32 位整数</li>
+</ul>
+<h3>6. 值比较</h3>
+<pre><code class="language-rust">guess_num.cmp(&amp;secret_number)  // 返回 Ordering 枚举
+</code></pre>
+<p>用 <code>cmp</code> 方法而非 <code>==</code>，配合 <code>match</code> 处理三种比较结果。</p>
+<h3>7. 无限循环</h3>
+<pre><code class="language-rust">loop {
+    // ...
+    break;  // 猜对时退出
+}
+</code></pre>
+<p>详见 <a href="/rust/02-%E8%AF%AD%E6%B3%95%E8%BF%9B%E9%98%B6/%E6%B5%81%E7%A8%8B%E6%8E%A7%E5%88%B6.html">流程控制</a> 文档。</p>
+<h2>改进方向</h2>
+<h3>增加猜测次数统计</h3>
+<pre><code class="language-rust">let mut attempts = 0;
+
+loop {
+    attempts += 1;
+    // ...
+    // 猜对后打印
+    println!("You win! Attempts: {}", attempts);
+}
+</code></pre>
+<h3>增加输入验证范围</h3>
+<pre><code class="language-rust">match guess_num {
+    1..=100 =&gt; {
+        match guess_num.cmp(&amp;secret_number) { /* ... */ }
+    },
+    _ =&gt; println!("Please enter a number between 1 and 100"),
+}
+</code></pre>
+<h3>支持输入 "quit" 退出</h3>
+<pre><code class="language-rust">let input = guess.trim();
+if input == "quit" || input == "exit" {
+    println!("Goodbye!");
+    break;
+}
+</code></pre>
+<h2>配置要求</h2>
+<pre><code class="language-toml">[package]
+name = "guessing_game"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+rand = "0.10.1"
+</code></pre>

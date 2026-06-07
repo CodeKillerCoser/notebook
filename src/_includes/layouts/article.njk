@@ -1,0 +1,39 @@
+---
+layout: layouts/base.njk
+---
+<article class="article">
+  {% set urlParts = page.url.split('/') %}
+  {% if urlParts.length > 2 %}
+    {% set categoryUrl = '/' ~ urlParts[1] ~ '/index.html' %}
+  {% else %}
+    {% set categoryUrl = '/index.html' %}
+  {% endif %}
+  <div class="article-meta">
+    {% if category %}<a href="{{ categoryUrl | relativeUrl(page.url) }}">{{ category }}</a>{% endif %}
+    {% if date %}<time datetime="{{ date | isoDate }}">{{ date | readableDate }}</time>{% endif %}
+  </div>
+
+  {{ content | safe }}
+
+  {% if tags and tags.length %}
+    <section class="tag-list" aria-label="文章标签">
+      {% for tag in tags %}
+        <a href="{{ tag | tagUrl | relativeUrl(page.url) }}">#{{ tag }}</a>
+      {% endfor %}
+    </section>
+  {% endif %}
+
+  {% if comments !== false and site.comments.provider == "utterances" %}
+    <section class="comments" aria-label="评论">
+      <h2>评论</h2>
+      <script src="https://utteranc.es/client.js"
+        repo="{{ site.comments.repo }}"
+        issue-term="{{ site.comments.issueTerm }}"
+        label="{{ site.comments.label }}"
+        theme="{{ site.comments.theme }}"
+        crossorigin="anonymous"
+        async>
+      </script>
+    </section>
+  {% endif %}
+</article>

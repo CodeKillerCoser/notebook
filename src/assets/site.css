@@ -1,0 +1,375 @@
+:root {
+  --bg: #fafafa;
+  --panel: #ffffff;
+  --text: #202124;
+  --muted: #667085;
+  --line: #d9dee7;
+  --accent: #b45309;
+  --accent-strong: #8a3b12;
+  --link: #1d4ed8;
+  --code-bg: #f6f8fa;
+  --callout: #fff7ed;
+  --shadow: 0 12px 28px rgba(15, 23, 42, 0.06);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #111318;
+    --panel: #181b22;
+    --text: #e6e8ee;
+    --muted: #a5adba;
+    --line: #303744;
+    --accent: #f59e0b;
+    --accent-strong: #fbbf24;
+    --link: #7db4ff;
+    --code-bg: #20242d;
+    --callout: #2a2118;
+    --shadow: 0 12px 30px rgba(0, 0, 0, 0.28);
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans SC", "PingFang SC", sans-serif;
+  line-height: 1.72;
+}
+
+a {
+  color: var(--link);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  border-bottom: 1px solid var(--line);
+  background: color-mix(in srgb, var(--panel) 94%, transparent);
+  backdrop-filter: blur(12px);
+}
+
+.site-header__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 14px 24px 8px;
+}
+
+.site-brand {
+  color: var(--text);
+  font-size: 19px;
+  font-weight: 750;
+  text-decoration: none;
+}
+
+.site-nav {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 14px;
+}
+
+.site-nav a {
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.site-nav a:hover {
+  color: var(--text);
+}
+
+.breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 0 24px 12px;
+  color: var(--muted);
+  font-size: 13px;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.breadcrumbs a {
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.breadcrumbs a:hover {
+  color: var(--accent-strong);
+}
+
+.content {
+  width: min(920px, calc(100% - 32px));
+  margin: 34px auto 64px;
+  padding: 34px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  box-shadow: var(--shadow);
+}
+
+h1,
+h2,
+h3,
+h4 {
+  line-height: 1.3;
+}
+
+h1 {
+  margin: 0 0 20px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid var(--accent);
+  font-size: 30px;
+}
+
+h2 {
+  margin-top: 34px;
+  color: var(--text);
+  font-size: 23px;
+}
+
+h3 {
+  margin-top: 24px;
+  font-size: 18px;
+}
+
+.lead {
+  color: var(--muted);
+  font-size: 16px;
+}
+
+.article-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 16px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.article-meta a {
+  color: var(--accent-strong);
+  text-decoration: none;
+}
+
+pre {
+  overflow-x: auto;
+  padding: 16px;
+  border-radius: 7px;
+  background: var(--code-bg);
+}
+
+code {
+  font-family: "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
+  font-size: 0.92em;
+}
+
+p > code,
+li > code,
+td > code {
+  padding: 0.12em 0.35em;
+  border-radius: 4px;
+  background: var(--code-bg);
+}
+
+table {
+  width: 100%;
+  margin: 18px 0;
+  border-collapse: collapse;
+  overflow-x: auto;
+}
+
+th,
+td {
+  border: 1px solid var(--line);
+  padding: 9px 12px;
+  text-align: left;
+  vertical-align: top;
+}
+
+th {
+  background: var(--code-bg);
+  font-weight: 650;
+}
+
+blockquote {
+  margin: 18px 0;
+  padding: 8px 18px;
+  border-left: 4px solid var(--accent);
+  background: var(--callout);
+}
+
+img,
+video {
+  max-width: 100%;
+  height: auto;
+}
+
+.bad {
+  color: #dc2626;
+  font-weight: 650;
+}
+
+.good {
+  color: #15803d;
+  font-weight: 650;
+}
+
+.home-search {
+  display: flex;
+  gap: 10px;
+  margin: 28px 0 32px;
+}
+
+.home-search input {
+  min-width: 0;
+  flex: 1;
+  padding: 11px 13px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--panel);
+  color: var(--text);
+}
+
+.home-search button {
+  padding: 0 18px;
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.directory-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+  margin: 16px 0 24px;
+}
+
+.directory-card {
+  display: flex;
+  min-height: 86px;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.directory-card:hover {
+  border-color: var(--accent);
+}
+
+.directory-card span {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.article-list {
+  padding-left: 20px;
+}
+
+.article-list li {
+  margin: 10px 0;
+  padding-left: 4px;
+}
+
+.article-list span {
+  display: block;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.tag-list,
+.tag-cloud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 28px;
+}
+
+.tag-list a,
+.tag-cloud a {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 13px;
+}
+
+.tag-list a:hover,
+.tag-cloud a:hover {
+  border-color: var(--accent);
+  color: var(--accent-strong);
+}
+
+.comments {
+  margin-top: 46px;
+  padding-top: 22px;
+  border-top: 1px solid var(--line);
+}
+
+.site-footer {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  margin: 0 auto 40px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+@media (max-width: 720px) {
+  .site-header__inner {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px 16px 8px;
+  }
+
+  .site-nav {
+    flex-wrap: wrap;
+  }
+
+  .breadcrumbs {
+    padding: 0 16px 10px;
+  }
+
+  .content {
+    width: calc(100% - 20px);
+    margin-top: 16px;
+    padding: 20px 16px;
+  }
+
+  h1 {
+    font-size: 25px;
+  }
+
+  .home-search {
+    flex-direction: column;
+  }
+
+  .home-search button {
+    min-height: 42px;
+  }
+}

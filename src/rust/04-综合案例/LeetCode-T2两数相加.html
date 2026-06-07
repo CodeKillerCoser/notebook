@@ -1,0 +1,161 @@
+---
+title: "LeetCode T2 两数相加 · Rust 笔记"
+date: "2026-05-10T21:43:14+08:00"
+category: "Rust"
+tags:
+  - "Rust"
+  - "综合案例"
+breadcrumbs:
+  - title: "Notebook"
+    url: "/index.html"
+  - title: "Rust"
+    url: "/rust/index.html"
+  - title: "综合案例"
+    url: "/rust/04-综合案例/index.html"
+  - title: "LeetCode T2 两数相加 · Rust 笔记"
+    url: "/rust/04-综合案例/LeetCode-T2两数相加.html"
+layout: layouts/article.njk
+type: article
+comments: true
+permalink: "/rust/04-综合案例/LeetCode-T2两数相加.html"
+---
+<div class="container">
+  <p class="breadcrumb"><a href="../index.html">Rust 笔记</a> › 04-综合案例</p>
+  <h1>LeetCode T2 · 两数相加</h1>
+  <p><span class="tag">链表</span><span class="tag">所有权</span><span class="tag">Option</span></p>
+  <p>题目：两个逆序存储的链表，每位相加，返回新链表。</p>
+
+  <h2>原始错误代码</h2>
+  <pre><code>pub fn add_two_numbers(
+    l1: Option&lt;Box&lt;ListNode&gt;&gt;,
+    l2: Option&lt;Box&lt;ListNode&gt;&gt;,
+) -&gt; Option&lt;Box&lt;ListNode&gt;&gt; {
+    let mut carry = 0;
+    let mut head = Box::new(ListNode::new(0));
+    let mut tail = &amp;mut head;
+    let mut p = l1;
+    let mut q = l2;
+
+    while p.is_some() || q.is_some() {
+        // <span class="error-tag">❌ 错误① &amp; ②</span>：unwrap() 消费了 p 和 q
+        let x = if p.is_some() { p.unwrap().val } else { 0 };
+        let y = if q.is_some() { q.unwrap().val } else { 0 };
+        //    第一次循环后 p、q 已被 move
+
+        let sum = x + y + carry;
+        carry = sum / 10;
+
+        tail.next = Some(Box::new(ListNode::new(sum % 10)));
+        tail = tail.next.as_mut().unwrap();
+
+        // <span class="error-tag">❌ 错误③ &amp; ④</span>：p、q 已被消费，再次访问报 "use of moved value"
+        p = if p.is_some() { p.unwrap().next } else { None };
+        q = if q.is_some() { q.unwrap().next } else { None };
+    }
+
+    // <span class="error-tag">❌ 错误⑤</span>：tail 还在可变借用 head
+    return head.next;
+}</code></pre>
+
+  <h2>错误清单</h2>
+  <table>
+    <tbody><tr><th>编号</th><th>位置</th><th>类型</th><th>原因</th></tr>
+    <tr><td>①</td><td><code>p.unwrap().val</code></td><td>use of moved value</td><td><code>unwrap()</code> 消费 p，后面又用 p</td></tr>
+    <tr><td>②</td><td><code>q.unwrap().val</code></td><td>use of moved value</td><td>同上，q 被消费</td></tr>
+    <tr><td>③</td><td><code>p.is_some()</code> 第二处</td><td>use of moved value</td><td>p 在第①处已被 move</td></tr>
+    <tr><td>④</td><td><code>q.is_some()</code> 第二处</td><td>use of moved value</td><td>同上</td></tr>
+    <tr><td>⑤</td><td><code>return head.next</code></td><td>borrow conflict</td><td>tail 还在可变借用 head</td></tr>
+    <tr><td>⑥</td><td>逻辑 bug</td><td>缺少进位处理</td><td>循环后 <code>carry &gt; 0</code> 时需追加节点</td></tr>
+  </tbody></table>
+
+  <h2>修复版一（推荐 · 方法式）</h2>
+  <p>用 <code>as_ref</code> 借读值、<code>and_then</code> 链式推进。</p>
+  <pre><code>pub fn add_two_numbers(
+    l1: Option&lt;Box&lt;ListNode&gt;&gt;,
+    l2: Option&lt;Box&lt;ListNode&gt;&gt;,
+) -&gt; Option&lt;Box&lt;ListNode&gt;&gt; {
+    let mut carry = 0;
+    let mut head = Box::new(ListNode::new(0));
+    let mut tail = &amp;mut head;
+    let mut p = l1;
+    let mut q = l2;
+
+    while p.is_some() || q.is_some() || carry &gt; 0 {
+        // <span class="ok-tag">✅</span> 用 as_ref() 借用，不消费 p/q
+        let x = p.as_ref().map_or(0, |node| node.val);
+        let y = q.as_ref().map_or(0, |node| node.val);
+
+        let sum = x + y + carry;
+        carry = sum / 10;
+
+        tail.next = Some(Box::new(ListNode::new(sum % 10)));
+        tail = tail.next.as_mut().unwrap();
+
+        // <span class="ok-tag">✅</span> 用 and_then 消费当前 p/q 并取出 next
+        p = p.and_then(|node| node.next);
+        q = q.and_then(|node| node.next);
+    }
+
+    head.next  // <span class="ok-tag">✅</span> tail 不再使用，可安全访问 head
+}</code></pre>
+
+  <h2>修复版二（零方法调用 · match）</h2>
+  <p>对方法还不熟时的安全写法。</p>
+  <pre><code>pub fn add_two_numbers(
+    l1: Option&lt;Box&lt;ListNode&gt;&gt;,
+    l2: Option&lt;Box&lt;ListNode&gt;&gt;,
+) -&gt; Option&lt;Box&lt;ListNode&gt;&gt; {
+    let mut carry = 0;
+    let mut head = Box::new(ListNode::new(0));
+    let mut tail = &amp;mut head;
+    let mut p = l1;
+    let mut q = l2;
+
+    while p.is_some() || q.is_some() || carry &gt; 0 {
+        let x = match &amp;p {
+            Some(node) =&gt; node.val,
+            None =&gt; 0,
+        };
+        let y = match &amp;q {
+            Some(node) =&gt; node.val,
+            None =&gt; 0,
+        };
+
+        let sum = x + y + carry;
+        carry = sum / 10;
+
+        tail.next = Some(Box::new(ListNode::new(sum % 10)));
+        tail = tail.next.as_mut().unwrap();
+
+        p = match p {
+            Some(node) =&gt; node.next,
+            None =&gt; None,
+        };
+        q = match q {
+            Some(node) =&gt; node.next,
+            None =&gt; None,
+        };
+    }
+
+    head.next
+}</code></pre>
+
+  <h2>核心领悟</h2>
+  <ol>
+    <li><strong><code>unwrap()</code> 的 <code>self</code> 是值不是引用</strong>——调用后变量即废，签名里不带 <code>&amp;</code> 的都消费所有权</li>
+    <li><strong>循环中用 <code>as_ref</code> / <code>match &amp;p</code> 是常态</strong>——循环变量必须复用</li>
+    <li><strong><code>and_then</code> 是链表的天然搭档</strong>——"有就往下走，没有就停"</li>
+    <li><strong>借用冲突靠作用域解决</strong>——变量不用了就自动释放借用</li>
+  </ol>
+
+  <div class="block">
+    <strong>经验法则：</strong>遇到 Option 操作编译错误时，先检查是「消费后使用」还是「借用了又访问」——90% 的错误都在这两类里。
+  </div>
+
+  <h2>Related</h2>
+  <ul>
+    <li><a href="../01-基础入门/所有权与借用心智模型.html">所有权与借用心智模型</a></li>
+    <li><a href="../02-语法进阶/Option方法全景图.html">Option 方法全景图</a></li>
+    <li><a href="../02-语法进阶/Option常用组合模式.html">Option 常用组合模式</a></li>
+  </ul>
+</div>

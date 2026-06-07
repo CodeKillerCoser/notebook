@@ -1,0 +1,20 @@
+---
+pagination:
+  data: notebook.tags
+  size: 1
+  alias: tagPage
+permalink: "{{ tagPage.permalink }}"
+layout: layouts/base.njk
+eleventyExcludeFromCollections: true
+---
+<section class="tag-page">
+  <h1>标签：{{ tagPage.name }}</h1>
+  <ol class="article-list">
+    {% for article in tagPage.articles %}
+      <li>
+        <a href="{{ article.url | relativeUrl(page.url) }}">{{ article.title }}</a>
+        <span>{{ article.category }} · {{ article.date | readableDate }}</span>
+      </li>
+    {% endfor %}
+  </ol>
+</section>

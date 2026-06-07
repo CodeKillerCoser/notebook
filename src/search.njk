@@ -1,0 +1,18 @@
+---
+layout: layouts/base.njk
+title: 搜索 | Notebook
+permalink: /search.html
+breadcrumbs:
+  - title: Notebook
+    url: /index.html
+  - title: 搜索
+    url: /search.html
+---
+<section class="search-page">
+  <h1>搜索</h1>
+  <p class="lead">搜索会覆盖文章正文、目录页和标签页。</p>
+  <div id="search"></div>
+</section>
+<link href="{{ '/pagefind/pagefind-ui.css' | relativeUrl(page.url) }}" rel="stylesheet">
+<script src="{{ '/pagefind/pagefind-ui.js' | relativeUrl(page.url) }}"></script>
+<script src="{{ '/assets/search.js' | relativeUrl(page.url) }}"></script>

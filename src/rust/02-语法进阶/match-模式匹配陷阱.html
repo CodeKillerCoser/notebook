@@ -1,0 +1,105 @@
+---
+title: "match 模式匹配陷阱：裸标识符 vs 值比较"
+date: "2026-05-09T23:49:00+08:00"
+category: "Rust"
+tags:
+  - "Rust"
+  - "语法进阶"
+breadcrumbs:
+  - title: "Notebook"
+    url: "/index.html"
+  - title: "Rust"
+    url: "/rust/index.html"
+  - title: "语法进阶"
+    url: "/rust/02-语法进阶/index.html"
+  - title: "match 模式匹配陷阱：裸标识符 vs 值比较"
+    url: "/rust/02-语法进阶/match-模式匹配陷阱.html"
+layout: layouts/article.njk
+type: article
+comments: true
+permalink: "/rust/02-语法进阶/match-模式匹配陷阱.html"
+---
+<h1>match 模式匹配陷阱：裸标识符 vs 值比较</h1>
+<h2>问题：match 臂中的标识符是模式，不是引用</h2>
+<pre><code class="language-rust">let secret_number = 42;
+let some_value = 100;
+
+// ❌ 这段代码看起来是对的，实际永远匹配第一个臂
+match some_value {
+    secret_number =&gt; println!("You win!"),  // 这不是值比较！
+    _ =&gt; println!("Try again!"),           // 永远走不到
+}
+</code></pre>
+<h3>为什么？</h3>
+<p>在 <code>match</code> 臂中，裸露的标识符（如 <code>secret_number</code>）被 Rust 解释为<strong>新绑定的模式变量</strong>，而不是对外部变量 <code>secret_number</code> 的引用：</p>
+<ul>
+<li><code>secret_number =&gt;</code> 等价于 <code>x =&gt;</code>——<strong>任何值都会匹配</strong></li>
+<li>它会将匹配的值绑定到新变量 <code>secret_number</code>（遮蔽了外部的同名变量）</li>
+<li>第二个臂 <code>_ =&gt;</code> 是通配符，但第一个臂已匹配一切，永远不会到达</li>
+</ul>
+<h2>解决方案</h2>
+<h3>方式 1：<code>if</code> 守卫（推荐）</h3>
+<pre><code class="language-rust">match some_value {
+    x if x == secret_number =&gt; println!("You win!"),
+    _ =&gt; println!("Try again!"),
+}
+</code></pre>
+<p>用 <code>if</code> 守卫明确告诉 Rust：<strong>这里是对比，不是绑定</strong>。</p>
+<h3>方式 2：直接用 <code>if</code> 语句</h3>
+<pre><code class="language-rust">if some_value == secret_number {
+    println!("You win!");
+} else {
+    println!("Try again!");
+}
+</code></pre>
+<p>如果只是简单比较，<code>if</code> 比 <code>match</code> 更清晰。</p>
+<h2>这是 Rust 的常见新手陷阱</h2>
+<p>Rust 的 <code>match</code> 是<strong>模式匹配</strong>（pattern matching），不是值比较。模式匹配中：</p>
+<table>
+<thead>
+<tr>
+<th>模式语法</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>x</code></td>
+<td>匹配任何值，绑定到 <code>x</code></td>
+</tr>
+<tr>
+<td><code>_</code></td>
+<td>匹配任何值，忽略</td>
+</tr>
+<tr>
+<td><code>1 | 2</code></td>
+<td>匹配 1 或 2</td>
+</tr>
+<tr>
+<td><code>1..=10</code></td>
+<td>匹配范围</td>
+</tr>
+<tr>
+<td><code>x if cond</code></td>
+<td>在匹配后附加条件</td>
+</tr>
+</tbody>
+</table>
+<h3>正确使用 match 比较值</h3>
+<pre><code class="language-rust">use std::cmp::Ordering;
+
+let guess = 50;
+let secret_number = 42;
+
+match guess.cmp(&amp;secret_number) {
+    Ordering::Less =&gt; println!("Too small!"),
+    Ordering::Greater =&gt; println!("Too big!"),
+    Ordering::Equal =&gt; println!("You win!"),
+}
+</code></pre>
+<p>这里用 <code>cmp()</code> 方法返回 <code>Ordering</code> 枚举，在枚举值上做模式匹配——不会产生遮蔽问题。</p>
+<h2>核心记忆法</h2>
+<blockquote>
+<p><strong>在 <code>match</code> 臂中，裸露的标识符 = 新变量绑定，不是取值引用。</strong>
+<strong>要比较外部变量，必须用 <code>if</code> 守卫。</strong></p>
+</blockquote>

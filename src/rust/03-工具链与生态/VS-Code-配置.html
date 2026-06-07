@@ -1,0 +1,131 @@
+---
+title: "VS Code 开发环境配置"
+date: "2026-05-09T23:49:00+08:00"
+category: "Rust"
+tags:
+  - "Rust"
+  - "工具链与生态"
+breadcrumbs:
+  - title: "Notebook"
+    url: "/index.html"
+  - title: "Rust"
+    url: "/rust/index.html"
+  - title: "工具链与生态"
+    url: "/rust/03-工具链与生态/index.html"
+  - title: "VS Code 开发环境配置"
+    url: "/rust/03-工具链与生态/VS-Code-配置.html"
+layout: layouts/article.njk
+type: article
+comments: true
+permalink: "/rust/03-工具链与生态/VS-Code-配置.html"
+---
+<h1>VS Code 开发环境配置</h1>
+<h2>必备插件</h2>
+<h3>rust-analyzer</h3>
+<ul>
+<li><strong>名称</strong>: rust-analyzer（Rust 官方维护）</li>
+<li><strong>功能</strong>:
+<ul>
+<li>代码补全（自动导入）</li>
+<li>类型提示（inline type hints）</li>
+<li>代码跳转</li>
+<li>实时错误诊断</li>
+<li>悬停显示文档</li>
+<li>自动格式化</li>
+</ul>
+</li>
+</ul>
+<h3>其他推荐插件</h3>
+<table>
+<thead>
+<tr>
+<th>插件</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Even Better TOML</strong></td>
+<td>Cargo.toml 语法高亮与校验</td>
+</tr>
+<tr>
+<td><strong>CodeLLDB</strong></td>
+<td>调试 Rust 程序（支持断点、变量查看）</td>
+</tr>
+<tr>
+<td><strong>crates</strong></td>
+<td>Cargo.toml 中依赖版本检查与更新</td>
+</tr>
+</tbody>
+</table>
+<h2>打开项目的正确方式</h2>
+<pre><code class="language-bash"># ❌ 错误：只打开 src/ 目录
+code src/
+
+# ✅ 正确：打开包含 Cargo.toml 的目录
+code hello_cargo/
+
+# ✅ 如果是 Workspace，打开 workspace 根目录
+code project-root/
+</code></pre>
+<p><strong>关键</strong>: VS Code 打开的文件夹<strong>必须包含 <code>Cargo.toml</code></strong>（或 workspace 根），rust-analyzer 才能找到项目上下文。</p>
+<h2>代码跳转快捷键</h2>
+<table>
+<thead>
+<tr>
+<th>快捷键</th>
+<th>功能</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>F12</code></td>
+<td>跳转到定义</td>
+</tr>
+<tr>
+<td><code>Alt+F12</code></td>
+<td>预览定义（行内弹出）</td>
+</tr>
+<tr>
+<td><code>Shift+F12</code></td>
+<td>查看所有引用</td>
+</tr>
+<tr>
+<td><code>F2</code></td>
+<td>重命名符号（安全重构）</td>
+</tr>
+<tr>
+<td><code>Ctrl+Click</code></td>
+<td>跳转到定义（Mac: <code>Cmd+Click</code>）</td>
+</tr>
+<tr>
+<td><code>Ctrl+Shift+O</code></td>
+<td>跳转到文件中的符号</td>
+</tr>
+</tbody>
+</table>
+<h3>使用技巧</h3>
+<ul>
+<li><strong>跳转前确保编译通过</strong> — rust-analyzer 基于编译结果提供跳转</li>
+<li><strong><code>F2</code> 重命名</strong> — 会智能地只在合适的地方改名，避免误改</li>
+<li><strong>跨包跳转</strong> — rust-analyzer 支持跨 crate 的跳转，前提是 <code>cargo check</code> 能通过</li>
+</ul>
+<h2>配置文件：settings.json</h2>
+<p>推荐添加以下配置：</p>
+<pre><code class="language-json">{
+    "rust-analyzer.checkOnSave": true,
+    "rust-analyzer.cargo.allFeatures": true,
+    "editor.formatOnSave": true,
+    "[rust]": {
+        "editor.defaultFormatter": "rust-lang.rust-analyzer"
+    }
+}
+</code></pre>
+<h2>常见问题</h2>
+<h3>rust-analyzer 不工作</h3>
+<ol>
+<li>检查 VS Code 打开的文件夹是否正确（必须包含 <code>Cargo.toml</code>）</li>
+<li>运行 <code>cargo check</code> 看是否有编译错误</li>
+<li>重启 rust-analyzer: <code>Ctrl+Shift+P</code> → "rust-analyzer: Restart server"</li>
+<li>检查工作区是否有 <code>Cargo.lock</code>，没有则运行 <code>cargo check</code> 生成</li>
+</ol>

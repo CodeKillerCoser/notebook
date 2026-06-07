@@ -1,0 +1,136 @@
+---
+title: "rand crate 版本兼容"
+date: "2026-05-09T23:49:00+08:00"
+category: "Rust"
+tags:
+  - "Rust"
+  - "工具链与生态"
+breadcrumbs:
+  - title: "Notebook"
+    url: "/index.html"
+  - title: "Rust"
+    url: "/rust/index.html"
+  - title: "工具链与生态"
+    url: "/rust/03-工具链与生态/index.html"
+  - title: "rand crate 版本兼容"
+    url: "/rust/03-工具链与生态/rand-crate-版本.html"
+layout: layouts/article.njk
+type: article
+comments: true
+permalink: "/rust/03-工具链与生态/rand-crate-版本.html"
+---
+<h1>rand crate 版本兼容</h1>
+<p><code>rand</code> crate 是 Rust 生态中最常用的随机数生成库。不同版本的 API 差异很大，升级时需要对照迁移。</p>
+<h2>版本速查表</h2>
+<table>
+<thead>
+<tr>
+<th>rand 版本</th>
+<th>获取 RNG</th>
+<th>生成范围随机数</th>
+<th>需要 use</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>0.7 及以前</strong></td>
+<td><code>rand::thread_rng()</code></td>
+<td><code>.gen_range(1, 101)</code></td>
+<td><code>use rand::Rng;</code></td>
+</tr>
+<tr>
+<td><strong>0.8</strong></td>
+<td><code>rand::thread_rng()</code></td>
+<td><code>.gen_range(1..=100)</code></td>
+<td><code>use rand::Rng;</code></td>
+</tr>
+<tr>
+<td><strong>0.10+</strong></td>
+<td><code>rand::rng()</code></td>
+<td><code>.random_range(1..=100)</code></td>
+<td>无需额外 use</td>
+</tr>
+</tbody>
+</table>
+<h2>最新版写法（0.10+）</h2>
+<pre><code class="language-rust">use rand;
+
+fn main() {
+    // 最简方式：直接用自由函数
+    let num = rand::random_range(1..=100);
+    println!("{}", num);
+}
+</code></pre>
+<ul>
+<li>无需 <code>use rand::Rng;</code></li>
+<li>无需创建 RNG 实例</li>
+<li>直接调用 <code>rand::random_range()</code> 即可</li>
+</ul>
+<h2>各版本迁移对比</h2>
+<h3>0.7 → 0.8</h3>
+<pre><code class="language-rust">// 0.7 及以前
+rand::thread_rng().gen_range(1, 101);
+
+// 0.8
+rand::thread_rng().gen_range(1..=100);
+</code></pre>
+<p>变化：范围参数从 <code>(low, high)</code> 元组改为 Range 语法 <code>low..=high</code>。</p>
+<h3>0.8 → 0.10+</h3>
+<pre><code class="language-rust">// 0.8
+let mut rng = rand::thread_rng();
+rng.gen_range(1..=100);
+
+// 0.10+
+let num = rand::random_range(1..=100);
+</code></pre>
+<p>变化：</p>
+<ul>
+<li><code>rand::thread_rng()</code> → <code>rand::rng()</code></li>
+<li><code>.gen_range()</code> → <code>.random_range()</code></li>
+<li>可以直接用自由函数，无需显式创建 RNG</li>
+</ul>
+<h2>API 完整迁移对照</h2>
+<table>
+<thead>
+<tr>
+<th>功能</th>
+<th>0.7</th>
+<th>0.8</th>
+<th>0.10+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>获取 RNG</td>
+<td><code>rand::thread_rng()</code></td>
+<td><code>rand::thread_rng()</code></td>
+<td><code>rand::rng()</code></td>
+</tr>
+<tr>
+<td>范围随机数</td>
+<td><code>.gen_range(1, 101)</code></td>
+<td><code>.gen_range(1..=100)</code></td>
+<td><code>.random_range(1..=100)</code></td>
+</tr>
+<tr>
+<td>随机 bool</td>
+<td><code>rand::random()</code></td>
+<td><code>.gen::&lt;bool&gt;()</code></td>
+<td><code>rand::random_bool()</code></td>
+</tr>
+<tr>
+<td>从数组选</td>
+<td><code>rng.choose(&amp;arr)</code></td>
+<td><code>rng.choose(&amp;arr)</code></td>
+<td><code>rand::seq::index::sample</code></td>
+</tr>
+</tbody>
+</table>
+<h2>猜数字游戏中的实际用法</h2>
+<pre><code class="language-toml">[dependencies]
+rand = "0.10.1"
+</code></pre>
+<pre><code class="language-rust">use rand;
+
+let secret_number = rand::random_range(1..=100);
+</code></pre>

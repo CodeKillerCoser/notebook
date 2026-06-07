@@ -1,0 +1,137 @@
+---
+title: "01 — String 处理与字符遍历 | Rust 笔记"
+date: "2026-05-13T01:41:31+08:00"
+category: "Rust"
+tags:
+  - "Rust"
+  - "语法进阶"
+breadcrumbs:
+  - title: "Notebook"
+    url: "/index.html"
+  - title: "Rust"
+    url: "/rust/index.html"
+  - title: "语法进阶"
+    url: "/rust/02-语法进阶/index.html"
+  - title: "01 — String 处理与字符遍历 | Rust 笔记"
+    url: "/rust/02-语法进阶/String处理与字符遍历.html"
+layout: layouts/article.njk
+type: article
+comments: true
+permalink: "/rust/02-语法进阶/String处理与字符遍历.html"
+---
+<div class="nav">
+  <a href="../index.html">← Rust 索引</a>
+  <a href="HashMap与容器选择.html">下一篇 → HashMap</a>
+</div>
+
+<h1>01 — String 处理与字符遍历</h1>
+
+<p>
+  Rust 的 <code>String</code> 是 UTF-8 编码的字节序列。遍历它时有两种截然不同的视角：
+  逐字符（<code>char</code>，Unicode 标量值）和逐字节（<code>u8</code>）。选择哪种方式
+  直接决定正确性和性能。
+</p>
+
+<h2>1. 三种遍历方式的对比</h2>
+
+<h3>1.1 <code>char_indices()</code> — 推荐的首选</h3>
+<pre><code>let s = String::from("a b c");
+for (idx, ch) in s.char_indices() {
+    // idx: usize  — 字符的字节偏移
+    // ch:  char   — 经 UTF-8 解码的 Unicode 标量值
+    println!("s[{}] = {}", idx, ch);
+}
+// 输出:
+// s[0] = a
+// s[1] =
+// s[2] = b
+// s[3] =
+// s[4] = c
+</code></pre>
+
+<div class="note">
+  ✅ <strong>正确</strong>：每个 <code>ch</code> 都是一个完整的 Unicode 字符，空格、中文、emoji
+  都会被正确识别。内部做了 UTF-8 解码，有适度开销，但对 LeetCode 级数据量完全可以忽略。
+</div>
+
+<h3>1.2 <code>as_bytes()</code> — 速度最快，但牺牲通用性</h3>
+<pre><code>let s = String::from("abcabc");
+let bytes: &amp;[u8] = s.as_bytes();
+for (idx, &amp;ch) in bytes.iter().enumerate() {
+    // idx: usize  — 字节偏移
+    // ch:  u8     — 原始字节，未解码
+}
+</code></pre>
+
+<div class="note">
+  ⚡ <strong>快的原因</strong>：不做 UTF-8 解码，<code>iter()</code> 直接走指针偏移，
+  每个 <code>u8</code> 就是一个 <code>mov</code> 指令。
+</div>
+
+<p><span class="bad">❌ 局限</span>：多字节字符会被错误拆分。例如 <code>'é'</code> 编码为
+<code>[0xC3, 0xA9]</code>，在字节视角下被当成两个独立的字节，逻辑错误。</p>
+
+<table>
+  <tbody><tr><th>字符</th><th>Unicode</th><th>UTF-8 字节</th><th>as_bytes 视角</th></tr>
+  <tr><td><code>'a'</code></td><td>U+0061</td><td><code>[0x61]</code></td><td>1 个 u8 = 0x61 ✅</td></tr>
+  <tr><td><code>' ' (空格)</code></td><td>U+0020</td><td><code>[0x20]</code></td><td>1 个 u8 = 0x20 ✅</td></tr>
+  <tr><td><code>'é'</code></td><td>U+00E9</td><td><code>[0xC3, 0xA9]</code></td><td>2 个 u8 ❌ 被拆分</td></tr>
+  <tr><td><code>'你'</code></td><td>U+4F60</td><td><code>[0xE4, 0xBD, 0xA0]</code></td><td>3 个 u8 ❌ 被拆分</td></tr>
+</tbody></table>
+
+<h3>1.3 <code>chars().nth(i)</code> — O(n²) 陷阱</h3>
+<pre><code>// ❌ 错误：nth() 每次从头迭代，总复杂度 O(n²)
+for i in 0..s.len() {
+    if let Some(ch) = s.chars().nth(i) {
+        // 仅在特殊场景可用，循环中坚决避免
+    }
+}
+</code></pre>
+
+<p>
+  <code>String::chars()</code> 返回的是一个从零开始的 UTF-8 迭代器。
+  调用 <code>nth(i)</code> 会从头跳过前 i 个字符——这是一次 O(n) 操作。
+  放在 <code>for i in 0..len</code> 循环中，总复杂度退化为 O(n²)。
+</p>
+
+<h2>2. 模式解构中的 <code>&amp;ch</code></h2>
+
+<p>字节数组版的一个关键细节：</p>
+
+<pre><code>let s: &amp;[u8] = "abc".as_bytes();
+
+// s.iter() 返回 Iterator&lt;Item = &amp;u8&gt;
+// .enumerate() 返回 Iterator&lt;Item = (usize, &amp;u8)&gt;
+
+for (right, &amp;ch) in s.iter().enumerate() {
+//             ^^
+// 这行模式匹配干了什么？
+//   1. s.iter() 每轮产生 &amp;u8
+//   2. enumerate() 包装成 (usize, &amp;u8)
+//   3. &amp;ch 模式 —— 剥掉 &amp;，让 ch: u8
+//   4. 之后可以直接 ch as usize
+}
+</code></pre>
+
+<div class="note">
+  <strong>核心规则</strong>：<code>s.iter()</code> 让你进入「引用的世界」，
+  模式里的 <code>&amp;</code> 把你拉回来。不写 <code>&amp;</code> 的话，
+  <code>ch</code> 就是 <code>&amp;u8</code>，不能直接 <code>as usize</code>。
+</div>
+
+<h2>3. 决策流程</h2>
+
+<pre><code>
+需要遍历 String 中的字符？
+        │
+        ├── 只需要处理 ASCII？ ──→ as_bytes() + iter()  【最快，O(n)】
+        │
+        └── 需要处理 Unicode？ ──→ char_indices()       【正确，O(n)】
+                │
+                └── 绝对不要 ──→ chars().nth(i) in loop  【O(n²) 陷阱】
+</code></pre>
+
+<div class="nav" style="margin-top:2rem;">
+  <a href="../index.html">← Rust 索引</a>
+  <a href="HashMap与容器选择.html">下一篇 → HashMap</a>
+</div>
