@@ -1,0 +1,32 @@
+---
+pagination:
+  data: notebook.articles
+  size: 1
+  alias: article
+permalink: "{{ article.permalink }}"
+layout: layouts/base.njk
+eleventyExcludeFromCollections: true
+---
+{{ article.html | safe }}
+
+{% if article.tags and article.tags.length %}
+  <section class="tag-list" aria-label="文章标签">
+    {% for tag in article.tags %}
+      <a href="{{ tag | tagUrl | relativeUrl(page.url) }}">#{{ tag }}</a>
+    {% endfor %}
+  </section>
+{% endif %}
+
+{% if site.comments.provider == "utterances" %}
+  <section class="comments" aria-label="评论">
+    <h2 class="plain-heading">评论</h2>
+    <script src="https://utteranc.es/client.js"
+      repo="{{ site.comments.repo }}"
+      issue-term="{{ site.comments.issueTerm }}"
+      label="{{ site.comments.label }}"
+      theme="{{ site.comments.theme }}"
+      crossorigin="anonymous"
+      async>
+    </script>
+  </section>
+{% endif %}

@@ -1,21 +1,19 @@
 ---
 layout: layouts/base.njk
 title: Notebook
+description: 个人技术笔记与工程实践记录，按主题维护学习材料、工程笔记和长期可复用的知识入口。
 permalink: /index.html
 breadcrumbs:
   - title: Notebook
     url: /index.html
+toc:
+  - id: directories
+    text: 主题目录
+  - id: recent
+    text: 最近更新
 ---
-<section class="home">
-  <h1>Notebook</h1>
-  <p class="lead">个人技术笔记与工程实践记录。这里按主题维护学习材料、工程笔记和长期可复用的知识入口。</p>
-
-  <form class="home-search" action="{{ '/search.html' | relativeUrl(page.url) }}">
-    <input name="q" type="search" placeholder="搜索 Rust、Agent、Git 部署..." aria-label="搜索关键词">
-    <button type="submit">搜索</button>
-  </form>
-
-  <h2>主题目录</h2>
+<section id="directories">
+  <h2><span class="section-index">1</span><span class="section-title">主题目录</span></h2>
   <div class="directory-grid">
     {% for directory in notebook.topDirectories %}
       <a class="directory-card" href="{{ directory.permalink | relativeUrl(page.url) }}">
@@ -24,10 +22,12 @@ breadcrumbs:
       </a>
     {% endfor %}
   </div>
+</section>
 
-  <h2>最近更新</h2>
+<section id="recent">
+  <h2><span class="section-index">2</span><span class="section-title">最近更新</span></h2>
   <ol class="article-list">
-    {% for article in notebook.articles | limit(12) %}
+    {% for article in notebook.articles | limit(14) %}
       <li>
         <a href="{{ article.url | relativeUrl(page.url) }}">{{ article.title }}</a>
         <span>{{ article.category }} · {{ article.date | readableDate }}</span>

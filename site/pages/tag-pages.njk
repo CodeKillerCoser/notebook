@@ -6,9 +6,12 @@ pagination:
 permalink: "{{ tagPage.permalink }}"
 layout: layouts/base.njk
 eleventyExcludeFromCollections: true
+toc:
+  - id: articles
+    text: 文章
 ---
-<section class="tag-page">
-  <h1>标签：{{ tagPage.name }}</h1>
+<section id="articles">
+  <h2><span class="section-index">1</span><span class="section-title">文章</span></h2>
   <ol class="article-list">
     {% for article in tagPage.articles %}
       <li>

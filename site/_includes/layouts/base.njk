@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  {% if article %}
+    {% set pageTitle = article.title ~ " | " ~ site.title %}
+    {% set pageDescription = article.excerpt %}
+  {% elif directory %}
+    {% set pageTitle = directory.title ~ " | " ~ site.title %}
+    {% set pageDescription = "当前目录：" ~ directory.path %}
+  {% elif tagPage %}
+    {% set pageTitle = "标签：" ~ tagPage.name ~ " | " ~ site.title %}
+    {% set pageDescription = "标签文章：" ~ tagPage.name %}
+  {% else %}
+    {% set pageTitle = title or site.title %}
+    {% set pageDescription = description or site.description %}
+  {% endif %}
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ pageTitle }}</title>
+  <meta name="description" content="{{ pageDescription }}">
+  <link rel="alternate" type="application/rss+xml" title="{{ site.title }} RSS" href="{{ '/feed.xml' | relativeUrl(page.url) }}">
+  <link rel="stylesheet" href="{{ '/assets/site.css' | relativeUrl(page.url) }}">
+  {% block head %}{% endblock %}
+</head>
+<body>
+  {% if article %}
+    {% set heroTitle = article.title %}
+    {% set heroEyebrow = article.eyebrow or article.category %}
+    {% set heroSubtitle = article.excerpt %}
+    {% set activeBreadcrumbs = article.breadcrumbs %}
+    {% set heroChips = article.chips if article.chips.length else article.tags %}
+    {% set tocItems = article.toc %}
+  {% elif directory %}
+    {% set heroTitle = directory.title %}
+    {% set heroEyebrow = "Directory" %}
+    {% set heroSubtitle = "当前目录：" ~ directory.path %}
+    {% set activeBreadcrumbs = directory.breadcrumbs %}
+    {% set heroChips = [] %}
+    {% set tocItems = toc %}
+  {% elif tagPage %}
+    {% set heroTitle = "标签：" ~ tagPage.name %}
+    {% set heroEyebrow = "Tag" %}
+    {% set heroSubtitle = tagPage.articles.length ~ " 篇文章" %}
+    {% set activeBreadcrumbs = tagPage.breadcrumbs %}
+    {% set heroChips = [tagPage.name] %}
+    {% set tocItems = toc %}
+  {% else %}
+    {% set heroTitle = title or site.title %}
+    {% set heroEyebrow = eyebrow or "Notebook" %}
+    {% set heroSubtitle = description or site.description %}
+    {% set activeBreadcrumbs = breadcrumbs %}
+    {% set heroChips = chips or [] %}
+    {% set tocItems = toc %}
+  {% endif %}
+
+  <div class="page-shell">
+    <header id="title-block-header" class="hero-grid">
+      <div class="hero-spacer" aria-hidden="true"></div>
+      <div class="hero-content">
+        <div class="eyebrow">{{ heroEyebrow }}</div>
+        <h1>{{ heroTitle }}</h1>
+        {% if heroSubtitle %}
+          <p class="subtitle">{{ heroSubtitle }}</p>
+        {% endif %}
+        <nav class="pathline" aria-label="博客路径">
+          {% if activeBreadcrumbs %}
+            {% for crumb in activeBreadcrumbs %}
+              <a href="{{ crumb.url | relativeUrl(page.url) }}">{{ crumb.title }}</a>
+              {% if not loop.last %}<span aria-hidden="true">›</span>{% endif %}
+            {% endfor %}
+          {% else %}
+            <a href="{{ '/index.html' | relativeUrl(page.url) }}">Notebook</a>
+          {% endif %}
+        </nav>
+        <div class="meta">
+          {% if article and article.date %}
+            <time class="chip" datetime="{{ article.date | isoDate }}">{{ article.date | readableDate }}</time>
+          {% endif %}
+          {% for chip in heroChips %}
+            <span class="chip">{{ chip }}</span>
+          {% endfor %}
+          <a class="chip" href="{{ '/search.html' | relativeUrl(page.url) }}">搜索</a>
+          <a class="chip" href="{{ '/tags/index.html' | relativeUrl(page.url) }}">标签</a>
+          <a class="chip" href="{{ '/feed.xml' | relativeUrl(page.url) }}">RSS</a>
+        </div>
+        <hr class="article-divider">
+      </div>
+    </header>
+  </div>
+
+  <div class="content-grid">
+    <nav class="toc" aria-label="目录">
+      <div class="toc-title">目录</div>
+      {% if tocItems and tocItems.length %}
+        <ol>
+          {% for item in tocItems %}
+            <li><a href="#{{ item.id }}">{{ item.text }}</a></li>
+          {% endfor %}
+        </ol>
+      {% else %}
+        <ol>
+          {% for directory in notebook.topDirectories %}
+            <li><a href="{{ directory.permalink | relativeUrl(page.url) }}">{{ directory.title }}</a></li>
+          {% endfor %}
+          <li><a href="{{ '/search.html' | relativeUrl(page.url) }}">搜索</a></li>
+          <li><a href="{{ '/tags/index.html' | relativeUrl(page.url) }}">标签</a></li>
+        </ol>
+      {% endif %}
+    </nav>
+
+    <main class="article-content" data-pagefind-body>
+      {{ content | safe }}
+    </main>
+  </div>
+</body>
+</html>

@@ -1,0 +1,36 @@
+---
+pagination:
+  data: notebook.directories
+  size: 1
+  alias: directory
+permalink: "{{ directory.permalink }}"
+layout: layouts/base.njk
+eleventyExcludeFromCollections: true
+---
+{% if directory.children.length %}
+  <section id="children">
+    <h2><span class="section-index">1</span><span class="section-title">子目录</span></h2>
+    <div class="directory-grid">
+      {% for child in directory.children %}
+        <a class="directory-card" href="{{ child.permalink | relativeUrl(page.url) }}">
+          <strong>{{ child.title }}</strong>
+          <span>{{ child.articles.length }} 篇直属文章</span>
+        </a>
+      {% endfor %}
+    </div>
+  </section>
+{% endif %}
+
+{% if directory.articles.length %}
+  <section id="articles">
+    <h2><span class="section-index">{% if directory.children.length %}2{% else %}1{% endif %}</span><span class="section-title">文章</span></h2>
+    <ol class="article-list">
+      {% for article in directory.articles %}
+        <li>
+          <a href="{{ article.url | relativeUrl(page.url) }}">{{ article.title }}</a>
+          <span>{{ article.date | readableDate }}</span>
+        </li>
+      {% endfor %}
+    </ol>
+  </section>
+{% endif %}

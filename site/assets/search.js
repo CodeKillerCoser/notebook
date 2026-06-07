@@ -3,11 +3,11 @@
   const query = params.get("q") || "";
 
   function init() {
-    const root = document.querySelector("#search");
+    const root = document.querySelector("#search-box");
     if (!root || !window.PagefindUI) return;
 
     const ui = new window.PagefindUI({
-      element: "#search",
+      element: "#search-box",
       showSubResults: true,
       resetStyles: false,
       translations: {

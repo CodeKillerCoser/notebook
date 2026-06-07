@@ -24,7 +24,7 @@ function relativeUrl(target, fromUrl = "/index.html") {
 }
 
 export default function (eleventyConfig) {
-  eleventyConfig.addPassthroughCopy({ "src/assets": "assets" });
+  eleventyConfig.addPassthroughCopy({ "site/assets": "assets" });
 
   eleventyConfig.addFilter("relativeUrl", relativeUrl);
   eleventyConfig.addFilter("tagUrl", (tag) => `/tags/${tagSlug(tag)}.html`);
@@ -44,7 +44,7 @@ export default function (eleventyConfig) {
 
   return {
     dir: {
-      input: "src",
+      input: "site",
       output: "_site",
       includes: "_includes",
       data: "_data"

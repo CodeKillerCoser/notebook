@@ -1,17 +1,20 @@
 ---
 layout: layouts/base.njk
-title: 搜索 | Notebook
+title: 搜索
+description: 搜索会覆盖文章正文、目录页和标签页。
 permalink: /search.html
 breadcrumbs:
   - title: Notebook
     url: /index.html
   - title: 搜索
     url: /search.html
+toc:
+  - id: search
+    text: 搜索
 ---
-<section class="search-page">
-  <h1>搜索</h1>
-  <p class="lead">搜索会覆盖文章正文、目录页和标签页。</p>
-  <div id="search"></div>
+<section id="search" class="search-page">
+  <h2><span class="section-index">1</span><span class="section-title">搜索</span></h2>
+  <div id="search-box"></div>
 </section>
 <link href="{{ '/pagefind/pagefind-ui.css' | relativeUrl(page.url) }}" rel="stylesheet">
 <script src="{{ '/pagefind/pagefind-ui.js' | relativeUrl(page.url) }}"></script>
