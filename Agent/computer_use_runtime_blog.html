@@ -1,0 +1,845 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>成熟 Computer Use 系统如何落地：动作协议、OS 接口与钉钉发送消息全流程</title>
+  <style type="text/css">
+    :root{
+      --text:#111827;
+      --muted:#6b7280;
+      --line:#e5e7eb;
+      --soft:#f8fafc;
+      --code:#0f172a;
+      --code-text:#e5e7eb;
+      --blue:#2563eb;
+      --blue-soft:#eff6ff;
+      --green:#0f766e;
+      --green-soft:#f0fdfa;
+      --orange:#b45309;
+      --orange-soft:#fffbeb;
+      --red:#b91c1c;
+      --red-soft:#fef2f2;
+      --purple:#6d28d9;
+      --purple-soft:#faf5ff;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; scroll-padding-top: 24px; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', Arial, sans-serif;
+      line-height: 1.78;
+      color: var(--text);
+      max-width: 980px;
+      margin: 48px auto;
+      padding: 0 24px 72px;
+      background: #ffffff;
+      letter-spacing: .005em;
+    }
+    h1 { font-size: 2.2rem; line-height: 1.24; margin: 0 0 1.1rem; letter-spacing: -.03em; }
+    h2 { margin-top: 3.2rem; padding-top: .9rem; border-top: 1px solid var(--line); font-size: 1.58rem; line-height: 1.35; }
+    h3 { margin-top: 2rem; font-size: 1.18rem; }
+    h4 { margin: 1.4rem 0 .5rem; font-size: 1rem; }
+    p { margin: 1rem 0; }
+    a { color: var(--blue); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .eyebrow { color: var(--blue); font-weight: 800; font-size: .86rem; letter-spacing: .12em; text-transform: uppercase; margin-bottom: .65rem; }
+    .subtitle { color: #374151; font-size: 1.05rem; max-width: 880px; }
+    .meta { display:flex; flex-wrap:wrap; gap:.55rem; margin:1.2rem 0 1.8rem; }
+    .chip { display:inline-flex; align-items:center; border:1px solid var(--line); background:#fff; color:#4b5563; border-radius:999px; padding:.22rem .65rem; font-size:.82rem; font-weight:600; }
+    .toc { background: var(--soft); border:1px solid var(--line); border-radius:12px; padding: 1rem 1.2rem; margin:1.6rem 0 2.2rem; }
+    .toc h2 { border:0; padding:0; margin:0 0 .7rem; font-size:1.05rem; }
+    .toc ol { columns:2; margin:.4rem 0 0; padding-left:1.4rem; }
+    .toc li { break-inside:avoid; margin:.22rem 0; font-size:.94rem; }
+    blockquote { border-left: 4px solid var(--blue); margin: 1.4rem 0; padding: .4rem 1rem; background: var(--soft); color: #0f172a; }
+    blockquote p { margin:.6rem 0; }
+    .callout { border:1px solid var(--line); border-left:4px solid var(--blue); background:var(--blue-soft); border-radius:10px; padding:1rem 1.1rem; margin:1.4rem 0; }
+    .callout.warn { border-left-color:var(--orange); background:var(--orange-soft); }
+    .callout.danger { border-left-color:var(--red); background:var(--red-soft); }
+    .callout.ok { border-left-color:var(--green); background:var(--green-soft); }
+    .callout h3 { margin-top:0; }
+    code { background: #f3f4f6; padding: .1rem .28rem; border-radius: 4px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace; font-size:.92em; }
+    pre { background: var(--code); color: var(--code-text); padding: 1rem; border-radius: 10px; overflow-x: auto; line-height: 1.62; margin: 1.2rem 0; font-size: .9rem; }
+    pre code { background: transparent; color: inherit; padding: 0; border-radius:0; }
+    table { border-collapse: collapse; width: 100%; margin: 1.2rem 0; font-size: 0.94rem; }
+    th, td { border: 1px solid var(--line); padding: .62rem .72rem; text-align: left; vertical-align: top; }
+    th { background: var(--soft); font-weight: 700; }
+    tr:nth-child(even) td { background:#fcfcfd; }
+    .figure { margin: 1.7rem 0; border: 1px solid var(--line); border-radius: 12px; overflow:hidden; background:#fff; }
+    .figure-title { padding: .8rem 1rem 0; font-weight: 800; font-size:.98rem; }
+    .figure svg { display:block; width:100%; height:auto; padding: .4rem .5rem .2rem; background:#fff; }
+    .figcaption { padding: 0 1rem 1rem; color: var(--muted); font-size:.86rem; }
+    .svg-text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', Arial, sans-serif; fill:#111827; }
+    .svg-muted { fill:#6b7280; }
+    .svg-title { font-size:18px; font-weight:800; }
+    .svg-mid { font-size:15px; font-weight:700; }
+    .svg-small { font-size:12.5px; }
+    .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin:1.2rem 0; }
+    .card { border:1px solid var(--line); border-radius:12px; padding:1rem; background:#fff; }
+    .card h3 { margin-top:0; }
+    .formula { text-align:center; padding: .95rem 1rem; border:1px solid var(--line); background:var(--soft); border-radius:10px; margin:1.2rem 0; font-weight:800; }
+    .small { color: var(--muted); font-size:.9rem; }
+    .checklist li { list-style:none; position:relative; padding-left:1.45rem; }
+    .checklist li::before { content:'✓'; position:absolute; left:0; color:var(--green); font-weight:900; }
+    .badlist li { list-style:none; position:relative; padding-left:1.45rem; }
+    .badlist li::before { content:'×'; position:absolute; left:0; color:var(--red); font-weight:900; }
+    .tag { display:inline-block; padding:.08rem .4rem; border-radius:5px; background:#f3f4f6; color:#374151; font-size:.8rem; font-weight:700; }
+    sup a { font-size:.75rem; }
+    .refs li { margin:.55rem 0; }
+    hr { border:0; border-top:1px solid var(--line); margin:2.2rem 0; }
+    @media (max-width: 760px) {
+      body { margin: 28px auto; padding: 0 18px 56px; font-size: 15.5px; }
+      h1 { font-size: 1.78rem; }
+      h2 { font-size: 1.35rem; }
+      .toc ol { columns:1; }
+      .grid-2 { grid-template-columns:1fr; }
+      table { font-size:.88rem; }
+      pre { font-size:.82rem; }
+    }
+    @media print {
+      body { max-width:none; margin:0; padding:24px 36px; }
+      a { color:inherit; text-decoration:none; }
+      .toc { break-inside: avoid; }
+      .figure, table, pre { break-inside: avoid; }
+      h2, h3 { break-after: avoid; }
+    }
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+  <div class="eyebrow">Computer Use Runtime × OS Adapter × Safety Kernel</div>
+  <h1>成熟 Computer Use 系统如何落地：动作协议、OS 接口与钉钉发送消息全流程</h1>
+  <p class="subtitle">Computer use 不是“让模型随便点屏幕”。真正可产品化的实现，应该是一套能看屏幕、读 UI 树、管理窗口、启动应用、执行输入、验证结果、拦截高风险动作并可审计回放的 GUI 自动化运行时。本文把前面的讨论整理成一份工程化设计文档，并用“Windows 上打开钉钉并给 xxx 发送消息”作为贯穿案例。</p>
+  <div class="meta">
+    <span class="chip">HTML 长文档</span>
+    <span class="chip">无 Mermaid</span>
+    <span class="chip">内嵌 SVG 图</span>
+    <span class="chip">Windows / macOS / Linux 接口映射</span>
+  </div>
+</header>
+
+<nav class="toc" aria-label="目录">
+  <h2>目录</h2>
+  <ol>
+    <li><a href="#what">Computer use 到底是什么</a></li>
+    <li><a href="#runtime">成熟系统的运行时架构</a></li>
+    <li><a href="#actions">动作协议：不要只暴露坐标点击</a></li>
+    <li><a href="#observe">观察层：截图、UI 树与系统状态</a></li>
+    <li><a href="#os-api">操作系统接口映射</a></li>
+    <li><a href="#windows">Windows 适配层设计</a></li>
+    <li><a href="#loop">闭环执行与状态机</a></li>
+    <li><a href="#dingtalk">案例：打开钉钉并发送消息</a></li>
+    <li><a href="#failure">关键分支与失败恢复</a></li>
+    <li><a href="#security">安全治理与人工确认</a></li>
+    <li><a href="#impl">实现建议与伪代码</a></li>
+    <li><a href="#checklist">实践清单</a></li>
+  </ol>
+</nav>
+
+<section id="what">
+  <h2>一、Computer use 到底是什么</h2>
+  <p>Computer use 的核心是一个闭环：模型观察屏幕，输出下一步 UI 动作；执行层把动作转换成真实的鼠标、键盘、窗口、剪贴板或无障碍接口调用；执行后再截图和读取系统状态，把新的观察结果交回模型，直到任务完成。OpenAI 的官方 Computer use 文档把这个循环描述为：启用 <code>computer</code> 工具发送任务，检查返回的 <code>computer_call</code>，顺序执行 <code>actions[]</code>，捕获更新后的屏幕作为 <code>computer_call_output</code> 回传，重复直到模型不再返回 computer call。<sup><a href="#ref-openai-computer">[1]</a></sup></p>
+  <p>因此，它不是传统意义上的 API 调用，也不是简单的 RPA 脚本。它更像“带视觉的控制器”与“受控桌面运行时”的组合。OpenAI 对 CUA 的介绍也强调，Computer-Using Agent 通过视觉和推理能力与图形界面交互，面对的是人类在屏幕上看到的按钮、菜单和文本框。<sup><a href="#ref-openai-cua">[2]</a></sup></p>
+  <blockquote>
+    <p><strong>一句话定义：</strong>Computer use = 视觉理解模型 + 结构化动作协议 + OS/浏览器执行器 + 反馈截图 + 安全策略 + 审计日志。</p>
+  </blockquote>
+  <p>在 demo 里，你可以只做“截图 → 点坐标 → 再截图”。但在真实业务里，这远远不够。比如“打开钉钉并发送消息给 xxx”这个任务，模型需要回答一连串非视觉问题：钉钉是否安装？是否已经启动？窗口是否最小化？是否需要登录？搜索到多个同名联系人怎么办？发送消息前是否需要用户确认？发送后如何验证成功？这些都不是单纯靠点击坐标能可靠解决的。</p>
+</section>
+
+<section id="runtime">
+  <h2>二、成熟系统的运行时架构</h2>
+  <p>成熟的 computer use 系统应该被设计成一个运行时，而不是一个脚本。它至少包含六层：模型控制器、编排器、观察层、执行层、OS 适配层、安全治理层。</p>
+
+  <div class="figure">
+    <div class="figure-title">图 1：成熟 Computer Use Runtime 的核心闭环</div>
+    <svg viewBox="0 0 980 430" role="img" aria-label="Computer use runtime loop">
+      <defs>
+        <marker id="arrow1" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#334155"/></marker>
+      </defs>
+      <rect x="52" y="52" width="190" height="78" rx="18" fill="#dbeafe" stroke="#93c5fd"/>
+      <text x="147" y="84" text-anchor="middle" class="svg-text svg-mid">Model Controller</text>
+      <text x="147" y="110" text-anchor="middle" class="svg-muted svg-small">理解任务 · 规划动作</text>
+
+      <rect x="395" y="52" width="190" height="78" rx="18" fill="#ede9fe" stroke="#c4b5fd"/>
+      <text x="490" y="84" text-anchor="middle" class="svg-text svg-mid">Orchestrator</text>
+      <text x="490" y="110" text-anchor="middle" class="svg-muted svg-small">状态机 · 重试 · 上下文</text>
+
+      <rect x="738" y="52" width="190" height="78" rx="18" fill="#fffbeb" stroke="#fcd34d"/>
+      <text x="833" y="84" text-anchor="middle" class="svg-text svg-mid">Safety Kernel</text>
+      <text x="833" y="110" text-anchor="middle" class="svg-muted svg-small">权限 · 审批 · 审计</text>
+
+      <rect x="52" y="274" width="190" height="78" rx="18" fill="#f0fdfa" stroke="#5eead4"/>
+      <text x="147" y="306" text-anchor="middle" class="svg-text svg-mid">Observation</text>
+      <text x="147" y="332" text-anchor="middle" class="svg-muted svg-small">截图 · UI 树 · 窗口</text>
+
+      <rect x="395" y="274" width="190" height="78" rx="18" fill="#fff" stroke="#cbd5e1"/>
+      <text x="490" y="306" text-anchor="middle" class="svg-text svg-mid">Executor Harness</text>
+      <text x="490" y="332" text-anchor="middle" class="svg-muted svg-small">click · type · invoke</text>
+
+      <rect x="738" y="274" width="190" height="78" rx="18" fill="#fee2e2" stroke="#fca5a5"/>
+      <text x="833" y="306" text-anchor="middle" class="svg-text svg-mid">OS Adapter</text>
+      <text x="833" y="332" text-anchor="middle" class="svg-muted svg-small">Win32 · UIA · AX · AT-SPI</text>
+
+      <path d="M242 91 L395 91" stroke="#334155" stroke-width="2.2" marker-end="url(#arrow1)"/>
+      <path d="M585 91 L738 91" stroke="#334155" stroke-width="2.2" marker-end="url(#arrow1)"/>
+      <path d="M833 130 L833 274" stroke="#334155" stroke-width="2.2" marker-end="url(#arrow1)"/>
+      <path d="M738 313 L585 313" stroke="#334155" stroke-width="2.2" marker-end="url(#arrow1)"/>
+      <path d="M395 313 L242 313" stroke="#334155" stroke-width="2.2" marker-end="url(#arrow1)"/>
+      <path d="M147 274 L147 130" stroke="#334155" stroke-width="2.2" marker-end="url(#arrow1)"/>
+      <text x="490" y="205" text-anchor="middle" class="svg-muted svg-small">动作先进入安全过滤，再由执行器落到具体 OS；执行后产生新 observation 回到模型</text>
+    </svg>
+    <div class="figcaption">不要让模型直接拥有电脑。模型只提出动作；Runtime 负责验证、执行、观察和审计。</div>
+  </div>
+
+  <p>这套架构有一个重要分工：</p>
+  <div class="formula">模型负责推理，Runtime 负责治理；模型提出动作，Kernel 决定是否允许动作。</div>
+  <p>成熟系统要避免两个极端：一是所有能力都交给模型自由点击，导致不可控；二是所有流程都写死成脚本，失去 computer use 的自适应能力。更好的方式是：结构化能力优先，视觉能力兜底；程序化接口优先，坐标点击兜底；低风险动作自动执行，高风险动作上抛确认。</p>
+</section>
+
+<section id="actions">
+  <h2>三、动作协议：不要只暴露坐标点击</h2>
+  <p>底层动作当然需要存在。OpenAI Computer use 的动作集合包括点击、双击、滚动、输入、等待、按键、拖拽、移动和截图等 UI 交互动作。<sup><a href="#ref-openai-computer">[1]</a></sup> 但成熟实现不应只向模型暴露这些原始动作，而应该分层设计动作协议。</p>
+
+  <h3>1. 人类输入模拟层</h3>
+  <pre><code>observe_screen()
+screenshot()
+move(x, y)
+click(x, y, button="left")
+double_click(x, y)
+right_click(x, y)
+drag(from_x, from_y, to_x, to_y)
+scroll(x, y, delta_x, delta_y)
+keypress(keys)
+type_text(text)
+wait(ms)</code></pre>
+  <p>这一层模拟人类鼠标键盘，适合做兜底，但不稳定。UI 改版、窗口缩放、DPI、遮挡、多显示器、滚动位置变化都会影响坐标。</p>
+
+  <h3>2. 控件语义层</h3>
+  <pre><code>find_element(role="Edit", name_contains="搜索")
+click_element(element_id)
+set_value(element_id, text)
+invoke(element_id)
+select(element_id)
+expand(element_id)
+collapse(element_id)
+scroll_into_view(element_id)
+get_text(element_id)</code></pre>
+  <p>这一层基于无障碍树或 UI 自动化树。Windows 上通常使用 Microsoft UI Automation。UI Automation 为桌面 UI 元素提供程序化访问，自动化脚本也可以通过它与 UI 交互。<sup><a href="#ref-uia-overview">[3]</a></sup> UI Automation 的 control patterns 则把控件能力抽象成接口，例如 Invoke、Value、Selection、Scroll、Text、Window 等。<sup><a href="#ref-uia-patterns">[4]</a></sup></p>
+
+  <h3>3. 应用与窗口层</h3>
+  <pre><code>list_apps(query)
+find_app(name_aliases)
+is_app_installed(app_ref)
+launch_app(app_ref)
+list_processes(query)
+list_windows(query)
+get_active_window()
+focus_window(window_id)
+restore_window(window_id)
+wait_for_window(predicate, timeout)
+close_window(window_id)</code></pre>
+  <p>这层是很多 demo 缺失、但产品化必须补上的能力。以“打开钉钉”为例，模型不应该通过视觉去猜开始菜单里有没有钉钉，而应该先通过系统清单、进程和窗口状态判断。</p>
+
+  <h3>4. 安全与人工确认层</h3>
+  <pre><code>policy_check(action)
+request_user_confirmation(summary)
+handoff_to_user(reason)
+redact_sensitive_observation()
+record_audit_event(step, observation, action, result)</code></pre>
+  <p>发消息、发邮件、付款、删除、修改权限、提交表单、上传文件都属于外部影响动作。它们不能和“滚动页面”同等对待。Runtime 必须先分类风险，再决定自动执行、拒绝、或请求用户确认。</p>
+
+  <table>
+    <thead><tr><th>动作层级</th><th>典型动作</th><th>优先级</th><th>主要风险</th></tr></thead>
+    <tbody>
+      <tr><td>系统动作</td><td>查安装、启动应用、聚焦窗口</td><td>最高</td><td>误启动、权限不足</td></tr>
+      <tr><td>控件动作</td><td>find_element、invoke、set_value</td><td>高</td><td>UI 树不完整、控件命名不稳定</td></tr>
+      <tr><td>剪贴板/输入动作</td><td>paste_text、keypress</td><td>中</td><td>焦点错误、剪贴板污染、IME 问题</td></tr>
+      <tr><td>坐标动作</td><td>click、drag、scroll</td><td>兜底</td><td>DPI、遮挡、滚动位置、误点</td></tr>
+      <tr><td>安全动作</td><td>confirm、handoff、audit</td><td>横切</td><td>确认缺失、审计缺失、越权</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="observe">
+  <h2>四、观察层：截图、UI 树与系统状态</h2>
+  <p>模型要做出正确决策，首先需要完整、稳定、低噪音的 observation。成熟系统的一次观察不应该只有一张截图，而应该包含：</p>
+  <pre><code>{
+  "screenshot": {
+    "width": 1920,
+    "height": 1080,
+    "scale": 1.25,
+    "monitors": [...]
+  },
+  "active_window": {
+    "id": "win_8",
+    "title": "钉钉",
+    "process": "DingTalk.exe",
+    "rect": [0, 0, 1280, 900]
+  },
+  "windows": [...],
+  "accessibility_tree": [...],
+  "cursor": { "x": 420, "y": 88 },
+  "clipboard_state": "text/plain available, content hidden",
+  "security_context": {
+    "logged_in_app": "unknown",
+    "sensitive_regions_redacted": true
+  }
+}</code></pre>
+  <p>尤其要注意三点。</p>
+  <h3>1. 坐标系必须统一</h3>
+  <p>截图坐标、窗口坐标、UIA bounding rectangle、鼠标坐标、多显示器坐标、DPI 缩放坐标必须统一。否则模型看到的是 1280×720，但执行器点的是 2560×1440，必然误点。</p>
+  <h3>2. UI 树和截图要互相校验</h3>
+  <p>UI Automation 或 AX/AT-SPI 可能缺控件，截图可能看不清文本。成熟系统应该同时给模型视觉和结构化树：有语义时走语义控件；语义树缺失时用视觉兜底。</p>
+  <h3>3. 观察结果要做安全处理</h3>
+  <p>密码框、验证码、token、邮箱、手机号、身份证号、精确地址等敏感内容不应直接暴露给模型或日志。观察层应该具备识别与遮罩能力，并在必要时切到用户接管模式。</p>
+</section>
+
+<section id="os-api">
+  <h2>五、操作系统接口映射</h2>
+  <p>一个跨平台 computer use runtime 应该定义统一接口，再为不同 OS 实现 adapter。统一动作是 <code>launch_app</code>、<code>focus_window</code>、<code>find_element</code>，底层则分别落到 Win32/UIA、macOS AX/CGEvent、Linux AT-SPI/XDG/Wayland/X11。</p>
+
+  <table>
+    <thead><tr><th>统一能力</th><th>Windows</th><th>macOS</th><th>Linux</th></tr></thead>
+    <tbody>
+      <tr><td>应用发现</td><td>Get-StartApps、Start Menu .lnk、注册表、进程清单</td><td>LaunchServices、/Applications、Bundle ID</td><td>.desktop、XDG 应用目录、包管理器、进程清单</td></tr>
+      <tr><td>应用启动</td><td>ShellExecuteEx、CreateProcessW</td><td>NSWorkspace、open</td><td>xdg-open、gio launch、Exec、D-Bus activation</td></tr>
+      <tr><td>窗口枚举与聚焦</td><td>EnumWindows、GetWindowText、ShowWindow、SetForegroundWindow</td><td>CGWindow、AXUIElement</td><td>窗口管理器 API、Wayland portal、X11/WM、AT-SPI</td></tr>
+      <tr><td>控件树</td><td>Microsoft UI Automation</td><td>Accessibility API / AXUIElement</td><td>AT-SPI2 over D-Bus</td></tr>
+      <tr><td>输入注入</td><td>SendInput、剪贴板、UIA patterns</td><td>CGEvent、剪贴板、AX actions</td><td>XTest、ydotool、portal、剪贴板、AT-SPI actions</td></tr>
+      <tr><td>截图</td><td>Windows.Graphics.Capture、Desktop Duplication、GDI fallback</td><td>ScreenCaptureKit、CGWindowListCreateImage</td><td>PipeWire portal、X11 screenshot、compositor API</td></tr>
+    </tbody>
+  </table>
+
+  <p>macOS 的 Accessibility API 中，<code>AXUIElement</code> 表示可访问对象，并提供 UI 对象的位置信息和属性；Quartz 的 <code>CGEvent</code> 则可表示鼠标或键盘事件。<sup><a href="#ref-apple-ax">[10]</a></sup> Linux 桌面环境更分裂，AT-SPI2 是通过 D-Bus 暴露无障碍信息的协议，freedesktop 的 Desktop Entry Specification 则定义了应用入口和启动信息的标准格式。<sup><a href="#ref-linux-atspi">[11]</a></sup></p>
+</section>
+
+<section id="windows">
+  <h2>六、Windows 适配层设计</h2>
+  <p>Windows 是企业桌面自动化里最常见、也最复杂的目标环境。一个成熟 Windows adapter 至少要对接以下能力。</p>
+
+  <h3>1. 应用发现</h3>
+  <p>推荐组合多个来源：</p>
+  <pre><code>PowerShell Get-StartApps
+Start Menu .lnk 扫描
+HKCU / HKLM Uninstall 注册表项
+常见安装目录
+正在运行的进程
+企业软件分发清单</code></pre>
+  <p><code>Get-StartApps</code> 可以获取当前用户安装应用的名称和 AppID。<sup><a href="#ref-get-startapps">[7]</a></sup> 但它不一定覆盖所有传统 Win32 软件，所以还要补充 Start Menu、注册表和进程扫描。</p>
+
+  <h3>2. 应用启动</h3>
+  <p>启动应用时，Runtime 应该先拿到一个结构化 <code>app_ref</code>，而不是让模型拼命令行：</p>
+  <pre><code>{
+  "display_name": "钉钉",
+  "aliases": ["DingTalk", "钉钉"],
+  "start_app_id": "...",
+  "shortcut_path": "C:\\Users\\...\\Start Menu\\Programs\\钉钉.lnk",
+  "exe_path": "C:\\Program Files (x86)\\DingDing\\DingtalkLauncher.exe",
+  "confidence": 0.91
+}</code></pre>
+  <p><code>ShellExecute</code> / <code>ShellExecuteEx</code> 适合按 Shell 语义打开文件、文件夹、快捷方式或应用；<code>CreateProcessW</code> 则用于创建新进程及其主线程。<sup><a href="#ref-launch-createprocess">[8]</a></sup></p>
+
+  <h3>3. 窗口管理</h3>
+  <p>窗口管理需要提供：</p>
+  <pre><code>EnumWindows → 枚举顶层窗口
+GetWindowText → 读窗口标题
+GetWindowThreadProcessId → 绑定窗口与进程
+IsWindowVisible → 判断是否可见
+ShowWindow(SW_RESTORE) → 恢复最小化窗口
+SetForegroundWindow → 请求前台激活</code></pre>
+  <p><code>EnumWindows</code> 会枚举屏幕上的顶层窗口。<sup><a href="#ref-enumwindows">[9]</a></sup> <code>SetForegroundWindow</code> 会把创建指定窗口的线程带到前台并让键盘输入指向该窗口，但 Windows 对抢焦点有系统限制，不是任何进程都能随时成功。<sup><a href="#ref-foreground">[9]</a></sup> <code>ShowWindow</code> 则用于控制窗口显示状态，例如恢复最小化窗口。<sup><a href="#ref-showwindow">[9]</a></sup></p>
+
+  <h3>4. 控件读取与操作</h3>
+  <p>Windows 上的控件语义层应优先使用 Microsoft UI Automation。它可以读取 Name、ControlType、AutomationId、BoundingRectangle、IsEnabled、IsOffscreen、ProcessId、SupportedPatterns 等字段，并通过 InvokePattern、ValuePattern、SelectionPattern、ScrollPattern 等执行语义动作。<sup><a href="#ref-uia-overview">[3]</a></sup><sup><a href="#ref-uia-patterns">[4]</a></sup></p>
+
+  <h3>5. 输入执行</h3>
+  <p>键盘鼠标兜底通常落到 <code>SendInput</code>。Microsoft 文档说明，<code>SendInput</code> 会把输入事件串行插入键盘或鼠标输入流，同时也受 UIPI 限制：应用只能向同等或更低完整性级别的应用注入输入。<sup><a href="#ref-sendinput">[5]</a></sup> 因此，执行层应该优先级如下：</p>
+  <pre><code>UIA set_value / invoke
+→ clipboard paste
+→ SendInput keypress / mouse click
+→ 视觉坐标兜底
+→ 用户接管</code></pre>
+
+  <h3>6. 截图</h3>
+  <p>现代 Windows 可以使用 <code>Windows.Graphics.Capture</code> 获取显示器或应用窗口帧，用于截图、视频流或交互场景。<sup><a href="#ref-wgc">[6]</a></sup> 对 computer use 来说，截图模块要同时处理 DPI、多显示器、窗口遮挡、鼠标光标、UAC 安全桌面和敏感区域遮罩。</p>
+</section>
+
+<section id="loop">
+  <h2>七、闭环执行与状态机</h2>
+  <p>成熟 computer use 不能只是“模型返回动作就执行”。它应该有显式状态机、最大步数、超时、稳定性检测、结果验证和失败恢复。</p>
+
+  <div class="figure">
+    <div class="figure-title">图 2：Computer Use 执行状态机</div>
+    <svg viewBox="0 0 980 470" role="img" aria-label="State machine">
+      <defs>
+        <marker id="arrow2" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#334155"/></marker>
+      </defs>
+      <rect x="48" y="56" width="150" height="58" rx="14" fill="#dbeafe" stroke="#93c5fd"/>
+      <text x="123" y="91" text-anchor="middle" class="svg-text svg-mid">Parse Task</text>
+      <rect x="255" y="56" width="150" height="58" rx="14" fill="#f0fdfa" stroke="#5eead4"/>
+      <text x="330" y="91" text-anchor="middle" class="svg-text svg-mid">Observe</text>
+      <rect x="462" y="56" width="150" height="58" rx="14" fill="#ede9fe" stroke="#c4b5fd"/>
+      <text x="537" y="91" text-anchor="middle" class="svg-text svg-mid">Plan Action</text>
+      <rect x="669" y="56" width="150" height="58" rx="14" fill="#fffbeb" stroke="#fcd34d"/>
+      <text x="744" y="91" text-anchor="middle" class="svg-text svg-mid">Policy Check</text>
+
+      <rect x="669" y="190" width="150" height="58" rx="14" fill="#fff" stroke="#cbd5e1"/>
+      <text x="744" y="225" text-anchor="middle" class="svg-text svg-mid">Execute</text>
+      <rect x="462" y="190" width="150" height="58" rx="14" fill="#f0fdfa" stroke="#5eead4"/>
+      <text x="537" y="225" text-anchor="middle" class="svg-text svg-mid">Re-observe</text>
+      <rect x="255" y="190" width="150" height="58" rx="14" fill="#dbeafe" stroke="#93c5fd"/>
+      <text x="330" y="225" text-anchor="middle" class="svg-text svg-mid">Verify</text>
+      <rect x="48" y="190" width="150" height="58" rx="14" fill="#dcfce7" stroke="#86efac"/>
+      <text x="123" y="225" text-anchor="middle" class="svg-text svg-mid">Done</text>
+
+      <rect x="395" y="340" width="190" height="58" rx="14" fill="#fee2e2" stroke="#fca5a5"/>
+      <text x="490" y="375" text-anchor="middle" class="svg-text svg-mid">Ask / Handoff / Fail</text>
+
+      <path d="M198 85 L255 85" stroke="#334155" stroke-width="2.2" marker-end="url(#arrow2)"/>
+      <path d="M405 85 L462 85" stroke="#334155" stroke-width="2.2" marker-end="url(#arrow2)"/>
+      <path d="M612 85 L669 85" stroke="#334155" stroke-width="2.2" marker-end="url(#arrow2)"/>
+      <path d="M744 114 L744 190" stroke="#334155" stroke-width="2.2" marker-end="url(#arrow2)"/>
+      <path d="M669 219 L612 219" stroke="#334155" stroke-width="2.2" marker-end="url(#arrow2)"/>
+      <path d="M462 219 L405 219" stroke="#334155" stroke-width="2.2" marker-end="url(#arrow2)"/>
+      <path d="M255 219 L198 219" stroke="#334155" stroke-width="2.2" marker-end="url(#arrow2)"/>
+      <path d="M330 248 C330 292 370 322 430 340" stroke="#334155" stroke-width="2" marker-end="url(#arrow2)" fill="none"/>
+      <path d="M537 248 C537 290 520 315 500 340" stroke="#334155" stroke-width="2" marker-end="url(#arrow2)" fill="none"/>
+      <path d="M744 248 C744 310 650 340 585 365" stroke="#334155" stroke-width="2" marker-end="url(#arrow2)" fill="none"/>
+      <path d="M330 190 C300 150 300 120 330 114" stroke="#334155" stroke-width="2" marker-end="url(#arrow2)" fill="none"/>
+      <text x="490" y="294" text-anchor="middle" class="svg-muted svg-small">验证失败可重试；策略失败必须拒绝、确认或用户接管</text>
+    </svg>
+    <div class="figcaption">每一步都要有可观察的前置条件、动作、后置验证和失败路径。</div>
+  </div>
+
+  <p>状态机的关键不是名字，而是保证每次动作前后都能回答三个问题：</p>
+  <ol>
+    <li>当前状态是否足以执行这个动作？比如是否确认了目标联系人？</li>
+    <li>这个动作是否允许自动执行？比如发送消息是否需要确认？</li>
+    <li>执行后如何验证结果？比如消息是否真的出现在聊天气泡中？</li>
+  </ol>
+</section>
+
+<section id="dingtalk">
+  <h2>八、案例：Windows 上打开钉钉并发送消息给 xxx</h2>
+  <p>钉钉官方下载安装页显示客户端支持 Windows、Mac、iOS、Android 等平台。<sup><a href="#ref-dingtalk">[12]</a></sup> 下面假设用户任务是：</p>
+  <pre><code>打开钉钉，给 xxx 发送消息：“今天下午三点开会”</code></pre>
+
+  <h3>Step 0：任务解析与风险分类</h3>
+  <pre><code>{
+  "app": "钉钉",
+  "recipient": "xxx",
+  "message": "今天下午三点开会",
+  "action": "send_message",
+  "risk": "external_communication",
+  "requires_confirmation": true
+}</code></pre>
+  <p>发送消息是外部通信，默认需要用户确认。除非系统有明确白名单，例如测试机器人、测试群、低风险通知模板，否则不应自动点击发送。</p>
+
+  <h3>Step 1：发现钉钉是否安装</h3>
+  <p>Runtime 执行：</p>
+  <pre><code>find_app(["钉钉", "DingTalk", "Ding Ding", "DingDing"])</code></pre>
+  <p>内部策略：</p>
+  <ol>
+    <li>用 <code>Get-StartApps *钉钉*</code> 和 <code>Get-StartApps *DingTalk*</code> 查当前用户 Start apps。</li>
+    <li>扫描 Start Menu 快捷方式。</li>
+    <li>检查 HKCU/HKLM Uninstall 注册表项。</li>
+    <li>检查当前进程和窗口。</li>
+    <li>必要时查企业软件分发清单。</li>
+  </ol>
+  <p>如果没有安装，不要自动下载安装。正确行为是告诉用户未找到钉钉，并询问是否打开官方下载页或让用户安装。</p>
+
+  <h3>Step 2：判断钉钉是否已经启动</h3>
+  <p>系统执行：</p>
+  <pre><code>list_processes(query=["DingTalk", "DingDing", "钉钉"])
+list_windows(query=["钉钉", "DingTalk"])</code></pre>
+  <table>
+    <thead><tr><th>状态</th><th>判断</th><th>动作</th></tr></thead>
+    <tbody>
+      <tr><td>进程和主窗口都存在</td><td>有 DingTalk 进程，有可见顶层窗口</td><td>恢复窗口、聚焦、观察主界面</td></tr>
+      <tr><td>进程存在但无主窗口</td><td>可能缩到托盘或后台</td><td>二次 launch 唤起主窗口；失败再处理托盘或用户接管</td></tr>
+      <tr><td>未运行但已安装</td><td>找到 app_ref，无进程</td><td>ShellExecuteEx 或 CreateProcessW 启动</td></tr>
+      <tr><td>出现登录或验证界面</td><td>观察到二维码、验证码、密码框</td><td>用户接管，不绕过认证</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Step 3：等待主窗口稳定</h3>
+  <p>启动后不要马上点击。应等待：</p>
+  <pre><code>window.visible == true
+active_window.process matches DingTalk
+screenshot stable for 500-1000ms
+UI tree contains main window or search/message entry</code></pre>
+  <p>稳定后返回综合 observation：当前窗口标题、可见文本、UIA 树候选控件、截图、DPI、窗口位置。</p>
+
+  <h3>Step 4：定位搜索入口</h3>
+  <p>优先走语义控件：</p>
+  <pre><code>search_box = find_element(
+  role="Edit",
+  name_contains=["搜索", "search"],
+  within="DingTalk main window"
+)</code></pre>
+  <p>如果找到了并支持 ValuePattern：</p>
+  <pre><code>set_value(search_box, "xxx")</code></pre>
+  <p>如果不支持 ValuePattern，则：</p>
+  <pre><code>click_element(search_box)
+paste_text("xxx")</code></pre>
+  <p>如果 UI 树缺失，退回视觉方案：OCR 找“搜索”文本附近输入框，或让模型根据截图点击搜索区域，再粘贴联系人名。</p>
+
+  <h3>Step 5：搜索并选择联系人</h3>
+  <p>输入联系人后等待搜索结果：</p>
+  <pre><code>wait_until(
+  UI tree contains result text "xxx"
+  OR screenshot/OCR contains "xxx"
+  OR timeout
+)</code></pre>
+  <p>成熟系统不能只点第一个结果。它应该构建候选列表：</p>
+  <pre><code>[
+  {
+    "element_id": "el_result_1",
+    "display_name": "xxx",
+    "subtitle": "产品部 / 公司内部",
+    "type": "person",
+    "confidence": 0.92
+  },
+  {
+    "element_id": "el_result_2",
+    "display_name": "xxx 项目群",
+    "type": "group",
+    "confidence": 0.66
+  }
+]</code></pre>
+  <p>如果只有一个高置信候选，打开它；如果有多个候选，必须让用户选择。对 IM 场景来说，发错人比任务失败更严重。</p>
+
+  <h3>Step 6：验证已经进入正确会话</h3>
+  <p>选择结果后不能立即发消息，应先验证：</p>
+  <ul>
+    <li>聊天窗口标题或顶部文本包含目标联系人。</li>
+    <li>最近会话选中项与目标一致。</li>
+    <li>联系人类型符合预期：个人、群聊、机器人或外部联系人。</li>
+    <li>不存在“搜索结果仍未选择”“会话加载中”“网络错误”等状态。</li>
+  </ul>
+
+  <h3>Step 7：定位消息输入框并写入草稿</h3>
+  <p>消息输入框可能是富文本控件，UIA ValuePattern 不一定可用。推荐策略：</p>
+  <pre><code>input_box = find_element(role="Edit", name_contains=["消息", "输入", "请输入"])
+click_or_focus(input_box)
+paste_text("今天下午三点开会")
+verify_draft_text("今天下午三点开会")</code></pre>
+  <p>中文文本优先粘贴，而不是逐字模拟键盘输入。这样可以减少 IME 候选词、键盘布局、快捷键冲突带来的不确定性。</p>
+
+  <h3>Step 8：发送前确认</h3>
+  <div class="callout warn">
+    <h3>必须停一下</h3>
+    <p>发送消息属于外部影响动作。默认应在真正点击“发送”前展示确认：</p>
+    <pre><code>即将通过钉钉向「xxx」发送：
+
+今天下午三点开会
+
+是否确认发送？</code></pre>
+  </div>
+
+  <h3>Step 9：执行发送</h3>
+  <p>用户确认后，优先找“发送”按钮并 invoke：</p>
+  <pre><code>send_button = find_element(role="Button", name_contains=["发送", "Send"])
+invoke(send_button)</code></pre>
+  <p>不要默认按 Enter，因为 IM 软件可能配置为 Enter 发送、Ctrl+Enter 发送，或者 Enter 换行。找不到发送按钮时，才根据界面提示或配置使用快捷键。</p>
+
+  <h3>Step 10：发送后验证</h3>
+  <p>发送后再次观察：</p>
+  <ul>
+    <li>输入框是否清空。</li>
+    <li>最后一条消息气泡是否包含目标文本。</li>
+    <li>气泡旁是否有失败标记、红色感叹号或网络错误。</li>
+    <li>当前会话对象是否仍是 xxx。</li>
+  </ul>
+  <p>只有这些验证通过，才返回“已发送”。</p>
+
+  <div class="figure">
+    <div class="figure-title">图 3：钉钉发送消息的端到端流程</div>
+    <svg viewBox="0 0 980 620" role="img" aria-label="DingTalk workflow">
+      <defs>
+        <marker id="arrow3" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#334155"/></marker>
+      </defs>
+      <rect x="76" y="42" width="180" height="60" rx="15" fill="#dbeafe" stroke="#93c5fd"/>
+      <text x="166" y="78" text-anchor="middle" class="svg-text svg-mid">解析任务</text>
+      <rect x="400" y="42" width="180" height="60" rx="15" fill="#f0fdfa" stroke="#5eead4"/>
+      <text x="490" y="78" text-anchor="middle" class="svg-text svg-mid">发现钉钉</text>
+      <rect x="724" y="42" width="180" height="60" rx="15" fill="#f0fdfa" stroke="#5eead4"/>
+      <text x="814" y="78" text-anchor="middle" class="svg-text svg-mid">启动/聚焦窗口</text>
+
+      <rect x="724" y="170" width="180" height="60" rx="15" fill="#ede9fe" stroke="#c4b5fd"/>
+      <text x="814" y="206" text-anchor="middle" class="svg-text svg-mid">检查登录态</text>
+      <rect x="400" y="170" width="180" height="60" rx="15" fill="#fff" stroke="#cbd5e1"/>
+      <text x="490" y="206" text-anchor="middle" class="svg-text svg-mid">定位搜索框</text>
+      <rect x="76" y="170" width="180" height="60" rx="15" fill="#fff" stroke="#cbd5e1"/>
+      <text x="166" y="206" text-anchor="middle" class="svg-text svg-mid">搜索联系人</text>
+
+      <rect x="76" y="298" width="180" height="60" rx="15" fill="#fffbeb" stroke="#fcd34d"/>
+      <text x="166" y="334" text-anchor="middle" class="svg-text svg-mid">候选消歧</text>
+      <rect x="400" y="298" width="180" height="60" rx="15" fill="#dbeafe" stroke="#93c5fd"/>
+      <text x="490" y="334" text-anchor="middle" class="svg-text svg-mid">打开并验证会话</text>
+      <rect x="724" y="298" width="180" height="60" rx="15" fill="#dbeafe" stroke="#93c5fd"/>
+      <text x="814" y="334" text-anchor="middle" class="svg-text svg-mid">写入消息草稿</text>
+
+      <rect x="724" y="426" width="180" height="60" rx="15" fill="#fffbeb" stroke="#fcd34d"/>
+      <text x="814" y="462" text-anchor="middle" class="svg-text svg-mid">用户确认</text>
+      <rect x="400" y="426" width="180" height="60" rx="15" fill="#fee2e2" stroke="#fca5a5"/>
+      <text x="490" y="462" text-anchor="middle" class="svg-text svg-mid">点击发送</text>
+      <rect x="76" y="426" width="180" height="60" rx="15" fill="#dcfce7" stroke="#86efac"/>
+      <text x="166" y="462" text-anchor="middle" class="svg-text svg-mid">验证成功</text>
+
+      <path d="M256 72 L400 72" stroke="#334155" stroke-width="2.2" marker-end="url(#arrow3)"/>
+      <path d="M580 72 L724 72" stroke="#334155" stroke-width="2.2" marker-end="url(#arrow3)"/>
+      <path d="M814 102 L814 170" stroke="#334155" stroke-width="2.2" marker-end="url(#arrow3)"/>
+      <path d="M724 200 L580 200" stroke="#334155" stroke-width="2.2" marker-end="url(#arrow3)"/>
+      <path d="M400 200 L256 200" stroke="#334155" stroke-width="2.2" marker-end="url(#arrow3)"/>
+      <path d="M166 230 L166 298" stroke="#334155" stroke-width="2.2" marker-end="url(#arrow3)"/>
+      <path d="M256 328 L400 328" stroke="#334155" stroke-width="2.2" marker-end="url(#arrow3)"/>
+      <path d="M580 328 L724 328" stroke="#334155" stroke-width="2.2" marker-end="url(#arrow3)"/>
+      <path d="M814 358 L814 426" stroke="#334155" stroke-width="2.2" marker-end="url(#arrow3)"/>
+      <path d="M724 456 L580 456" stroke="#334155" stroke-width="2.2" marker-end="url(#arrow3)"/>
+      <path d="M400 456 L256 456" stroke="#334155" stroke-width="2.2" marker-end="url(#arrow3)"/>
+      <text x="490" y="560" text-anchor="middle" class="svg-muted svg-small">任何一步发现登录、同名联系人、权限不足、发送失败，都进入确认、重试或用户接管分支</text>
+    </svg>
+    <div class="figcaption">这不是“打开应用 → 点搜索 → 按回车”的线性脚本，而是一个带验证和安全闸门的状态机。</div>
+  </div>
+</section>
+
+<section id="failure">
+  <h2>九、关键分支与失败恢复</h2>
+  <p>成熟系统的价值主要体现在失败路径，而不是 happy path。</p>
+
+  <h3>1. 钉钉未安装</h3>
+  <pre><code>检测：Start apps、快捷方式、注册表、进程均未找到。
+动作：不自动下载安装。
+输出：本机似乎未安装钉钉，是否打开官方下载安装页？</code></pre>
+
+  <h3>2. 钉钉已启动但缩到托盘</h3>
+  <pre><code>检测：DingTalk 进程存在，但没有可见主窗口。
+动作：再次 launch_app，很多 IM 应用会唤起主窗口。
+失败：尝试托盘区 UIA / 视觉回退；仍失败则用户接管。</code></pre>
+
+  <h3>3. 需要登录、扫码或验证码</h3>
+  <pre><code>检测：二维码、验证码、密码框、二次认证页面。
+动作：handoff_to_user("钉钉需要登录或验证，请先完成登录")。
+禁止：模型代填、绕过、读取或保存敏感凭据。</code></pre>
+
+  <h3>4. 搜索到多个 xxx</h3>
+  <pre><code>检测：候选列表中存在多个同名个人、群聊、机器人或外部联系人。
+动作：展示候选，让用户选择。
+禁止：默认选第一个。</code></pre>
+
+  <h3>5. 找不到发送按钮</h3>
+  <pre><code>检测：UIA 无 Button("发送")，截图中也没有明确按钮。
+动作：读取界面提示或配置；必要时询问用户发送快捷键。
+禁止：默认 Enter 一定是发送。</code></pre>
+
+  <h3>6. 发送后失败</h3>
+  <pre><code>检测：最后气泡旁有红色感叹号、网络错误、输入框未清空。
+动作：返回失败证据，允许用户确认后重试。
+禁止：没有验证就声称已发送。</code></pre>
+</section>
+
+<section id="security">
+  <h2>十、安全治理与人工确认</h2>
+  <p>Computer use 的风险高于普通聊天，因为它能操作真实账号、真实文件和真实业务系统。因此，安全治理不是附加项，而是 Runtime 的核心能力。</p>
+
+  <div class="figure">
+    <div class="figure-title">图 4：动作输出端的安全过滤器</div>
+    <svg viewBox="0 0 980 360" role="img" aria-label="Safety filter">
+      <defs>
+        <marker id="arrow4" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#334155"/></marker>
+      </defs>
+      <rect x="58" y="132" width="170" height="78" rx="18" fill="#dbeafe" stroke="#93c5fd"/>
+      <text x="143" y="164" text-anchor="middle" class="svg-text svg-mid">Agent</text>
+      <text x="143" y="190" text-anchor="middle" class="svg-muted svg-small">Proposed Action</text>
+      <path d="M228 171 L315 171" stroke="#334155" stroke-width="2.3" marker-end="url(#arrow4)"/>
+      <rect x="315" y="80" width="260" height="182" rx="24" fill="#fff" stroke="#cbd5e1"/>
+      <text x="445" y="118" text-anchor="middle" class="svg-text svg-title">Safety Filter</text>
+      <text x="445" y="154" text-anchor="middle" class="svg-muted svg-small">权限 · 域名 · 数据安全</text>
+      <text x="445" y="184" text-anchor="middle" class="svg-muted svg-small">参数校验 · 风险分类</text>
+      <text x="445" y="214" text-anchor="middle" class="svg-muted svg-small">审批 · 审计 · 回放</text>
+      <path d="M575 150 L700 100" stroke="#334155" stroke-width="2.3" marker-end="url(#arrow4)" fill="none"/>
+      <path d="M575 190 L700 242" stroke="#334155" stroke-width="2.3" marker-end="url(#arrow4)" fill="none"/>
+      <rect x="700" y="62" width="210" height="78" rx="18" fill="#d1fae5" stroke="#6ee7b7"/>
+      <text x="805" y="96" text-anchor="middle" class="svg-text svg-mid">允许执行</text>
+      <text x="805" y="121" text-anchor="middle" class="svg-muted svg-small">低风险 / 已授权</text>
+      <rect x="700" y="222" width="210" height="78" rx="18" fill="#fee2e2" stroke="#fca5a5"/>
+      <text x="805" y="256" text-anchor="middle" class="svg-text svg-mid">拒绝或上抛</text>
+      <text x="805" y="281" text-anchor="middle" class="svg-muted svg-small">高风险 / 不可逆</text>
+    </svg>
+    <div class="figcaption">所有外部动作都应该像受控 syscall 一样进入统一安全过滤器。</div>
+  </div>
+
+  <h3>1. 最小权限</h3>
+  <p>Agent 只应访问完成任务所需的应用、网站、文件和网络范围。不要让一个通用 Agent 默认继承用户全部权限。</p>
+
+  <h3>2. 高风险动作确认</h3>
+  <p>发送消息、发送邮件、提交表单、付款、删除文件、修改权限、上传敏感文件，都应该要求用户确认。确认界面必须展示对象、内容、后果和可撤销性。</p>
+
+  <h3>3. Prompt injection 防护</h3>
+  <p>屏幕上的网页、邮件、聊天消息、PDF、文档和工具输出都应被视为不可信输入。第三方内容不能自动获得系统指令级别的权限，更不能被当作用户授权。</p>
+
+  <h3>4. 审计与回放</h3>
+  <p>每一步应记录：时间、任务 ID、观察摘要、动作、策略判断、执行结果、截图哈希、用户确认记录。这样才能复现错误、追责和回滚。</p>
+</section>
+
+<section id="impl">
+  <h2>十一、实现建议与伪代码</h2>
+  <p>实现时推荐把系统拆成四个核心接口：<code>Observer</code>、<code>Planner</code>、<code>Policy</code>、<code>Executor</code>。</p>
+  <pre><code>class ComputerUseRuntime:
+    def run(self, task):
+        state = self.parse_task(task)
+
+        for step in range(MAX_STEPS):
+            obs = self.observer.observe()
+            action_plan = self.planner.next_action(state, obs)
+
+            if action_plan.is_done:
+                return self.verifier.final_result(state, obs)
+
+            decision = self.policy.check(action_plan, state, obs)
+            if decision.requires_user_confirmation:
+                if not self.ask_user(decision.summary):
+                    return Cancelled()
+
+            if decision.denied:
+                return Blocked(decision.reason)
+
+            result = self.executor.execute(action_plan)
+            self.audit.record(step, obs, action_plan, decision, result)
+
+            if not result.ok:
+                state = self.recovery.update(state, result)
+                continue
+
+            state = self.reducer.update(state, obs, action_plan, result)
+
+        return Failed("任务未在最大步数内完成")</code></pre>
+
+  <p>钉钉发送消息的业务伪代码可以写成：</p>
+  <pre><code>def send_dingtalk_message(recipient, message):
+    app = find_app(["钉钉", "DingTalk", "DingDing"])
+    if not app:
+        return ask_user("未找到钉钉。是否打开官方下载安装页？")
+
+    win = find_window_by_app(app)
+    if not win:
+        launch_app(app)
+        win = wait_for_window(app, timeout=30)
+
+    if not win:
+        return handoff_to_user("钉钉无法启动或没有出现主窗口")
+
+    restore_window(win)
+    focus_window(win)
+
+    obs = observe(include=["screenshot", "accessibility_tree", "active_window"])
+    if detect_login_required(obs):
+        return handoff_to_user("钉钉需要登录或验证，请先完成登录")
+
+    search = find_element(role="Edit", name_contains=["搜索", "search"], within=win)
+    if search:
+        set_or_paste(search, recipient)
+    else:
+        box = locate_by_ocr_or_vision("搜索")
+        click(box.center)
+        paste_text(recipient)
+
+    results = wait_search_results(recipient)
+    chosen = disambiguate_results(results, recipient)
+    if chosen.needs_user_choice:
+        return ask_user_to_choose(chosen.candidates)
+
+    invoke_or_click(chosen.element)
+
+    if not verify_chat_opened(recipient):
+        return fail("无法确认当前会话对象是目标联系人")
+
+    input_box = find_message_input()
+    click_or_focus(input_box)
+    paste_text(message)
+
+    if not verify_draft_text(message):
+        return fail("消息草稿内容未正确写入")
+
+    confirmed = ask_user_confirmation(
+        f"将通过钉钉向「{recipient}」发送：\n\n{message}"
+    )
+    if not confirmed:
+        return cancel()
+
+    send_button = find_element(role="Button", name_contains=["发送", "Send"])
+    if send_button:
+        invoke_or_click(send_button)
+    else:
+        keypress(["ENTER"])
+
+    if verify_message_sent(message):
+        return success()
+    return fail("消息可能未发送成功，请检查钉钉窗口")</code></pre>
+
+  <h3>几个实现细节</h3>
+  <ul>
+    <li><strong>动作要幂等：</strong>重复执行 <code>focus_window</code> 应该安全；重复执行“发送”则不安全，必须禁止自动重试。</li>
+    <li><strong>等待要看状态：</strong>不要固定 sleep 3 秒，而是等待窗口出现、UI 树稳定、截图变化停止或文本出现。</li>
+    <li><strong>坐标要可解释：</strong>坐标动作必须带理由和目标区域，例如“点击搜索框中心”，而不是裸坐标。</li>
+    <li><strong>错误要可恢复：</strong>每个步骤都要知道失败后是重试、换策略、询问用户，还是中止。</li>
+    <li><strong>版本要可观测：</strong>记录应用版本、窗口标题、DPI、屏幕分辨率和 OS 版本，方便定位兼容性问题。</li>
+  </ul>
+</section>
+
+<section id="checklist">
+  <h2>十二、实践清单</h2>
+  <div class="grid-2">
+    <div class="card">
+      <h3>应该做</h3>
+      <ul class="checklist">
+        <li>把 computer use 当作 Runtime，而不是脚本。</li>
+        <li>优先用系统接口和 UI 树，坐标点击只做兜底。</li>
+        <li>每个动作都有前置条件、后置验证和失败分支。</li>
+        <li>发送、删除、付款、提交等动作必须经过策略检查。</li>
+        <li>记录可审计日志和关键截图哈希。</li>
+        <li>把失败案例沉淀成回归测试。</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>不要做</h3>
+      <ul class="badlist">
+        <li>不要让模型直接自由控制用户真实桌面。</li>
+        <li>不要只靠截图和坐标完成复杂任务。</li>
+        <li>不要默认第一个搜索结果就是目标联系人。</li>
+        <li>不要默认 Enter 一定是发送。</li>
+        <li>不要绕过登录、验证码或二次认证。</li>
+        <li>不要没有验证就声称任务完成。</li>
+      </ul>
+    </div>
+  </div>
+
+  <blockquote>
+    <p><strong>最终结论：</strong>成熟的 computer use 系统，真正的护城河不在“模型能不能看懂按钮”，而在 Runtime 能不能把不确定的模型行为，约束在可观察、可验证、可恢复、可审计、可授权的执行边界内。</p>
+  </blockquote>
+</section>
+
+<section id="refs">
+  <h2>参考资料</h2>
+  <ol class="refs">
+    <li id="ref-openai-computer">OpenAI Developers: <a href="https://developers.openai.com/api/docs/guides/tools-computer-use">Computer use guide</a>。用于说明 computer tool、<code>computer_call</code>、<code>actions[]</code>、截图回传与闭环执行。</li>
+    <li id="ref-openai-cua">OpenAI: <a href="https://openai.com/index/computer-using-agent/">Computer-Using Agent</a>。用于说明 CUA 通过视觉与推理能力和 GUI 交互。</li>
+    <li id="ref-uia-overview">Microsoft Learn: <a href="https://learn.microsoft.com/en-us/windows/win32/winauto/uiauto-uiautomationoverview">UI Automation Overview</a>。用于说明 Windows UI Automation 对桌面 UI 元素的程序化访问。</li>
+    <li id="ref-uia-patterns">Microsoft Learn: <a href="https://learn.microsoft.com/en-us/windows/win32/winauto/uiauto-controlpatternsoverview">UI Automation Control Patterns Overview</a>。用于说明 Invoke、Value、Scroll 等控件能力抽象。</li>
+    <li id="ref-sendinput">Microsoft Learn: <a href="https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-sendinput">SendInput function</a>。用于说明模拟键盘鼠标输入和 UIPI 限制。</li>
+    <li id="ref-wgc">Microsoft Learn: <a href="https://learn.microsoft.com/en-us/windows/apps/develop/media-authoring-processing/screen-capture">Screen capture / Windows.Graphics.Capture</a>。用于说明从显示器或应用窗口获取帧。</li>
+    <li id="ref-get-startapps">Microsoft Learn: <a href="https://learn.microsoft.com/en-us/powershell/module/startlayout/get-startapps">Get-StartApps</a>。用于说明获取当前用户 Start apps 的名称与 AppID。</li>
+    <li id="ref-launch-createprocess">Microsoft Learn: <a href="https://learn.microsoft.com/en-us/windows/win32/shell/launch">Launching Applications</a>；<a href="https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-createprocessw">CreateProcessW</a>。用于说明 ShellExecute/ShellExecuteEx 与 CreateProcessW。</li>
+    <li id="ref-enumwindows">Microsoft Learn: <a href="https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-enumwindows">EnumWindows</a>；<span id="ref-foreground"><a href="https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setforegroundwindow">SetForegroundWindow</a></span>；<span id="ref-showwindow"><a href="https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-showwindow">ShowWindow</a></span>。用于说明窗口枚举、聚焦和显示状态控制。</li>
+    <li id="ref-apple-ax">Apple Developer Documentation: <a href="https://developer.apple.com/documentation/applicationservices/axuielement">AXUIElement</a>；<a href="https://developer.apple.com/documentation/coregraphics/cgevent">CGEvent</a>。用于说明 macOS 无障碍对象与输入事件。</li>
+    <li id="ref-linux-atspi">freedesktop.org: <a href="https://www.freedesktop.org/wiki/Accessibility/AT-SPI2/">AT-SPI2</a>；<a href="https://specifications.freedesktop.org/desktop-entry/desktop-entry-spec-latest.html">Desktop Entry Specification</a>。用于说明 Linux 桌面无障碍协议和应用入口规范。</li>
+    <li id="ref-dingtalk">钉钉官网：<a href="https://www.dingtalk.com/download">钉钉下载页</a>。用于说明钉钉客户端支持 Windows 等平台。</li>
+  </ol>
+</section>
+
+<footer class="small">
+  <hr />
+  <p>文档版本：2026-06-07。本文为工程设计总结，具体 API 行为、系统权限和应用 UI 会随系统版本、应用版本和企业策略变化，落地时应以目标环境实测和官方文档为准。</p>
+</footer>
+</body>
+</html>
