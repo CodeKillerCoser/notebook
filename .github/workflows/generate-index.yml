@@ -20,6 +20,9 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Configure Git unicode
+        run: git config core.quotepath false
+
       - name: Generate index.html
         run: python generate_index.py
 
