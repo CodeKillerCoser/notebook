@@ -1,0 +1,20 @@
+# kb-note-generator — Codex (OpenAI) Agent Config
+
+# 此文件是 Codex 的 skill 发现和配置入口。
+# 规范 skill 文件位于 .skills/kb-note-generator/
+# 当 Codex 触发此 skill 时，应读取 .skills/kb-note-generator/SKILL.md 获取完整指令。
+
+display_name: Knowledge Base Note Generator
+short_description: Generate structured HTML knowledge notes from chat history and commit to GitHub notebook repo
+default_prompt: |
+  Based on the conversation history, extract key topics and learnings,
+  organize them into structured HTML notes, and commit them to the
+  GitHub notebook repository at https://github.com/CodeKillerCoser/notebook.
+
+  The canonical skill instructions are at `.skills/kb-note-generator/SKILL.md`.
+  Reference files are in `.skills/kb-note-generator/references/`:
+  - output_structure.md — directory structure and naming conventions
+  - output_template.md — HTML note template
+  - github_workflow.md — Git commit workflow
+
+  When triggered, read the canonical SKILL.md for the full workflow.
