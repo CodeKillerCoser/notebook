@@ -140,6 +140,61 @@ li { margin: .24rem 0; }
   font-weight: 600;
 }
 a.chip:hover { text-decoration: none; color: var(--text); border-color: #cbd5e1; }
+.tag-chip {
+  --tag-bg: #eff6ff;
+  --tag-border: #bfdbfe;
+  --tag-text: #1d4ed8;
+  background: var(--tag-bg);
+  border-color: var(--tag-border);
+  color: var(--tag-text);
+}
+.meta .tag-chip:nth-of-type(6n+1),
+.tag-list .tag-chip:nth-child(6n+1),
+.tag-cloud .tag-chip:nth-child(6n+1) {
+  --tag-bg: #eff6ff;
+  --tag-border: #bfdbfe;
+  --tag-text: #1d4ed8;
+}
+.meta .tag-chip:nth-of-type(6n+2),
+.tag-list .tag-chip:nth-child(6n+2),
+.tag-cloud .tag-chip:nth-child(6n+2) {
+  --tag-bg: #f0fdfa;
+  --tag-border: #99f6e4;
+  --tag-text: #0f766e;
+}
+.meta .tag-chip:nth-of-type(6n+3),
+.tag-list .tag-chip:nth-child(6n+3),
+.tag-cloud .tag-chip:nth-child(6n+3) {
+  --tag-bg: #fff7ed;
+  --tag-border: #fed7aa;
+  --tag-text: #c2410c;
+}
+.meta .tag-chip:nth-of-type(6n+4),
+.tag-list .tag-chip:nth-child(6n+4),
+.tag-cloud .tag-chip:nth-child(6n+4) {
+  --tag-bg: #faf5ff;
+  --tag-border: #e9d5ff;
+  --tag-text: #7e22ce;
+}
+.meta .tag-chip:nth-of-type(6n+5),
+.tag-list .tag-chip:nth-child(6n+5),
+.tag-cloud .tag-chip:nth-child(6n+5) {
+  --tag-bg: #f0f9ff;
+  --tag-border: #bae6fd;
+  --tag-text: #0369a1;
+}
+.meta .tag-chip:nth-of-type(6n),
+.tag-list .tag-chip:nth-child(6n),
+.tag-cloud .tag-chip:nth-child(6n) {
+  --tag-bg: #fef2f2;
+  --tag-border: #fecaca;
+  --tag-text: #b91c1c;
+}
+.tag-chip:hover {
+  text-decoration: none;
+  border-color: var(--tag-text);
+  color: var(--tag-text);
+}
 
 .toc {
   position: sticky;
@@ -204,8 +259,66 @@ blockquote p { margin: .6rem 0; }
 .callout.purple { border-left-color: var(--purple); background: var(--purple-soft); }
 .callout h3 { margin-top: 0; }
 code { background: #f3f4f6; padding: .1rem .28rem; border-radius: 4px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; font-size: .92em; }
-pre { background: var(--code); color: var(--code-text); padding: 1rem; border-radius: 10px; overflow-x: auto; line-height: 1.62; margin: 1.2rem 0; font-size: .9rem; }
+pre {
+  position: relative;
+  background: #0b1020;
+  color: #d6deeb;
+  border: 1px solid #1e293b;
+  padding: 2.45rem 1rem 1rem;
+  border-radius: 10px;
+  overflow-x: auto;
+  line-height: 1.62;
+  margin: 1.2rem 0;
+  font-size: .9rem;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
+}
+pre::before {
+  content: attr(data-language);
+  position: absolute;
+  top: .62rem;
+  right: .8rem;
+  color: #94a3b8;
+  border: 1px solid #243247;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, .82);
+  padding: .06rem .48rem;
+  font-size: .72rem;
+  line-height: 1.35;
+  text-transform: uppercase;
+}
 pre code { background: transparent; color: inherit; padding: 0; border-radius: 0; }
+.token.comment,
+.token.prolog,
+.token.doctype,
+.token.cdata { color: #7f8ea3; }
+.token.punctuation { color: #b9c7dc; }
+.token.property,
+.token.tag,
+.token.boolean,
+.token.number,
+.token.constant,
+.token.symbol,
+.token.deleted { color: #f78c6c; }
+.token.selector,
+.token.attr-name,
+.token.string,
+.token.char,
+.token.builtin,
+.token.inserted { color: #c3e88d; }
+.token.operator,
+.token.entity,
+.token.url,
+.token.variable { color: #89ddff; }
+.token.atrule,
+.token.attr-value,
+.token.function,
+.token.class-name { color: #82aaff; }
+.token.keyword { color: #c792ea; }
+.token.regex,
+.token.important { color: #ffcb6b; }
+.token.important,
+.token.bold { font-weight: 700; }
+.token.italic { font-style: italic; }
 table { border-collapse: collapse; width: 100%; margin: 1.2rem 0; font-size: .94rem; }
 th, td { border: 1px solid var(--line); padding: .62rem .72rem; text-align: left; vertical-align: top; }
 th { background: var(--soft); font-weight: 700; }
@@ -282,8 +395,13 @@ tr:nth-child(even) td { background: #fcfcfd; }
   font-size: .86rem;
   font-weight: 600;
 }
-.tag-list a:hover, .tag-cloud a:hover { text-decoration: none; color: var(--text); border-color: #cbd5e1; }
-.tag-cloud span { color: var(--muted-2); }
+.tag-list .tag-chip, .tag-cloud .tag-chip {
+  background: var(--tag-bg);
+  border-color: var(--tag-border);
+  color: var(--tag-text);
+}
+.tag-list a:hover, .tag-cloud a:hover { text-decoration: none; color: var(--tag-text); border-color: var(--tag-text); }
+.tag-cloud span { color: inherit; opacity: .72; }
 
 .formula { text-align: center; padding: .95rem 1rem; border: 1px solid var(--line); background: var(--soft); border-radius: 10px; margin: 1.2rem 0; font-weight: 800; }
 .small { color: var(--muted); font-size: .9rem; }

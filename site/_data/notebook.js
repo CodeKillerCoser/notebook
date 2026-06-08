@@ -3,12 +3,36 @@ import path from "node:path";
 import { spawnSync } from "node:child_process";
 import matter from "gray-matter";
 import { load } from "cheerio";
+import Prism from "prismjs";
+import loadLanguages from "prismjs/components/index.js";
 
 const CONTENT_DIR = path.join(process.cwd(), "content");
+loadLanguages(["rust", "bash", "json", "yaml", "toml", "javascript", "typescript", "css", "markup", "python", "powershell"]);
+
 const SEGMENT_TITLES = {
   rust: "Rust",
   "AI工程": "AI 工程",
   "Git部署": "Git 部署"
+};
+
+const LANGUAGE_ALIASES = {
+  html: "markup",
+  htm: "markup",
+  xml: "markup",
+  svg: "markup",
+  js: "javascript",
+  mjs: "javascript",
+  ts: "typescript",
+  shell: "bash",
+  sh: "bash",
+  ps: "powershell",
+  ps1: "powershell",
+  yml: "yaml",
+  rs: "rust",
+  py: "python",
+  plain: "text",
+  plaintext: "text",
+  txt: "text"
 };
 
 const TITLE_PREFIX_RE = /^\s*(?:第?[一二三四五六七八九十百千]+[、.．)）]\s*|[（(]?[一二三四五六七八九十]+[)）]\s*|\d+[、.．)）]\s*|[（(]\d+[)）]\s*)/u;
@@ -64,6 +88,39 @@ function slugify(text, used) {
   }
   used.add(slug);
   return slug;
+}
+
+function languageFromClass(value = "") {
+  const match = String(value).match(/(?:^|\s)(?:language|lang)-([a-z0-9+-]+)/i);
+  if (!match) return "text";
+  const raw = match[1].toLowerCase();
+  return LANGUAGE_ALIASES[raw] || raw;
+}
+
+function languageLabel(language) {
+  if (language === "markup") return "html";
+  return language || "text";
+}
+
+function highlightCodeBlocks($, source) {
+  source.find("pre > code").each((_, element) => {
+    const code = $(element);
+    const pre = code.parent("pre");
+    const language = languageFromClass(`${code.attr("class") || ""} ${pre.attr("class") || ""}`);
+    const raw = code.text();
+    const grammar = Prism.languages[language];
+    const normalizedLanguage = grammar ? language : "text";
+
+    if (grammar) {
+      code.html(Prism.highlight(raw, grammar, language));
+    } else {
+      code.text(raw);
+    }
+
+    pre.attr("class", `language-${normalizedLanguage}`);
+    pre.attr("data-language", languageLabel(normalizedLanguage));
+    code.attr("class", `language-${normalizedLanguage}`);
+  });
 }
 
 function parentDir(dirPath) {
@@ -153,6 +210,8 @@ function readArticleHtml(content, fallbackTitle) {
       toc.push({ id, text });
     }
   });
+
+  highlightCodeBlocks($, source);
 
   const html = source.html()?.trim() || "";
   return { title, subtitle, eyebrow, chips, html, text: stripTags(html), toc };

@@ -15,7 +15,7 @@ toc:
   <h2><span class="section-index">1</span><span class="section-title">全部标签</span></h2>
   <div class="tag-cloud">
     {% for tag in notebook.tags %}
-      <a href="{{ tag.permalink | relativeUrl(page.url) }}">{{ tag.name }} <span>{{ tag.articles.length }}</span></a>
+      <a class="tag-chip" href="{{ tag.permalink | relativeUrl(page.url) }}">{{ tag.name }} <span>{{ tag.articles.length }}</span></a>
     {% endfor %}
   </div>
 </section>

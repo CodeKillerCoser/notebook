@@ -12,7 +12,7 @@ eleventyExcludeFromCollections: true
 {% if article.tags and article.tags.length %}
   <section class="tag-list" aria-label="文章标签">
     {% for tag in article.tags %}
-      <a href="{{ tag | tagUrl | relativeUrl(page.url) }}">#{{ tag }}</a>
+      <a class="tag-chip" href="{{ tag | tagUrl | relativeUrl(page.url) }}">#{{ tag }}</a>
     {% endfor %}
   </section>
 {% endif %}

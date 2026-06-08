@@ -77,7 +77,7 @@
             <time class="chip" datetime="{{ article.date | isoDate }}">{{ article.date | readableDate }}</time>
           {% endif %}
           {% for chip in heroChips %}
-            <span class="chip">{{ chip }}</span>
+            <span class="chip tag-chip">{{ chip }}</span>
           {% endfor %}
           <a class="chip" href="{{ '/search.html' | relativeUrl(page.url) }}">搜索</a>
           <a class="chip" href="{{ '/tags/index.html' | relativeUrl(page.url) }}">标签</a>
