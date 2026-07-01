@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  
+    
+    
+  
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GitHub Pages 正确部署方式 | Notebook</title>
+  <meta name="description" content="GitHub Pages 是一个免费的静态站点托管服务，直接从 GitHub 仓库中获取文件渲染网页。 1 为什么访问链接只显示 README GitHub Pages 的渲染优先级： 如果根目录有 index.html ，渲染它 如果没有 index.html ，回退渲染 README.md 不会 自动生成文件目录列表（不像 Apache/Nginx 有 ">
+  <link rel="alternate" type="application/rss+xml" title="Notebook RSS" href="../../feed.xml">
+  <link rel="stylesheet" href="../../assets/site.css">
+  
+</head>
+<body>
+  
+    
+    
+    
+    
+    
+    
+  
+
+  <div class="page-shell">
+    <header id="title-block-header" class="hero-grid">
+      <div class="hero-spacer" aria-hidden="true"></div>
+      <div class="hero-content">
+        <div class="eyebrow">Git 部署</div>
+        <h1>GitHub Pages 正确部署方式</h1>
+        
+          <p class="subtitle">GitHub Pages 是一个免费的静态站点托管服务，直接从 GitHub 仓库中获取文件渲染网页。 1 为什么访问链接只显示 README GitHub Pages 的渲染优先级： 如果根目录有 index.html ，渲染它 如果没有 index.html ，回退渲染 README.md 不会 自动生成文件目录列表（不像 Apache/Nginx 有 </p>
+        
+        <nav class="pathline" aria-label="博客路径">
+          
+            
+              <a href="../../index.html">Notebook</a>
+              <span aria-hidden="true">›</span>
+            
+              <a href="../index.html">Git 部署</a>
+              <span aria-hidden="true">›</span>
+            
+              <a href="index.html">基础入门</a>
+              <span aria-hidden="true">›</span>
+            
+              <a href="GitHub-Pages-部署.html">GitHub Pages 正确部署方式</a>
+              
+            
+          
+        </nav>
+        <div class="meta">
+          
+            <time class="chip" datetime="2026-05-09T18:11:09.000Z">2026/05/10</time>
+          
+          
+            <span class="chip tag-chip">Git 部署</span>
+          
+            <span class="chip tag-chip">基础入门</span>
+          
+          <a class="chip" href="../../search.html">搜索</a>
+          <a class="chip" href="../../tags/index.html">标签</a>
+          <a class="chip" href="../../feed.xml">RSS</a>
+        </div>
+        <hr class="article-divider">
+      </div>
+    </header>
+  </div>
+
+  <div class="content-grid">
+    <nav class="toc" aria-label="目录">
+      <div class="toc-title">目录</div>
+      
+        <ol>
+          
+            <li><a href="#为什么访问链接只显示-readme">为什么访问链接只显示 README</a></li>
+          
+            <li><a href="#正确部署方式-三种方案">正确部署方式（三种方案）</a></li>
+          
+            <li><a href="#github-pages-设置检查">GitHub Pages 设置检查</a></li>
+          
+            <li><a href="#关键结论">关键结论</a></li>
+          
+        </ol>
+      
+    </nav>
+
+    <main class="article-content" data-pagefind-body>
+      <p>GitHub Pages 是一个免费的静态站点托管服务，直接从 GitHub 仓库中获取文件渲染网页。</p>
+
+<h2 id="为什么访问链接只显示-readme"><span class="section-index">1</span><span class="section-title">为什么访问链接只显示 README</span></h2>
+
+<p>GitHub Pages 的渲染优先级：</p>
+
+<ol>
+  <li>如果根目录有 <code>index.html</code>，渲染它</li>
+  <li>如果没有 <code>index.html</code>，回退渲染 <code>README.md</code></li>
+  <li><strong>不会</strong> 自动生成文件目录列表（不像 Apache/Nginx 有 Directory Listing）</li>
+</ol>
+
+<p>所以当仓库只有 <code>README.md</code> 时，Pages 只展示那一段文字。</p>
+
+<h2 id="正确部署方式-三种方案"><span class="section-index">2</span><span class="section-title">正确部署方式（三种方案）</span></h2>
+
+<h3 id="方案一-手动创建-index-html-最简单">方案一：手动创建 index.html（最简单）</h3>
+<p>在根目录放一个 <code>index.html</code>，用文件导航列出所有笔记链接。适合文件不多的场景。</p>
+
+<pre class="language-text" data-language="text"><code class="language-text">
+.
+├── index.html        ← 导航页面，列出所有文件的链接
+├── README.md
+├── rust/
+│   └── 1.html
+└── 代码大全阅读笔记/
+    ├── ch2-理解编程.md
+    └── ch3-软件开发先决条件.md
+</code></pre>
+
+<h3 id="方案二-jekyll-github-pages-原生支持">方案二：Jekyll（GitHub Pages 原生支持）</h3>
+<p>根目录放 <code>_config.yml</code> 和 <code>index.md</code>，GitHub Pages 自动用 Jekyll 生成站点。但默认只处理 <code>_posts</code> 目录，非标准笔记结构需额外配置。</p>
+
+<h3 id="方案三-静态站点生成器-github-actions">方案三：静态站点生成器 + GitHub Actions</h3>
+<p>用 MkDocs、docsify 等工具，通过 GitHub Actions 部署到 <code>gh-pages</code> 分支，每次 push 自动重新构建发布。</p>
+
+<h2 id="github-pages-设置检查"><span class="section-index">3</span><span class="section-title">GitHub Pages 设置检查</span></h2>
+
+<p>在仓库的 Settings → Pages 中确认：</p>
+
+<pre class="language-text" data-language="text"><code class="language-text">1. Source: Deploy from a branch
+2. Branch: main, 目录选 / (root)
+3. 保存
+</code></pre>
+
+<h2 id="关键结论"><span class="section-index">4</span><span class="section-title">关键结论</span></h2>
+
+<blockquote>
+GitHub Pages 只是静态文件服务器，不会自动生成目录列表。要使站点有导航，需要提供一个 <code>index.html</code>。
+</blockquote>
+
+<p class="back"><a href="../index.html">← 返回索引</a></p>
+
+
+  <section class="tag-list" aria-label="文章标签">
+    
+      <a class="tag-chip" href="../../tags/Git-部署.html">#Git 部署</a>
+    
+      <a class="tag-chip" href="../../tags/基础入门.html">#基础入门</a>
+    
+  </section>
+
+
+
+  <section class="comments" aria-label="评论">
+    <h2 class="plain-heading">评论</h2>
+    <script src="https://utteranc.es/client.js"
+      repo="CodeKillerCoser/notebook"
+      issue-term="pathname"
+      label="comment"
+      theme="preferred-color-scheme"
+      crossorigin="anonymous"
+      async>
+    </script>
+  </section>
+
+
+    </main>
+  </div>
+</body>
+</html>

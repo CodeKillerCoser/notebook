@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  
+    
+    
+  
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>rand crate 版本兼容 | Notebook</title>
+  <meta name="description" content="rand crate 是 Rust 生态中最常用的随机数生成库。不同版本的 API 差异很大，升级时需要对照迁移。 1 版本速查表 rand 版本 获取 RNG 生成范围随机数 需要 use 0.7 及以前 rand::thread_rng() .gen_range(1, 101) use rand::Rng; 0.8 rand::thread_rng() ">
+  <link rel="alternate" type="application/rss+xml" title="Notebook RSS" href="../../feed.xml">
+  <link rel="stylesheet" href="../../assets/site.css">
+  
+</head>
+<body>
+  
+    
+    
+    
+    
+    
+    
+  
+
+  <div class="page-shell">
+    <header id="title-block-header" class="hero-grid">
+      <div class="hero-spacer" aria-hidden="true"></div>
+      <div class="hero-content">
+        <div class="eyebrow">Rust</div>
+        <h1>rand crate 版本兼容</h1>
+        
+          <p class="subtitle">rand crate 是 Rust 生态中最常用的随机数生成库。不同版本的 API 差异很大，升级时需要对照迁移。 1 版本速查表 rand 版本 获取 RNG 生成范围随机数 需要 use 0.7 及以前 rand::thread_rng() .gen_range(1, 101) use rand::Rng; 0.8 rand::thread_rng() </p>
+        
+        <nav class="pathline" aria-label="博客路径">
+          
+            
+              <a href="../../index.html">Notebook</a>
+              <span aria-hidden="true">›</span>
+            
+              <a href="../index.html">Rust</a>
+              <span aria-hidden="true">›</span>
+            
+              <a href="index.html">工具链与生态</a>
+              <span aria-hidden="true">›</span>
+            
+              <a href="rand-crate-版本.html">rand crate 版本兼容</a>
+              
+            
+          
+        </nav>
+        <div class="meta">
+          
+            <time class="chip" datetime="2026-05-09T15:49:00.000Z">2026/05/09</time>
+          
+          
+            <span class="chip tag-chip">Rust</span>
+          
+            <span class="chip tag-chip">工具链与生态</span>
+          
+          <a class="chip" href="../../search.html">搜索</a>
+          <a class="chip" href="../../tags/index.html">标签</a>
+          <a class="chip" href="../../feed.xml">RSS</a>
+        </div>
+        <hr class="article-divider">
+      </div>
+    </header>
+  </div>
+
+  <div class="content-grid">
+    <nav class="toc" aria-label="目录">
+      <div class="toc-title">目录</div>
+      
+        <ol>
+          
+            <li><a href="#版本速查表">版本速查表</a></li>
+          
+            <li><a href="#最新版写法-0-10">最新版写法（0.10+）</a></li>
+          
+            <li><a href="#各版本迁移对比">各版本迁移对比</a></li>
+          
+            <li><a href="#api-完整迁移对照">API 完整迁移对照</a></li>
+          
+            <li><a href="#猜数字游戏中的实际用法">猜数字游戏中的实际用法</a></li>
+          
+        </ol>
+      
+    </nav>
+
+    <main class="article-content" data-pagefind-body>
+      <p><code>rand</code> crate 是 Rust 生态中最常用的随机数生成库。不同版本的 API 差异很大，升级时需要对照迁移。</p>
+<h2 id="版本速查表"><span class="section-index">1</span><span class="section-title">版本速查表</span></h2>
+<table>
+<thead>
+<tr>
+<th>rand 版本</th>
+<th>获取 RNG</th>
+<th>生成范围随机数</th>
+<th>需要 use</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>0.7 及以前</strong></td>
+<td><code>rand::thread_rng()</code></td>
+<td><code>.gen_range(1, 101)</code></td>
+<td><code>use rand::Rng;</code></td>
+</tr>
+<tr>
+<td><strong>0.8</strong></td>
+<td><code>rand::thread_rng()</code></td>
+<td><code>.gen_range(1..=100)</code></td>
+<td><code>use rand::Rng;</code></td>
+</tr>
+<tr>
+<td><strong>0.10+</strong></td>
+<td><code>rand::rng()</code></td>
+<td><code>.random_range(1..=100)</code></td>
+<td>无需额外 use</td>
+</tr>
+</tbody>
+</table>
+<h2 id="最新版写法-0-10"><span class="section-index">2</span><span class="section-title">最新版写法（0.10+）</span></h2>
+<pre class="language-rust" data-language="rust"><code class="language-rust"><span class="token keyword">use</span> rand<span class="token punctuation">;</span>
+
+<span class="token keyword">fn</span> <span class="token function-definition function">main</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token comment">// 最简方式：直接用自由函数</span>
+    <span class="token keyword">let</span> num <span class="token operator">=</span> <span class="token namespace">rand<span class="token punctuation">::</span></span><span class="token function">random_range</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">..=</span><span class="token number">100</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token macro property">println!</span><span class="token punctuation">(</span><span class="token string">"{}"</span><span class="token punctuation">,</span> num<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<ul>
+<li>无需 <code>use rand::Rng;</code></li>
+<li>无需创建 RNG 实例</li>
+<li>直接调用 <code>rand::random_range()</code> 即可</li>
+</ul>
+<h2 id="各版本迁移对比"><span class="section-index">3</span><span class="section-title">各版本迁移对比</span></h2>
+<h3 id="7-0-8">0.7 → 0.8</h3>
+<pre class="language-rust" data-language="rust"><code class="language-rust"><span class="token comment">// 0.7 及以前</span>
+<span class="token namespace">rand<span class="token punctuation">::</span></span><span class="token function">thread_rng</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">gen_range</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">,</span> <span class="token number">101</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token comment">// 0.8</span>
+<span class="token namespace">rand<span class="token punctuation">::</span></span><span class="token function">thread_rng</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">gen_range</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">..=</span><span class="token number">100</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>变化：范围参数从 <code>(low, high)</code> 元组改为 Range 语法 <code>low..=high</code>。</p>
+<h3 id="8-0-10">0.8 → 0.10+</h3>
+<pre class="language-rust" data-language="rust"><code class="language-rust"><span class="token comment">// 0.8</span>
+<span class="token keyword">let</span> <span class="token keyword">mut</span> rng <span class="token operator">=</span> <span class="token namespace">rand<span class="token punctuation">::</span></span><span class="token function">thread_rng</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+rng<span class="token punctuation">.</span><span class="token function">gen_range</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">..=</span><span class="token number">100</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token comment">// 0.10+</span>
+<span class="token keyword">let</span> num <span class="token operator">=</span> <span class="token namespace">rand<span class="token punctuation">::</span></span><span class="token function">random_range</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">..=</span><span class="token number">100</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>变化：</p>
+<ul>
+<li><code>rand::thread_rng()</code> → <code>rand::rng()</code></li>
+<li><code>.gen_range()</code> → <code>.random_range()</code></li>
+<li>可以直接用自由函数，无需显式创建 RNG</li>
+</ul>
+<h2 id="api-完整迁移对照"><span class="section-index">4</span><span class="section-title">API 完整迁移对照</span></h2>
+<table>
+<thead>
+<tr>
+<th>功能</th>
+<th>0.7</th>
+<th>0.8</th>
+<th>0.10+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>获取 RNG</td>
+<td><code>rand::thread_rng()</code></td>
+<td><code>rand::thread_rng()</code></td>
+<td><code>rand::rng()</code></td>
+</tr>
+<tr>
+<td>范围随机数</td>
+<td><code>.gen_range(1, 101)</code></td>
+<td><code>.gen_range(1..=100)</code></td>
+<td><code>.random_range(1..=100)</code></td>
+</tr>
+<tr>
+<td>随机 bool</td>
+<td><code>rand::random()</code></td>
+<td><code>.gen::&lt;bool&gt;()</code></td>
+<td><code>rand::random_bool()</code></td>
+</tr>
+<tr>
+<td>从数组选</td>
+<td><code>rng.choose(&amp;arr)</code></td>
+<td><code>rng.choose(&amp;arr)</code></td>
+<td><code>rand::seq::index::sample</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="猜数字游戏中的实际用法"><span class="section-index">5</span><span class="section-title">猜数字游戏中的实际用法</span></h2>
+<pre class="language-toml" data-language="toml"><code class="language-toml"><span class="token punctuation">[</span><span class="token table class-name">dependencies</span><span class="token punctuation">]</span>
+<span class="token key property">rand</span> <span class="token punctuation">=</span> <span class="token string">"0.10.1"</span>
+</code></pre>
+<pre class="language-rust" data-language="rust"><code class="language-rust"><span class="token keyword">use</span> rand<span class="token punctuation">;</span>
+
+<span class="token keyword">let</span> secret_number <span class="token operator">=</span> <span class="token namespace">rand<span class="token punctuation">::</span></span><span class="token function">random_range</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">..=</span><span class="token number">100</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+
+
+  <section class="tag-list" aria-label="文章标签">
+    
+      <a class="tag-chip" href="../../tags/Rust.html">#Rust</a>
+    
+      <a class="tag-chip" href="../../tags/工具链与生态.html">#工具链与生态</a>
+    
+  </section>
+
+
+
+  <section class="comments" aria-label="评论">
+    <h2 class="plain-heading">评论</h2>
+    <script src="https://utteranc.es/client.js"
+      repo="CodeKillerCoser/notebook"
+      issue-term="pathname"
+      label="comment"
+      theme="preferred-color-scheme"
+      crossorigin="anonymous"
+      async>
+    </script>
+  </section>
+
+
+    </main>
+  </div>
+</body>
+</html>

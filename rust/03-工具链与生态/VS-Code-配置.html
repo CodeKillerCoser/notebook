@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  
+    
+    
+  
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>VS Code 开发环境配置 | Notebook</title>
+  <meta name="description" content="1 必备插件 rust-analyzer 名称 : rust-analyzer（Rust 官方维护） 功能 : 代码补全（自动导入） 类型提示（inline type hints） 代码跳转 实时错误诊断 悬停显示文档 自动格式化 其他推荐插件 插件 用途 Even Better TOML Cargo.toml 语法高亮与校验 CodeLLDB 调试 Rus">
+  <link rel="alternate" type="application/rss+xml" title="Notebook RSS" href="../../feed.xml">
+  <link rel="stylesheet" href="../../assets/site.css">
+  
+</head>
+<body>
+  
+    
+    
+    
+    
+    
+    
+  
+
+  <div class="page-shell">
+    <header id="title-block-header" class="hero-grid">
+      <div class="hero-spacer" aria-hidden="true"></div>
+      <div class="hero-content">
+        <div class="eyebrow">Rust</div>
+        <h1>VS Code 开发环境配置</h1>
+        
+          <p class="subtitle">1 必备插件 rust-analyzer 名称 : rust-analyzer（Rust 官方维护） 功能 : 代码补全（自动导入） 类型提示（inline type hints） 代码跳转 实时错误诊断 悬停显示文档 自动格式化 其他推荐插件 插件 用途 Even Better TOML Cargo.toml 语法高亮与校验 CodeLLDB 调试 Rus</p>
+        
+        <nav class="pathline" aria-label="博客路径">
+          
+            
+              <a href="../../index.html">Notebook</a>
+              <span aria-hidden="true">›</span>
+            
+              <a href="../index.html">Rust</a>
+              <span aria-hidden="true">›</span>
+            
+              <a href="index.html">工具链与生态</a>
+              <span aria-hidden="true">›</span>
+            
+              <a href="VS-Code-配置.html">VS Code 开发环境配置</a>
+              
+            
+          
+        </nav>
+        <div class="meta">
+          
+            <time class="chip" datetime="2026-05-09T15:49:00.000Z">2026/05/09</time>
+          
+          
+            <span class="chip tag-chip">Rust</span>
+          
+            <span class="chip tag-chip">工具链与生态</span>
+          
+          <a class="chip" href="../../search.html">搜索</a>
+          <a class="chip" href="../../tags/index.html">标签</a>
+          <a class="chip" href="../../feed.xml">RSS</a>
+        </div>
+        <hr class="article-divider">
+      </div>
+    </header>
+  </div>
+
+  <div class="content-grid">
+    <nav class="toc" aria-label="目录">
+      <div class="toc-title">目录</div>
+      
+        <ol>
+          
+            <li><a href="#必备插件">必备插件</a></li>
+          
+            <li><a href="#打开项目的正确方式">打开项目的正确方式</a></li>
+          
+            <li><a href="#代码跳转快捷键">代码跳转快捷键</a></li>
+          
+            <li><a href="#配置文件-settings-json">配置文件：settings.json</a></li>
+          
+            <li><a href="#常见问题">常见问题</a></li>
+          
+        </ol>
+      
+    </nav>
+
+    <main class="article-content" data-pagefind-body>
+      <h2 id="必备插件"><span class="section-index">1</span><span class="section-title">必备插件</span></h2>
+<h3 id="rust-analyzer">rust-analyzer</h3>
+<ul>
+<li><strong>名称</strong>: rust-analyzer（Rust 官方维护）</li>
+<li><strong>功能</strong>:
+<ul>
+<li>代码补全（自动导入）</li>
+<li>类型提示（inline type hints）</li>
+<li>代码跳转</li>
+<li>实时错误诊断</li>
+<li>悬停显示文档</li>
+<li>自动格式化</li>
+</ul>
+</li>
+</ul>
+<h3 id="其他推荐插件">其他推荐插件</h3>
+<table>
+<thead>
+<tr>
+<th>插件</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Even Better TOML</strong></td>
+<td>Cargo.toml 语法高亮与校验</td>
+</tr>
+<tr>
+<td><strong>CodeLLDB</strong></td>
+<td>调试 Rust 程序（支持断点、变量查看）</td>
+</tr>
+<tr>
+<td><strong>crates</strong></td>
+<td>Cargo.toml 中依赖版本检查与更新</td>
+</tr>
+</tbody>
+</table>
+<h2 id="打开项目的正确方式"><span class="section-index">2</span><span class="section-title">打开项目的正确方式</span></h2>
+<pre class="language-bash" data-language="bash"><code class="language-bash"><span class="token comment"># ❌ 错误：只打开 src/ 目录</span>
+code src/
+
+<span class="token comment"># ✅ 正确：打开包含 Cargo.toml 的目录</span>
+code hello_cargo/
+
+<span class="token comment"># ✅ 如果是 Workspace，打开 workspace 根目录</span>
+code project-root/
+</code></pre>
+<p><strong>关键</strong>: VS Code 打开的文件夹<strong>必须包含 <code>Cargo.toml</code></strong>（或 workspace 根），rust-analyzer 才能找到项目上下文。</p>
+<h2 id="代码跳转快捷键"><span class="section-index">3</span><span class="section-title">代码跳转快捷键</span></h2>
+<table>
+<thead>
+<tr>
+<th>快捷键</th>
+<th>功能</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>F12</code></td>
+<td>跳转到定义</td>
+</tr>
+<tr>
+<td><code>Alt+F12</code></td>
+<td>预览定义（行内弹出）</td>
+</tr>
+<tr>
+<td><code>Shift+F12</code></td>
+<td>查看所有引用</td>
+</tr>
+<tr>
+<td><code>F2</code></td>
+<td>重命名符号（安全重构）</td>
+</tr>
+<tr>
+<td><code>Ctrl+Click</code></td>
+<td>跳转到定义（Mac: <code>Cmd+Click</code>）</td>
+</tr>
+<tr>
+<td><code>Ctrl+Shift+O</code></td>
+<td>跳转到文件中的符号</td>
+</tr>
+</tbody>
+</table>
+<h3 id="使用技巧">使用技巧</h3>
+<ul>
+<li><strong>跳转前确保编译通过</strong> — rust-analyzer 基于编译结果提供跳转</li>
+<li><strong><code>F2</code> 重命名</strong> — 会智能地只在合适的地方改名，避免误改</li>
+<li><strong>跨包跳转</strong> — rust-analyzer 支持跨 crate 的跳转，前提是 <code>cargo check</code> 能通过</li>
+</ul>
+<h2 id="配置文件-settings-json"><span class="section-index">4</span><span class="section-title">配置文件：settings.json</span></h2>
+<p>推荐添加以下配置：</p>
+<pre class="language-json" data-language="json"><code class="language-json"><span class="token punctuation">{</span>
+    <span class="token property">"rust-analyzer.checkOnSave"</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+    <span class="token property">"rust-analyzer.cargo.allFeatures"</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+    <span class="token property">"editor.formatOnSave"</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+    <span class="token property">"[rust]"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+        <span class="token property">"editor.defaultFormatter"</span><span class="token operator">:</span> <span class="token string">"rust-lang.rust-analyzer"</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<h2 id="常见问题"><span class="section-index">5</span><span class="section-title">常见问题</span></h2>
+<h3 id="rust-analyzer-不工作">rust-analyzer 不工作</h3>
+<ol>
+<li>检查 VS Code 打开的文件夹是否正确（必须包含 <code>Cargo.toml</code>）</li>
+<li>运行 <code>cargo check</code> 看是否有编译错误</li>
+<li>重启 rust-analyzer: <code>Ctrl+Shift+P</code> → "rust-analyzer: Restart server"</li>
+<li>检查工作区是否有 <code>Cargo.lock</code>，没有则运行 <code>cargo check</code> 生成</li>
+</ol>
+
+
+  <section class="tag-list" aria-label="文章标签">
+    
+      <a class="tag-chip" href="../../tags/Rust.html">#Rust</a>
+    
+      <a class="tag-chip" href="../../tags/工具链与生态.html">#工具链与生态</a>
+    
+  </section>
+
+
+
+  <section class="comments" aria-label="评论">
+    <h2 class="plain-heading">评论</h2>
+    <script src="https://utteranc.es/client.js"
+      repo="CodeKillerCoser/notebook"
+      issue-term="pathname"
+      label="comment"
+      theme="preferred-color-scheme"
+      crossorigin="anonymous"
+      async>
+    </script>
+  </section>
+
+
+    </main>
+  </div>
+</body>
+</html>

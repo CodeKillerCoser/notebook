@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  
+    
+    
+  
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>match 模式匹配陷阱：裸标识符 vs 值比较 | Notebook</title>
+  <meta name="description" content="1 问题：match 臂中的标识符是模式，不是引用 let secret_number = 42 ; let some_value = 100 ; // ❌ 这段代码看起来是对的，实际永远匹配第一个臂 match some_value { secret_number =&amp;gt; println! ( &quot;You win!&quot; ) , // 这不是值比较！ _ =">
+  <link rel="alternate" type="application/rss+xml" title="Notebook RSS" href="../../feed.xml">
+  <link rel="stylesheet" href="../../assets/site.css">
+  
+</head>
+<body>
+  
+    
+    
+    
+    
+    
+    
+  
+
+  <div class="page-shell">
+    <header id="title-block-header" class="hero-grid">
+      <div class="hero-spacer" aria-hidden="true"></div>
+      <div class="hero-content">
+        <div class="eyebrow">Rust</div>
+        <h1>match 模式匹配陷阱：裸标识符 vs 值比较</h1>
+        
+          <p class="subtitle">1 问题：match 臂中的标识符是模式，不是引用 let secret_number = 42 ; let some_value = 100 ; // ❌ 这段代码看起来是对的，实际永远匹配第一个臂 match some_value { secret_number =&amp;gt; println! ( &quot;You win!&quot; ) , // 这不是值比较！ _ =</p>
+        
+        <nav class="pathline" aria-label="博客路径">
+          
+            
+              <a href="../../index.html">Notebook</a>
+              <span aria-hidden="true">›</span>
+            
+              <a href="../index.html">Rust</a>
+              <span aria-hidden="true">›</span>
+            
+              <a href="index.html">语法进阶</a>
+              <span aria-hidden="true">›</span>
+            
+              <a href="match-模式匹配陷阱.html">match 模式匹配陷阱：裸标识符 vs 值比较</a>
+              
+            
+          
+        </nav>
+        <div class="meta">
+          
+            <time class="chip" datetime="2026-05-09T15:49:00.000Z">2026/05/09</time>
+          
+          
+            <span class="chip tag-chip">Rust</span>
+          
+            <span class="chip tag-chip">语法进阶</span>
+          
+          <a class="chip" href="../../search.html">搜索</a>
+          <a class="chip" href="../../tags/index.html">标签</a>
+          <a class="chip" href="../../feed.xml">RSS</a>
+        </div>
+        <hr class="article-divider">
+      </div>
+    </header>
+  </div>
+
+  <div class="content-grid">
+    <nav class="toc" aria-label="目录">
+      <div class="toc-title">目录</div>
+      
+        <ol>
+          
+            <li><a href="#问题-match-臂中的标识符是模式-不是引用">问题：match 臂中的标识符是模式，不是引用</a></li>
+          
+            <li><a href="#解决方案">解决方案</a></li>
+          
+            <li><a href="#这是-rust-的常见新手陷阱">这是 Rust 的常见新手陷阱</a></li>
+          
+            <li><a href="#核心记忆法">核心记忆法</a></li>
+          
+        </ol>
+      
+    </nav>
+
+    <main class="article-content" data-pagefind-body>
+      <h2 id="问题-match-臂中的标识符是模式-不是引用"><span class="section-index">1</span><span class="section-title">问题：match 臂中的标识符是模式，不是引用</span></h2>
+<pre class="language-rust" data-language="rust"><code class="language-rust"><span class="token keyword">let</span> secret_number <span class="token operator">=</span> <span class="token number">42</span><span class="token punctuation">;</span>
+<span class="token keyword">let</span> some_value <span class="token operator">=</span> <span class="token number">100</span><span class="token punctuation">;</span>
+
+<span class="token comment">// ❌ 这段代码看起来是对的，实际永远匹配第一个臂</span>
+<span class="token keyword">match</span> some_value <span class="token punctuation">{</span>
+    secret_number <span class="token operator">=&gt;</span> <span class="token macro property">println!</span><span class="token punctuation">(</span><span class="token string">"You win!"</span><span class="token punctuation">)</span><span class="token punctuation">,</span>  <span class="token comment">// 这不是值比较！</span>
+    _ <span class="token operator">=&gt;</span> <span class="token macro property">println!</span><span class="token punctuation">(</span><span class="token string">"Try again!"</span><span class="token punctuation">)</span><span class="token punctuation">,</span>           <span class="token comment">// 永远走不到</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<h3 id="为什么">为什么？</h3>
+<p>在 <code>match</code> 臂中，裸露的标识符（如 <code>secret_number</code>）被 Rust 解释为<strong>新绑定的模式变量</strong>，而不是对外部变量 <code>secret_number</code> 的引用：</p>
+<ul>
+<li><code>secret_number =&gt;</code> 等价于 <code>x =&gt;</code>——<strong>任何值都会匹配</strong></li>
+<li>它会将匹配的值绑定到新变量 <code>secret_number</code>（遮蔽了外部的同名变量）</li>
+<li>第二个臂 <code>_ =&gt;</code> 是通配符，但第一个臂已匹配一切，永远不会到达</li>
+</ul>
+<h2 id="解决方案"><span class="section-index">2</span><span class="section-title">解决方案</span></h2>
+<h3 id="方式-1-if-守卫-推荐">方式 1：<code>if</code> 守卫（推荐）</h3>
+<pre class="language-rust" data-language="rust"><code class="language-rust"><span class="token keyword">match</span> some_value <span class="token punctuation">{</span>
+    x <span class="token keyword">if</span> x <span class="token operator">==</span> secret_number <span class="token operator">=&gt;</span> <span class="token macro property">println!</span><span class="token punctuation">(</span><span class="token string">"You win!"</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+    _ <span class="token operator">=&gt;</span> <span class="token macro property">println!</span><span class="token punctuation">(</span><span class="token string">"Try again!"</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>用 <code>if</code> 守卫明确告诉 Rust：<strong>这里是对比，不是绑定</strong>。</p>
+<h3 id="方式-2-直接用-if-语句">方式 2：直接用 <code>if</code> 语句</h3>
+<pre class="language-rust" data-language="rust"><code class="language-rust"><span class="token keyword">if</span> some_value <span class="token operator">==</span> secret_number <span class="token punctuation">{</span>
+    <span class="token macro property">println!</span><span class="token punctuation">(</span><span class="token string">"You win!"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+    <span class="token macro property">println!</span><span class="token punctuation">(</span><span class="token string">"Try again!"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>如果只是简单比较，<code>if</code> 比 <code>match</code> 更清晰。</p>
+<h2 id="这是-rust-的常见新手陷阱"><span class="section-index">3</span><span class="section-title">这是 Rust 的常见新手陷阱</span></h2>
+<p>Rust 的 <code>match</code> 是<strong>模式匹配</strong>（pattern matching），不是值比较。模式匹配中：</p>
+<table>
+<thead>
+<tr>
+<th>模式语法</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>x</code></td>
+<td>匹配任何值，绑定到 <code>x</code></td>
+</tr>
+<tr>
+<td><code>_</code></td>
+<td>匹配任何值，忽略</td>
+</tr>
+<tr>
+<td><code>1 | 2</code></td>
+<td>匹配 1 或 2</td>
+</tr>
+<tr>
+<td><code>1..=10</code></td>
+<td>匹配范围</td>
+</tr>
+<tr>
+<td><code>x if cond</code></td>
+<td>在匹配后附加条件</td>
+</tr>
+</tbody>
+</table>
+<h3 id="正确使用-match-比较值">正确使用 match 比较值</h3>
+<pre class="language-rust" data-language="rust"><code class="language-rust"><span class="token keyword">use</span> <span class="token namespace">std<span class="token punctuation">::</span>cmp<span class="token punctuation">::</span></span><span class="token class-name">Ordering</span><span class="token punctuation">;</span>
+
+<span class="token keyword">let</span> guess <span class="token operator">=</span> <span class="token number">50</span><span class="token punctuation">;</span>
+<span class="token keyword">let</span> secret_number <span class="token operator">=</span> <span class="token number">42</span><span class="token punctuation">;</span>
+
+<span class="token keyword">match</span> guess<span class="token punctuation">.</span><span class="token function">cmp</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>secret_number<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token class-name">Ordering</span><span class="token punctuation">::</span><span class="token class-name">Less</span> <span class="token operator">=&gt;</span> <span class="token macro property">println!</span><span class="token punctuation">(</span><span class="token string">"Too small!"</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+    <span class="token class-name">Ordering</span><span class="token punctuation">::</span><span class="token class-name">Greater</span> <span class="token operator">=&gt;</span> <span class="token macro property">println!</span><span class="token punctuation">(</span><span class="token string">"Too big!"</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+    <span class="token class-name">Ordering</span><span class="token punctuation">::</span><span class="token class-name">Equal</span> <span class="token operator">=&gt;</span> <span class="token macro property">println!</span><span class="token punctuation">(</span><span class="token string">"You win!"</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>这里用 <code>cmp()</code> 方法返回 <code>Ordering</code> 枚举，在枚举值上做模式匹配——不会产生遮蔽问题。</p>
+<h2 id="核心记忆法"><span class="section-index">4</span><span class="section-title">核心记忆法</span></h2>
+<blockquote>
+<p><strong>在 <code>match</code> 臂中，裸露的标识符 = 新变量绑定，不是取值引用。</strong>
+<strong>要比较外部变量，必须用 <code>if</code> 守卫。</strong></p>
+</blockquote>
+
+
+  <section class="tag-list" aria-label="文章标签">
+    
+      <a class="tag-chip" href="../../tags/Rust.html">#Rust</a>
+    
+      <a class="tag-chip" href="../../tags/语法进阶.html">#语法进阶</a>
+    
+  </section>
+
+
+
+  <section class="comments" aria-label="评论">
+    <h2 class="plain-heading">评论</h2>
+    <script src="https://utteranc.es/client.js"
+      repo="CodeKillerCoser/notebook"
+      issue-term="pathname"
+      label="comment"
+      theme="preferred-color-scheme"
+      crossorigin="anonymous"
+      async>
+    </script>
+  </section>
+
+
+    </main>
+  </div>
+</body>
+</html>

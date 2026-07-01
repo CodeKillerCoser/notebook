@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  
+    
+    
+  
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>1. 重要性 | Notebook</title>
+  <meta name="description" content="软件开发未被像实体建造对待 论据 逻辑推理：未充分论证就开始开发，容易进入死胡同，浪费人力物力 类比：建造房屋。实施步骤有先后依赖关系，违反这个关系会拖慢整个流程 数据：准备-开发-测试-上线，不同阶段发现问题并修复，付出的代价指数级上升 2. 要做什么 1 需求 正式的需求，明确范围，梳理逻辑，避免错误到后期暴露，减少损失 不会存在稳定的需求，相比与初始需">
+  <link rel="alternate" type="application/rss+xml" title="Notebook RSS" href="../feed.xml">
+  <link rel="stylesheet" href="../assets/site.css">
+  
+</head>
+<body>
+  
+    
+    
+    
+    
+    
+    
+  
+
+  <div class="page-shell">
+    <header id="title-block-header" class="hero-grid">
+      <div class="hero-spacer" aria-hidden="true"></div>
+      <div class="hero-content">
+        <div class="eyebrow">代码大全阅读笔记</div>
+        <h1>1. 重要性</h1>
+        
+          <p class="subtitle">软件开发未被像实体建造对待 论据 逻辑推理：未充分论证就开始开发，容易进入死胡同，浪费人力物力 类比：建造房屋。实施步骤有先后依赖关系，违反这个关系会拖慢整个流程 数据：准备-开发-测试-上线，不同阶段发现问题并修复，付出的代价指数级上升 2. 要做什么 1 需求 正式的需求，明确范围，梳理逻辑，避免错误到后期暴露，减少损失 不会存在稳定的需求，相比与初始需</p>
+        
+        <nav class="pathline" aria-label="博客路径">
+          
+            
+              <a href="../index.html">Notebook</a>
+              <span aria-hidden="true">›</span>
+            
+              <a href="index.html">代码大全阅读笔记</a>
+              <span aria-hidden="true">›</span>
+            
+              <a href="ch3-软件开发先决条件.html">1. 重要性</a>
+              
+            
+          
+        </nav>
+        <div class="meta">
+          
+            <time class="chip" datetime="2026-01-02T17:00:23.000Z">2026/01/03</time>
+          
+          
+            <span class="chip tag-chip">代码大全阅读笔记</span>
+          
+          <a class="chip" href="../search.html">搜索</a>
+          <a class="chip" href="../tags/index.html">标签</a>
+          <a class="chip" href="../feed.xml">RSS</a>
+        </div>
+        <hr class="article-divider">
+      </div>
+    </header>
+  </div>
+
+  <div class="content-grid">
+    <nav class="toc" aria-label="目录">
+      <div class="toc-title">目录</div>
+      
+        <ol>
+          
+            <li><a href="#需求">需求</a></li>
+          
+            <li><a href="#结构设计">结构设计</a></li>
+          
+            <li><a href="#编程语言选择">编程语言选择</a></li>
+          
+            <li><a href="#编程约定">编程约定</a></li>
+          
+        </ol>
+      
+    </nav>
+
+    <main class="article-content" data-pagefind-body>
+      <ul>
+<li>软件开发未被像实体建造对待</li>
+<li>论据
+<ul>
+<li>逻辑推理：未充分论证就开始开发，容易进入死胡同，浪费人力物力</li>
+<li>类比：建造房屋。实施步骤有先后依赖关系，违反这个关系会拖慢整个流程</li>
+<li>数据：准备-开发-测试-上线，不同阶段发现问题并修复，付出的代价指数级上升</li>
+</ul>
+</li>
+</ul>
+<h1>2. 要做什么</h1>
+<h2 id="需求"><span class="section-index">1</span><span class="section-title">需求</span></h2>
+<ul>
+<li>正式的需求，明确范围，梳理逻辑，避免错误到后期暴露，减少损失</li>
+<li>不会存在稳定的需求，相比与初始需求，最终实现的需求里，有25%都是逐步改动的</li>
+<li>应对需求变更
+<ul>
+<li>明确需求变更的代价</li>
+<li>建立变更需求的流程</li>
+<li>原型交付。持续得到用户反馈</li>
+<li>放弃项目 （？？？？作者的幽默）</li>
+</ul>
+</li>
+<li>checklist
+<ul>
+<li>需求定义</li>
+<li>需求内容</li>
+<li>需求完善性</li>
+<li>需求质量</li>
+</ul>
+</li>
+</ul>
+<h2 id="结构设计"><span class="section-index">2</span><span class="section-title">结构设计</span></h2>
+<ul>
+<li>目标：程序组织形式</li>
+<li>可应对变动</li>
+<li>多复用，少造轮子</li>
+<li>错误处理</li>
+<li>鲁棒性设计，容错裕度。 <strong>系统的坚固度是所有薄弱环节容错的累积</strong></li>
+<li>内容
+<ul>
+<li>数据结构</li>
+<li>算法</li>
+<li>对象</li>
+<li>通用功能
+<ul>
+<li>用户界面</li>
+<li>输入输出</li>
+<li>内存</li>
+<li>数据</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>性能</li>
+<li>质量准则：每个模块中隐含的信息都有明确的选用和不选用的原因</li>
+</ul>
+<h2 id="编程语言选择"><span class="section-index">3</span><span class="section-title">编程语言选择</span></h2>
+<ul>
+<li>熟悉 &gt; 不熟悉</li>
+<li>高级 &gt; 低级</li>
+<li>解释型 &gt; 编译型 (????)</li>
+</ul>
+<h2 id="编程约定"><span class="section-index">4</span><span class="section-title">编程约定</span></h2>
+
+
+  <section class="tag-list" aria-label="文章标签">
+    
+      <a class="tag-chip" href="../tags/代码大全阅读笔记.html">#代码大全阅读笔记</a>
+    
+  </section>
+
+
+
+  <section class="comments" aria-label="评论">
+    <h2 class="plain-heading">评论</h2>
+    <script src="https://utteranc.es/client.js"
+      repo="CodeKillerCoser/notebook"
+      issue-term="pathname"
+      label="comment"
+      theme="preferred-color-scheme"
+      crossorigin="anonymous"
+      async>
+    </script>
+  </section>
+
+
+    </main>
+  </div>
+</body>
+</html>

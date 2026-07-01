@@ -1,0 +1,7 @@
+exclude:
+  - content
+  - node_modules
+  - package-lock.json
+  - package.json
+  - site
+  - tools

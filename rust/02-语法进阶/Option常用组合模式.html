@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  
+    
+    
+  
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Option 常用组合模式 · Rust 笔记 | Notebook</title>
+  <meta name="description" content="Rust 笔记 › 02-语法进阶 Option 常用组合模式 实战模式 4 个高频场景 1 1 借读取值 场景：我有一个 Option&amp;lt;Box&amp;lt;ListNode&amp;gt;&amp;gt; ，需要读 val ，但不想消费它。 // p: Option&amp;lt;Box&amp;lt;ListNode&amp;gt;&amp;gt;，我要读 val，但不消费 p let x = p.a">
+  <link rel="alternate" type="application/rss+xml" title="Notebook RSS" href="../../feed.xml">
+  <link rel="stylesheet" href="../../assets/site.css">
+  
+</head>
+<body>
+  
+    
+    
+    
+    
+    
+    
+  
+
+  <div class="page-shell">
+    <header id="title-block-header" class="hero-grid">
+      <div class="hero-spacer" aria-hidden="true"></div>
+      <div class="hero-content">
+        <div class="eyebrow">Rust</div>
+        <h1>Option 常用组合模式 · Rust 笔记</h1>
+        
+          <p class="subtitle">Rust 笔记 › 02-语法进阶 Option 常用组合模式 实战模式 4 个高频场景 1 1 借读取值 场景：我有一个 Option&amp;lt;Box&amp;lt;ListNode&amp;gt;&amp;gt; ，需要读 val ，但不想消费它。 // p: Option&amp;lt;Box&amp;lt;ListNode&amp;gt;&amp;gt;，我要读 val，但不消费 p let x = p.a</p>
+        
+        <nav class="pathline" aria-label="博客路径">
+          
+            
+              <a href="../../index.html">Notebook</a>
+              <span aria-hidden="true">›</span>
+            
+              <a href="../index.html">Rust</a>
+              <span aria-hidden="true">›</span>
+            
+              <a href="index.html">语法进阶</a>
+              <span aria-hidden="true">›</span>
+            
+              <a href="Option常用组合模式.html">Option 常用组合模式 · Rust 笔记</a>
+              
+            
+          
+        </nav>
+        <div class="meta">
+          
+            <time class="chip" datetime="2026-05-10T13:43:14.000Z">2026/05/10</time>
+          
+          
+            <span class="chip tag-chip">Rust</span>
+          
+            <span class="chip tag-chip">语法进阶</span>
+          
+          <a class="chip" href="../../search.html">搜索</a>
+          <a class="chip" href="../../tags/index.html">标签</a>
+          <a class="chip" href="../../feed.xml">RSS</a>
+        </div>
+        <hr class="article-divider">
+      </div>
+    </header>
+  </div>
+
+  <div class="content-grid">
+    <nav class="toc" aria-label="目录">
+      <div class="toc-title">目录</div>
+      
+        <ol>
+          
+            <li><a href="#1-借读取值">1 借读取值</a></li>
+          
+            <li><a href="#2-链式消费">2 链式消费</a></li>
+          
+            <li><a href="#3-零方法模式匹配">3 零方法模式匹配</a></li>
+          
+            <li><a href="#4-可变借用修改内部值">4 可变借用修改内部值</a></li>
+          
+            <li><a href="#related">Related</a></li>
+          
+        </ol>
+      
+    </nav>
+
+    <main class="article-content" data-pagefind-body>
+      <div class="container">
+  <p class="breadcrumb"><a href="../index.html">Rust 笔记</a> › 02-语法进阶</p>
+  <h1>Option 常用组合模式</h1>
+  <p><span class="tag">实战模式</span><span class="tag">4 个高频场景</span></p>
+
+  <h2 id="1-借读取值"><span class="section-index">1</span><span class="section-title"><span class="pattern-num">1</span> 借读取值</span></h2>
+  <p>场景：我有一个 <code>Option&lt;Box&lt;ListNode&gt;&gt;</code>，需要读 <code>val</code>，但不想消费它。</p>
+  <pre class="language-text" data-language="text"><code class="language-text">// p: Option&lt;Box&lt;ListNode&gt;&gt;，我要读 val，但不消费 p
+let x = p.as_ref().map_or(0, |node| node.val);
+//      ^^^^^^^^ 借出引用
+//               ^^^^^^^ 有值就处理，无值给默认</code></pre>
+  <p><strong>原理</strong>：<code>as_ref()</code> 把 <code>Option&lt;Box&lt;T&gt;&gt;</code> 变成 <code>Option&lt;&amp;Box&lt;T&gt;&gt;</code>，不拿走所有权。<code>map_or</code> 的签名是 <code>&amp;self</code>，同样不消费。</p>
+
+  <h2 id="2-链式消费"><span class="section-index">2</span><span class="section-title"><span class="pattern-num">2</span> 链式消费</span></h2>
+  <p>场景：链表遍历中，消费当前节点，取出 <code>next</code> 赋给自己。</p>
+  <pre class="language-text" data-language="text"><code class="language-text">// 消费 p，取出 next 赋值给 p（典型链表遍历）
+p = p.and_then(|node| node.next);
+//  ^^^^^^^^ node.next 是 Option&lt;Box&lt;ListNode&gt;&gt;，正好是 p 的类型</code></pre>
+  <p><strong>原理</strong>：<code>and_then</code> 接收 <code>FnOnce(T) → Option&lt;U&gt;</code>。如果 p 是 None，返回 None；如果是 Some，取出内部值传给闭包，闭包返回 <code>node.next</code>。</p>
+
+  <h2 id="3-零方法模式匹配"><span class="section-index">3</span><span class="section-title"><span class="pattern-num">3</span> 零方法模式匹配</span></h2>
+  <p>场景：对方法调用还不熟时，用 match 最安全直观。</p>
+  <pre class="language-text" data-language="text"><code class="language-text">let (x, next_p) = match p {
+    Some(node) =&gt; (node.val, node.next),
+    None =&gt; (0, None),
+};</code></pre>
+  <p><strong>注意事项</strong>：</p>
+  <ul>
+    <li>如果不想消费 <code>p</code>，用 <code>match &amp;p</code>（引用匹配）</li>
+    <li>如果想消费 <code>p</code>，用 <code>match p</code>（值匹配）</li>
+  </ul>
+
+  <h2 id="4-可变借用修改内部值"><span class="section-index">4</span><span class="section-title"><span class="pattern-num">4</span> 可变借用修改内部值</span></h2>
+  <p>场景：拿到链表尾节点的可变引用，修改其内部字段。</p>
+  <pre class="language-text" data-language="text"><code class="language-text">// tail: &amp;mut Box&lt;ListNode&gt;
+tail.next = Some(Box::new(ListNode::new(42)));  // 追加新节点
+
+// 或修改已有节点
+tail.next.as_mut().unwrap().val = 42;  // 修改链表节点的值</code></pre>
+  <p><strong>原理</strong>：<code>as_mut()</code> 把 <code>&amp;mut Option&lt;T&gt;</code> 变成 <code>Option&lt;&amp;mut T&gt;</code>，拿到内部的可变引用但不消费。</p>
+
+  <div class="block">
+    <strong>记忆法则：</strong><br>
+    读值 → <code>as_ref</code> + <code>map_or</code><br>
+    推进 → <code>and_then</code><br>
+    拆解 → <code>match</code><br>
+    修改 → <code>as_mut</code> + <code>unwrap</code>
+  </div>
+
+  <h2 id="related"><span class="section-index">5</span><span class="section-title">Related</span></h2>
+  <ul>
+    <li><a href="Option方法全景图.html">Option 方法全景图</a> — 完整方法分类速查</li>
+    <li><a href="../04-综合案例/LeetCode-T2两数相加.html">LeetCode T2 实战</a> — 真实场景应用</li>
+  </ul>
+</div>
+
+
+  <section class="tag-list" aria-label="文章标签">
+    
+      <a class="tag-chip" href="../../tags/Rust.html">#Rust</a>
+    
+      <a class="tag-chip" href="../../tags/语法进阶.html">#语法进阶</a>
+    
+  </section>
+
+
+
+  <section class="comments" aria-label="评论">
+    <h2 class="plain-heading">评论</h2>
+    <script src="https://utteranc.es/client.js"
+      repo="CodeKillerCoser/notebook"
+      issue-term="pathname"
+      label="comment"
+      theme="preferred-color-scheme"
+      crossorigin="anonymous"
+      async>
+    </script>
+  </section>
+
+
+    </main>
+  </div>
+</body>
+</html>

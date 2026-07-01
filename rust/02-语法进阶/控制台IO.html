@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  
+    
+    
+  
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>控制台 I/O | Notebook</title>
+  <meta name="description" content="1 读取用户输入 use std :: io ; fn main ( ) { let mut input = String :: new ( ) ; io :: stdin ( ) . read_line ( &amp;amp; mut input ) . expect ( &quot;读取失败&quot; ) ; println! ( &quot;你输入了: {}&quot; , input ) ; }">
+  <link rel="alternate" type="application/rss+xml" title="Notebook RSS" href="../../feed.xml">
+  <link rel="stylesheet" href="../../assets/site.css">
+  
+</head>
+<body>
+  
+    
+    
+    
+    
+    
+    
+  
+
+  <div class="page-shell">
+    <header id="title-block-header" class="hero-grid">
+      <div class="hero-spacer" aria-hidden="true"></div>
+      <div class="hero-content">
+        <div class="eyebrow">Rust</div>
+        <h1>控制台 I/O</h1>
+        
+          <p class="subtitle">1 读取用户输入 use std :: io ; fn main ( ) { let mut input = String :: new ( ) ; io :: stdin ( ) . read_line ( &amp;amp; mut input ) . expect ( &quot;读取失败&quot; ) ; println! ( &quot;你输入了: {}&quot; , input ) ; }</p>
+        
+        <nav class="pathline" aria-label="博客路径">
+          
+            
+              <a href="../../index.html">Notebook</a>
+              <span aria-hidden="true">›</span>
+            
+              <a href="../index.html">Rust</a>
+              <span aria-hidden="true">›</span>
+            
+              <a href="index.html">语法进阶</a>
+              <span aria-hidden="true">›</span>
+            
+              <a href="控制台IO.html">控制台 I/O</a>
+              
+            
+          
+        </nav>
+        <div class="meta">
+          
+            <time class="chip" datetime="2026-05-09T15:49:00.000Z">2026/05/09</time>
+          
+          
+            <span class="chip tag-chip">Rust</span>
+          
+            <span class="chip tag-chip">语法进阶</span>
+          
+          <a class="chip" href="../../search.html">搜索</a>
+          <a class="chip" href="../../tags/index.html">标签</a>
+          <a class="chip" href="../../feed.xml">RSS</a>
+        </div>
+        <hr class="article-divider">
+      </div>
+    </header>
+  </div>
+
+  <div class="content-grid">
+    <nav class="toc" aria-label="目录">
+      <div class="toc-title">目录</div>
+      
+        <ol>
+          
+            <li><a href="#读取用户输入">读取用户输入</a></li>
+          
+            <li><a href="#关键陷阱">关键陷阱</a></li>
+          
+            <li><a href="#数字解析">数字解析</a></li>
+          
+        </ol>
+      
+    </nav>
+
+    <main class="article-content" data-pagefind-body>
+      <h2 id="读取用户输入"><span class="section-index">1</span><span class="section-title">读取用户输入</span></h2>
+<pre class="language-rust" data-language="rust"><code class="language-rust"><span class="token keyword">use</span> <span class="token namespace">std<span class="token punctuation">::</span></span>io<span class="token punctuation">;</span>
+
+<span class="token keyword">fn</span> <span class="token function-definition function">main</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">let</span> <span class="token keyword">mut</span> input <span class="token operator">=</span> <span class="token class-name">String</span><span class="token punctuation">::</span><span class="token function">new</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token namespace">io<span class="token punctuation">::</span></span><span class="token function">stdin</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">read_line</span><span class="token punctuation">(</span><span class="token operator">&amp;</span><span class="token keyword">mut</span> input<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">expect</span><span class="token punctuation">(</span><span class="token string">"读取失败"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token macro property">println!</span><span class="token punctuation">(</span><span class="token string">"你输入了: {}"</span><span class="token punctuation">,</span> input<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<h3 id="逐行解析">逐行解析</h3>
+<ul>
+<li><code>use std::io;</code> — 导入标准库 I/O 模块</li>
+<li><code>io::stdin()</code> — 获取标准输入句柄</li>
+<li><code>.read_line(&amp;mut input)</code> — 读取一行到可变字符串引用</li>
+</ul>
+<h2 id="关键陷阱"><span class="section-index">2</span><span class="section-title">关键陷阱</span></h2>
+<h3 id="read-line-包含末尾换行符"><code>read_line</code> 包含末尾换行符</h3>
+<p><code>read_line</code> 读取的字符串<strong>包含末尾的换行符 <code>\n</code></strong>（Windows 下是 <code>\r\n</code>）。</p>
+<pre class="language-rust" data-language="rust"><code class="language-rust"><span class="token keyword">let</span> <span class="token keyword">mut</span> input <span class="token operator">=</span> <span class="token class-name">String</span><span class="token punctuation">::</span><span class="token function">new</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token namespace">io<span class="token punctuation">::</span></span><span class="token function">stdin</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">read_line</span><span class="token punctuation">(</span><span class="token operator">&amp;</span><span class="token keyword">mut</span> input<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">unwrap</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token comment">// 输入 "hello" → input = "hello\n"</span>
+
+<span class="token keyword">let</span> trimmed <span class="token operator">=</span> input<span class="token punctuation">.</span><span class="token function">trim</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  <span class="token comment">// 去掉首尾空白 → "hello"</span>
+</code></pre>
+<p><strong>始终对 <code>read_line</code> 的结果调用 <code>.trim()</code></strong>，否则字符串比较和数字解析会出问题。</p>
+<h3 id="read-line-的返回值"><code>read_line</code> 的返回值</h3>
+<p><code>read_line</code> 返回 <code>io::Result&lt;usize&gt;</code>：</p>
+<ul>
+<li><code>Ok(n)</code> — 读取成功，<code>n</code> 是读取的字节数（<strong>包含</strong>换行符）</li>
+<li><code>Err(e)</code> — 读取失败，<code>e</code> 是错误信息</li>
+</ul>
+<h3 id="错误处理方式">错误处理方式</h3>
+<pre class="language-rust" data-language="rust"><code class="language-rust"><span class="token comment">// 方式 1: expect（快速失败，程序终止）</span>
+<span class="token namespace">io<span class="token punctuation">::</span></span><span class="token function">stdin</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">read_line</span><span class="token punctuation">(</span><span class="token operator">&amp;</span><span class="token keyword">mut</span> input<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">expect</span><span class="token punctuation">(</span><span class="token string">"读取失败"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token comment">// 方式 2: match（灵活处理）</span>
+<span class="token keyword">match</span> <span class="token namespace">io<span class="token punctuation">::</span></span><span class="token function">stdin</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">read_line</span><span class="token punctuation">(</span><span class="token operator">&amp;</span><span class="token keyword">mut</span> input<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token class-name">Ok</span><span class="token punctuation">(</span>n<span class="token punctuation">)</span> <span class="token operator">=&gt;</span> <span class="token macro property">println!</span><span class="token punctuation">(</span><span class="token string">"读取了 {} 字节"</span><span class="token punctuation">,</span> n<span class="token punctuation">)</span><span class="token punctuation">,</span>
+    <span class="token class-name">Err</span><span class="token punctuation">(</span>e<span class="token punctuation">)</span> <span class="token operator">=&gt;</span> <span class="token macro property">eprintln!</span><span class="token punctuation">(</span><span class="token string">"错误: {}"</span><span class="token punctuation">,</span> e<span class="token punctuation">)</span><span class="token punctuation">,</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<h2 id="数字解析"><span class="section-index">3</span><span class="section-title">数字解析</span></h2>
+<pre class="language-rust" data-language="rust"><code class="language-rust"><span class="token keyword">let</span> input <span class="token operator">=</span> <span class="token string">"42\n"</span><span class="token punctuation">;</span>
+<span class="token keyword">let</span> num<span class="token punctuation">:</span> <span class="token keyword">i32</span> <span class="token operator">=</span> input<span class="token punctuation">.</span><span class="token function">trim</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">parse</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">expect</span><span class="token punctuation">(</span><span class="token string">"请输入数字"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<ul>
+<li><code>.trim()</code> — 去掉换行和空白</li>
+<li><code>.parse::&lt;i32&gt;()</code> — 解析为指定整型（也可用类型标注 <code>let num: i32 = ...</code>）</li>
+<li><code>parse()</code> 返回 <code>Result</code>，需要处理解析失败的情况</li>
+</ul>
+
+
+  <section class="tag-list" aria-label="文章标签">
+    
+      <a class="tag-chip" href="../../tags/Rust.html">#Rust</a>
+    
+      <a class="tag-chip" href="../../tags/语法进阶.html">#语法进阶</a>
+    
+  </section>
+
+
+
+  <section class="comments" aria-label="评论">
+    <h2 class="plain-heading">评论</h2>
+    <script src="https://utteranc.es/client.js"
+      repo="CodeKillerCoser/notebook"
+      issue-term="pathname"
+      label="comment"
+      theme="preferred-color-scheme"
+      crossorigin="anonymous"
+      async>
+    </script>
+  </section>
+
+
+    </main>
+  </div>
+</body>
+</html>

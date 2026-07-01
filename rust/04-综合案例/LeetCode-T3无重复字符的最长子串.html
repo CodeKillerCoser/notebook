@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  
+    
+    
+  
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LeetCode T3 无重复字符的最长子串 · Rust 笔记 | Notebook</title>
+  <meta name="description" content="这题的核心是滑动窗口：窗口右端不断扩张，遇到重复字符时把左端移动到重复字符上一次出现位置之后。 1 原始思路 pub fn length_of_longest_substring ( s : String ) -&amp;gt; i32 { let len = s . len ( ) ; let mut index_map = std :: collections ">
+  <link rel="alternate" type="application/rss+xml" title="Notebook RSS" href="../../feed.xml">
+  <link rel="stylesheet" href="../../assets/site.css">
+  
+</head>
+<body>
+  
+    
+    
+    
+    
+    
+    
+  
+
+  <div class="page-shell">
+    <header id="title-block-header" class="hero-grid">
+      <div class="hero-spacer" aria-hidden="true"></div>
+      <div class="hero-content">
+        <div class="eyebrow">Rust</div>
+        <h1>LeetCode T3 无重复字符的最长子串 · Rust 笔记</h1>
+        
+          <p class="subtitle">这题的核心是滑动窗口：窗口右端不断扩张，遇到重复字符时把左端移动到重复字符上一次出现位置之后。 1 原始思路 pub fn length_of_longest_substring ( s : String ) -&amp;gt; i32 { let len = s . len ( ) ; let mut index_map = std :: collections </p>
+        
+        <nav class="pathline" aria-label="博客路径">
+          
+            
+              <a href="../../index.html">Notebook</a>
+              <span aria-hidden="true">›</span>
+            
+              <a href="../index.html">Rust</a>
+              <span aria-hidden="true">›</span>
+            
+              <a href="index.html">综合案例</a>
+              <span aria-hidden="true">›</span>
+            
+              <a href="LeetCode-T3无重复字符的最长子串.html">LeetCode T3 无重复字符的最长子串 · Rust 笔记</a>
+              
+            
+          
+        </nav>
+        <div class="meta">
+          
+            <time class="chip" datetime="2026-05-12T16:33:57.000Z">2026/05/13</time>
+          
+          
+            <span class="chip tag-chip">Rust</span>
+          
+            <span class="chip tag-chip">综合案例</span>
+          
+          <a class="chip" href="../../search.html">搜索</a>
+          <a class="chip" href="../../tags/index.html">标签</a>
+          <a class="chip" href="../../feed.xml">RSS</a>
+        </div>
+        <hr class="article-divider">
+      </div>
+    </header>
+  </div>
+
+  <div class="content-grid">
+    <nav class="toc" aria-label="目录">
+      <div class="toc-title">目录</div>
+      
+        <ol>
+          
+            <li><a href="#原始思路">原始思路</a></li>
+          
+            <li><a href="#关键问题">关键问题</a></li>
+          
+            <li><a href="#leetcode-ascii-优化版">LeetCode ASCII 优化版</a></li>
+          
+            <li><a href="#unicode-友好版">Unicode 友好版</a></li>
+          
+        </ol>
+      
+    </nav>
+
+    <main class="article-content" data-pagefind-body>
+      <p>这题的核心是滑动窗口：窗口右端不断扩张，遇到重复字符时把左端移动到重复字符上一次出现位置之后。</p>
+
+<h2 id="原始思路"><span class="section-index">1</span><span class="section-title">原始思路</span></h2>
+
+<pre class="language-rust" data-language="rust"><code class="language-rust"><span class="token keyword">pub</span> <span class="token keyword">fn</span> <span class="token function-definition function">length_of_longest_substring</span><span class="token punctuation">(</span>s<span class="token punctuation">:</span> <span class="token class-name">String</span><span class="token punctuation">)</span> <span class="token punctuation">-&gt;</span> <span class="token keyword">i32</span> <span class="token punctuation">{</span>
+    <span class="token keyword">let</span> len <span class="token operator">=</span> s<span class="token punctuation">.</span><span class="token function">len</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">let</span> <span class="token keyword">mut</span> index_map <span class="token operator">=</span> <span class="token namespace">std<span class="token punctuation">::</span>collections<span class="token punctuation">::</span></span><span class="token class-name">HashMap</span><span class="token punctuation">::</span><span class="token function">new</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">let</span> <span class="token keyword">mut</span> start <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+    <span class="token keyword">let</span> <span class="token keyword">mut</span> max_len <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+    <span class="token keyword">for</span> <span class="token punctuation">(</span>i<span class="token punctuation">,</span> c<span class="token punctuation">)</span> <span class="token keyword">in</span> s<span class="token punctuation">.</span><span class="token function">char_indices</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">if</span> <span class="token keyword">let</span> <span class="token class-name">Some</span><span class="token punctuation">(</span>pre<span class="token punctuation">)</span> <span class="token operator">=</span> index_map<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>c<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            max_len <span class="token operator">=</span> max_len<span class="token punctuation">.</span><span class="token function">max</span><span class="token punctuation">(</span>i <span class="token operator">-</span> start<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            start <span class="token operator">=</span> start<span class="token punctuation">.</span><span class="token function">max</span><span class="token punctuation">(</span>pre <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+        index_map<span class="token punctuation">.</span><span class="token function">insert</span><span class="token punctuation">(</span>c<span class="token punctuation">,</span> i<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+    <span class="token keyword">return</span> max_len<span class="token punctuation">.</span><span class="token function">max</span><span class="token punctuation">(</span>len <span class="token operator">-</span> start<span class="token punctuation">)</span> <span class="token keyword">as</span> <span class="token keyword">i32</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span></code></pre>
+
+<h2 id="关键问题"><span class="section-index">2</span><span class="section-title">关键问题</span></h2>
+
+<table>
+  <tbody><tr><th>点</th><th>说明</th></tr>
+  <tr><td><code>char_indices()</code></td><td>返回的是字节下标，不是字符下标。纯 ASCII 场景没问题；遇到中文或 emoji 时长度会偏大。</td></tr>
+  <tr><td><code>max_len</code> 更新时机</td><td>只在遇到重复字符时更新，最后再补一次是可行的，但每轮更新更直观。</td></tr>
+  <tr><td><code>HashMap::get</code></td><td><code>if let Some(&amp;pre)</code> 比 <code>Some(pre)</code> 再处理引用更清晰。</td></tr>
+</tbody></table>
+
+<h2 id="leetcode-ascii-优化版"><span class="section-index">3</span><span class="section-title">LeetCode ASCII 优化版</span></h2>
+
+<p>这题约束通常是英文字母、数字、符号和空格，可以用数组代替 <code>HashMap</code>，常数性能更好。</p>
+
+<pre class="language-rust" data-language="rust"><code class="language-rust"><span class="token keyword">impl</span> <span class="token class-name">Solution</span> <span class="token punctuation">{</span>
+    <span class="token keyword">pub</span> <span class="token keyword">fn</span> <span class="token function-definition function">length_of_longest_substring</span><span class="token punctuation">(</span>s<span class="token punctuation">:</span> <span class="token class-name">String</span><span class="token punctuation">)</span> <span class="token punctuation">-&gt;</span> <span class="token keyword">i32</span> <span class="token punctuation">{</span>
+        <span class="token keyword">let</span> bytes <span class="token operator">=</span> s<span class="token punctuation">.</span><span class="token function">as_bytes</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">let</span> <span class="token keyword">mut</span> last <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token keyword">usize</span><span class="token punctuation">::</span><span class="token constant">MAX</span><span class="token punctuation">;</span> <span class="token number">128</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+        <span class="token keyword">let</span> <span class="token keyword">mut</span> start <span class="token operator">=</span> <span class="token number">0usize</span><span class="token punctuation">;</span>
+        <span class="token keyword">let</span> <span class="token keyword">mut</span> ans <span class="token operator">=</span> <span class="token number">0usize</span><span class="token punctuation">;</span>
+
+        <span class="token keyword">for</span> <span class="token punctuation">(</span>i<span class="token punctuation">,</span> <span class="token operator">&amp;</span>b<span class="token punctuation">)</span> <span class="token keyword">in</span> bytes<span class="token punctuation">.</span><span class="token function">iter</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">enumerate</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            <span class="token keyword">let</span> idx <span class="token operator">=</span> b <span class="token keyword">as</span> <span class="token keyword">usize</span><span class="token punctuation">;</span>
+
+            <span class="token keyword">if</span> last<span class="token punctuation">[</span>idx<span class="token punctuation">]</span> <span class="token operator">!=</span> <span class="token keyword">usize</span><span class="token punctuation">::</span><span class="token constant">MAX</span> <span class="token operator">&amp;&amp;</span> last<span class="token punctuation">[</span>idx<span class="token punctuation">]</span> <span class="token operator">&gt;=</span> start <span class="token punctuation">{</span>
+                start <span class="token operator">=</span> last<span class="token punctuation">[</span>idx<span class="token punctuation">]</span> <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">;</span>
+            <span class="token punctuation">}</span>
+
+            ans <span class="token operator">=</span> ans<span class="token punctuation">.</span><span class="token function">max</span><span class="token punctuation">(</span>i <span class="token operator">-</span> start <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            last<span class="token punctuation">[</span>idx<span class="token punctuation">]</span> <span class="token operator">=</span> i<span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+
+        ans <span class="token keyword">as</span> <span class="token keyword">i32</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+
+<h2 id="unicode-友好版"><span class="section-index">4</span><span class="section-title">Unicode 友好版</span></h2>
+
+<pre class="language-rust" data-language="rust"><code class="language-rust"><span class="token keyword">use</span> <span class="token namespace">std<span class="token punctuation">::</span>collections<span class="token punctuation">::</span></span><span class="token class-name">HashMap</span><span class="token punctuation">;</span>
+
+<span class="token keyword">impl</span> <span class="token class-name">Solution</span> <span class="token punctuation">{</span>
+    <span class="token keyword">pub</span> <span class="token keyword">fn</span> <span class="token function-definition function">length_of_longest_substring</span><span class="token punctuation">(</span>s<span class="token punctuation">:</span> <span class="token class-name">String</span><span class="token punctuation">)</span> <span class="token punctuation">-&gt;</span> <span class="token keyword">i32</span> <span class="token punctuation">{</span>
+        <span class="token keyword">let</span> <span class="token keyword">mut</span> last <span class="token operator">=</span> <span class="token class-name">HashMap</span><span class="token punctuation">::</span><span class="token function">new</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">let</span> <span class="token keyword">mut</span> start <span class="token operator">=</span> <span class="token number">0usize</span><span class="token punctuation">;</span>
+        <span class="token keyword">let</span> <span class="token keyword">mut</span> ans <span class="token operator">=</span> <span class="token number">0usize</span><span class="token punctuation">;</span>
+
+        <span class="token keyword">for</span> <span class="token punctuation">(</span>i<span class="token punctuation">,</span> c<span class="token punctuation">)</span> <span class="token keyword">in</span> s<span class="token punctuation">.</span><span class="token function">chars</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">enumerate</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            <span class="token keyword">if</span> <span class="token keyword">let</span> <span class="token class-name">Some</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>pre<span class="token punctuation">)</span> <span class="token operator">=</span> last<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>c<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+                start <span class="token operator">=</span> start<span class="token punctuation">.</span><span class="token function">max</span><span class="token punctuation">(</span>pre <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token punctuation">}</span>
+
+            ans <span class="token operator">=</span> ans<span class="token punctuation">.</span><span class="token function">max</span><span class="token punctuation">(</span>i <span class="token operator">-</span> start <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            last<span class="token punctuation">.</span><span class="token function">insert</span><span class="token punctuation">(</span>c<span class="token punctuation">,</span> i<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+
+        ans <span class="token keyword">as</span> <span class="token keyword">i32</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+
+<blockquote>记忆点：窗口左边界只前进不后退，所以更新时要用 <code>start.max(pre + 1)</code>。</blockquote>
+
+<p class="back"><a href="../index.html">← 返回 Rust 索引</a></p>
+
+
+  <section class="tag-list" aria-label="文章标签">
+    
+      <a class="tag-chip" href="../../tags/Rust.html">#Rust</a>
+    
+      <a class="tag-chip" href="../../tags/综合案例.html">#综合案例</a>
+    
+  </section>
+
+
+
+  <section class="comments" aria-label="评论">
+    <h2 class="plain-heading">评论</h2>
+    <script src="https://utteranc.es/client.js"
+      repo="CodeKillerCoser/notebook"
+      issue-term="pathname"
+      label="comment"
+      theme="preferred-color-scheme"
+      crossorigin="anonymous"
+      async>
+    </script>
+  </section>
+
+
+    </main>
+  </div>
+</body>
+</html>

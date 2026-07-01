@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  
+    
+    
+  
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>流程控制 | Notebook</title>
+  <meta name="description" content="1 loop — Rust 原生无限循环 loop { println! ( &quot;永远执行&quot; ) ; } loop 是 Rust 的原生无限循环关键字 编译器对 loop 有特殊优化——不生成条件判断指令 break 可以跳出循环 2 while true 为什么不推荐 // ❌ 编译器会警告: denote infinite loops with `loop">
+  <link rel="alternate" type="application/rss+xml" title="Notebook RSS" href="../../feed.xml">
+  <link rel="stylesheet" href="../../assets/site.css">
+  
+</head>
+<body>
+  
+    
+    
+    
+    
+    
+    
+  
+
+  <div class="page-shell">
+    <header id="title-block-header" class="hero-grid">
+      <div class="hero-spacer" aria-hidden="true"></div>
+      <div class="hero-content">
+        <div class="eyebrow">Rust</div>
+        <h1>流程控制</h1>
+        
+          <p class="subtitle">1 loop — Rust 原生无限循环 loop { println! ( &quot;永远执行&quot; ) ; } loop 是 Rust 的原生无限循环关键字 编译器对 loop 有特殊优化——不生成条件判断指令 break 可以跳出循环 2 while true 为什么不推荐 // ❌ 编译器会警告: denote infinite loops with `loop</p>
+        
+        <nav class="pathline" aria-label="博客路径">
+          
+            
+              <a href="../../index.html">Notebook</a>
+              <span aria-hidden="true">›</span>
+            
+              <a href="../index.html">Rust</a>
+              <span aria-hidden="true">›</span>
+            
+              <a href="index.html">语法进阶</a>
+              <span aria-hidden="true">›</span>
+            
+              <a href="流程控制.html">流程控制</a>
+              
+            
+          
+        </nav>
+        <div class="meta">
+          
+            <time class="chip" datetime="2026-05-09T15:49:00.000Z">2026/05/09</time>
+          
+          
+            <span class="chip tag-chip">Rust</span>
+          
+            <span class="chip tag-chip">语法进阶</span>
+          
+          <a class="chip" href="../../search.html">搜索</a>
+          <a class="chip" href="../../tags/index.html">标签</a>
+          <a class="chip" href="../../feed.xml">RSS</a>
+        </div>
+        <hr class="article-divider">
+      </div>
+    </header>
+  </div>
+
+  <div class="content-grid">
+    <nav class="toc" aria-label="目录">
+      <div class="toc-title">目录</div>
+      
+        <ol>
+          
+            <li><a href="#loop-rust-原生无限循环">loop — Rust 原生无限循环</a></li>
+          
+            <li><a href="#while-true-为什么不推荐">while true 为什么不推荐</a></li>
+          
+            <li><a href="#break-可以带出值">break 可以带出值</a></li>
+          
+            <li><a href="#条件循环-while">条件循环：while</a></li>
+          
+            <li><a href="#遍历集合-for">遍历集合：for</a></li>
+          
+            <li><a href="#选择结构">选择结构</a></li>
+          
+        </ol>
+      
+    </nav>
+
+    <main class="article-content" data-pagefind-body>
+      <h2 id="loop-rust-原生无限循环"><span class="section-index">1</span><span class="section-title"><code>loop</code> — Rust 原生无限循环</span></h2>
+<pre class="language-rust" data-language="rust"><code class="language-rust"><span class="token keyword">loop</span> <span class="token punctuation">{</span>
+    <span class="token macro property">println!</span><span class="token punctuation">(</span><span class="token string">"永远执行"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<ul>
+<li><code>loop</code> 是 Rust 的原生无限循环关键字</li>
+<li>编译器对 <code>loop</code> 有特殊优化——不生成条件判断指令</li>
+<li><code>break</code> 可以跳出循环</li>
+</ul>
+<h2 id="while-true-为什么不推荐"><span class="section-index">2</span><span class="section-title"><code>while true</code> 为什么不推荐</span></h2>
+<pre class="language-rust" data-language="rust"><code class="language-rust"><span class="token comment">// ❌ 编译器会警告: denote infinite loops with `loop { ... }`</span>
+<span class="token keyword">while</span> <span class="token boolean">true</span> <span class="token punctuation">{</span>
+    <span class="token comment">// ...</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<h3 id="原因">原因</h3>
+<ul>
+<li><code>while true</code> 每次迭代前都会<strong>对布尔值 <code>true</code> 做一次求值</strong>，多此一举</li>
+<li>Rust 编译器建议用 <code>loop</code> 表达"我要的就是无限循环"的意思</li>
+<li><code>loop</code> 更明确地传达了程序员的意图</li>
+</ul>
+<h2 id="break-可以带出值"><span class="section-index">3</span><span class="section-title"><code>break</code> 可以带出值</span></h2>
+<p>这是 <code>loop</code> 独有的特性——<code>while</code> 和 <code>for</code> 不行：</p>
+<pre class="language-rust" data-language="rust"><code class="language-rust"><span class="token keyword">let</span> x <span class="token operator">=</span> <span class="token keyword">loop</span> <span class="token punctuation">{</span>
+    <span class="token keyword">break</span> <span class="token number">42</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span>
+<span class="token comment">// x = 42</span>
+</code></pre>
+<h3 id="猜数字游戏中的应用">猜数字游戏中的应用</h3>
+<pre class="language-rust" data-language="rust"><code class="language-rust"><span class="token keyword">let</span> secret_number <span class="token operator">=</span> <span class="token number">42</span><span class="token punctuation">;</span>
+
+<span class="token keyword">loop</span> <span class="token punctuation">{</span>
+    <span class="token keyword">let</span> <span class="token keyword">mut</span> guess <span class="token operator">=</span> <span class="token class-name">String</span><span class="token punctuation">::</span><span class="token function">new</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token namespace">io<span class="token punctuation">::</span></span><span class="token function">stdin</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">read_line</span><span class="token punctuation">(</span><span class="token operator">&amp;</span><span class="token keyword">mut</span> guess<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">expect</span><span class="token punctuation">(</span><span class="token string">"读取失败"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token keyword">let</span> guess<span class="token punctuation">:</span> <span class="token keyword">i32</span> <span class="token operator">=</span> guess<span class="token punctuation">.</span><span class="token function">trim</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">parse</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">expect</span><span class="token punctuation">(</span><span class="token string">"请输入数字"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token keyword">if</span> guess <span class="token operator">==</span> secret_number <span class="token punctuation">{</span>
+        <span class="token macro property">println!</span><span class="token punctuation">(</span><span class="token string">"You win!"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">break</span><span class="token punctuation">;</span>  <span class="token comment">// 猜对时退出循环</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<h2 id="条件循环-while"><span class="section-index">4</span><span class="section-title">条件循环：<code>while</code></span></h2>
+<pre class="language-rust" data-language="rust"><code class="language-rust"><span class="token keyword">let</span> <span class="token keyword">mut</span> n <span class="token operator">=</span> <span class="token number">3</span><span class="token punctuation">;</span>
+<span class="token keyword">while</span> n <span class="token operator">&gt;</span> <span class="token number">0</span> <span class="token punctuation">{</span>
+    <span class="token macro property">println!</span><span class="token punctuation">(</span><span class="token string">"{}"</span><span class="token punctuation">,</span> n<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    n <span class="token operator">-=</span> <span class="token number">1</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+<span class="token macro property">println!</span><span class="token punctuation">(</span><span class="token string">"发射！"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<h2 id="遍历集合-for"><span class="section-index">5</span><span class="section-title">遍历集合：<code>for</code></span></h2>
+<pre class="language-rust" data-language="rust"><code class="language-rust"><span class="token keyword">let</span> arr <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token number">10</span><span class="token punctuation">,</span> <span class="token number">20</span><span class="token punctuation">,</span> <span class="token number">30</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+
+<span class="token comment">// 推荐写法</span>
+<span class="token keyword">for</span> elem <span class="token keyword">in</span> arr <span class="token punctuation">{</span>
+    <span class="token macro property">println!</span><span class="token punctuation">(</span><span class="token string">"{}"</span><span class="token punctuation">,</span> elem<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token comment">// 范围语法</span>
+<span class="token keyword">for</span> i <span class="token keyword">in</span> <span class="token number">1</span><span class="token punctuation">..=</span><span class="token number">5</span> <span class="token punctuation">{</span>    <span class="token comment">// 包含 5</span>
+    <span class="token macro property">println!</span><span class="token punctuation">(</span><span class="token string">"{}"</span><span class="token punctuation">,</span> i<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token keyword">for</span> i <span class="token keyword">in</span> <span class="token number">1</span><span class="token punctuation">..</span><span class="token number">5</span> <span class="token punctuation">{</span>     <span class="token comment">// 不包含 5</span>
+    <span class="token macro property">println!</span><span class="token punctuation">(</span><span class="token string">"{}"</span><span class="token punctuation">,</span> i<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<h2 id="选择结构"><span class="section-index">6</span><span class="section-title">选择结构</span></h2>
+<h3 id="if-表达式"><code>if</code> 表达式</h3>
+<pre class="language-rust" data-language="rust"><code class="language-rust"><span class="token keyword">let</span> num <span class="token operator">=</span> <span class="token number">7</span><span class="token punctuation">;</span>
+
+<span class="token keyword">if</span> num <span class="token operator">&lt;</span> <span class="token number">5</span> <span class="token punctuation">{</span>
+    <span class="token macro property">println!</span><span class="token punctuation">(</span><span class="token string">"小于 5"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token keyword">if</span> num <span class="token operator">==</span> <span class="token number">5</span> <span class="token punctuation">{</span>
+    <span class="token macro property">println!</span><span class="token punctuation">(</span><span class="token string">"等于 5"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+    <span class="token macro property">println!</span><span class="token punctuation">(</span><span class="token string">"大于 5"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<h3 id="if-是表达式-可以赋值"><code>if</code> 是表达式（可以赋值）</h3>
+<pre class="language-rust" data-language="rust"><code class="language-rust"><span class="token keyword">let</span> condition <span class="token operator">=</span> <span class="token boolean">true</span><span class="token punctuation">;</span>
+<span class="token keyword">let</span> x <span class="token operator">=</span> <span class="token keyword">if</span> condition <span class="token punctuation">{</span> <span class="token number">5</span> <span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span> <span class="token number">6</span> <span class="token punctuation">}</span><span class="token punctuation">;</span>
+<span class="token comment">// x = 5</span>
+</code></pre>
+<blockquote>
+<p><strong>注意</strong>: Rust 是静态类型语言，<code>if</code> 的两个分支必须返回<strong>同一类型</strong>。</p>
+</blockquote>
+
+
+  <section class="tag-list" aria-label="文章标签">
+    
+      <a class="tag-chip" href="../../tags/Rust.html">#Rust</a>
+    
+      <a class="tag-chip" href="../../tags/语法进阶.html">#语法进阶</a>
+    
+  </section>
+
+
+
+  <section class="comments" aria-label="评论">
+    <h2 class="plain-heading">评论</h2>
+    <script src="https://utteranc.es/client.js"
+      repo="CodeKillerCoser/notebook"
+      issue-term="pathname"
+      label="comment"
+      theme="preferred-color-scheme"
+      crossorigin="anonymous"
+      async>
+    </script>
+  </section>
+
+
+    </main>
+  </div>
+</body>
+</html>

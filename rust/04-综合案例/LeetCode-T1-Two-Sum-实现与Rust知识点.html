@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  
+    
+    
+  
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LeetCode Two Sum Rust 实现与知识点分析 | Notebook</title>
+  <meta name="description" content="Two Sum 是 LeetCode 第 1 题：给定数组和目标值，返回两个下标使得其对应值相加等于目标值。 1 原始代码（包含错误） impl Solution { pub fn two_sum ( nums : Vec &amp;lt; i32 &amp;gt; , target : i32 ) -&amp;gt; Vec &amp;lt; i32 &amp;gt; { let len = n">
+  <link rel="alternate" type="application/rss+xml" title="Notebook RSS" href="../../feed.xml">
+  <link rel="stylesheet" href="../../assets/site.css">
+  
+</head>
+<body>
+  
+    
+    
+    
+    
+    
+    
+  
+
+  <div class="page-shell">
+    <header id="title-block-header" class="hero-grid">
+      <div class="hero-spacer" aria-hidden="true"></div>
+      <div class="hero-content">
+        <div class="eyebrow">Rust</div>
+        <h1>LeetCode Two Sum Rust 实现与知识点分析</h1>
+        
+          <p class="subtitle">Two Sum 是 LeetCode 第 1 题：给定数组和目标值，返回两个下标使得其对应值相加等于目标值。 1 原始代码（包含错误） impl Solution { pub fn two_sum ( nums : Vec &amp;lt; i32 &amp;gt; , target : i32 ) -&amp;gt; Vec &amp;lt; i32 &amp;gt; { let len = n</p>
+        
+        <nav class="pathline" aria-label="博客路径">
+          
+            
+              <a href="../../index.html">Notebook</a>
+              <span aria-hidden="true">›</span>
+            
+              <a href="../index.html">Rust</a>
+              <span aria-hidden="true">›</span>
+            
+              <a href="index.html">综合案例</a>
+              <span aria-hidden="true">›</span>
+            
+              <a href="LeetCode-T1-Two-Sum-实现与Rust知识点.html">LeetCode Two Sum Rust 实现与知识点分析</a>
+              
+            
+          
+        </nav>
+        <div class="meta">
+          
+            <time class="chip" datetime="2026-05-13T15:34:13.000Z">2026/05/13</time>
+          
+          
+            <span class="chip tag-chip">Rust</span>
+          
+            <span class="chip tag-chip">综合案例</span>
+          
+          <a class="chip" href="../../search.html">搜索</a>
+          <a class="chip" href="../../tags/index.html">标签</a>
+          <a class="chip" href="../../feed.xml">RSS</a>
+        </div>
+        <hr class="article-divider">
+      </div>
+    </header>
+  </div>
+
+  <div class="content-grid">
+    <nav class="toc" aria-label="目录">
+      <div class="toc-title">目录</div>
+      
+        <ol>
+          
+            <li><a href="#原始代码-包含错误">原始代码（包含错误）</a></li>
+          
+            <li><a href="#错误分析">错误分析</a></li>
+          
+            <li><a href="#修正后的完整代码">修正后的完整代码</a></li>
+          
+            <li><a href="#涉及到的-rust-知识点">涉及到的 Rust 知识点</a></li>
+          
+            <li><a href="#简写技巧">简写技巧</a></li>
+          
+        </ol>
+      
+    </nav>
+
+    <main class="article-content" data-pagefind-body>
+      <p>Two Sum 是 LeetCode 第 1 题：给定数组和目标值，返回两个下标使得其对应值相加等于目标值。</p>
+
+<h2 id="原始代码-包含错误"><span class="section-index">1</span><span class="section-title">原始代码（包含错误）</span></h2>
+
+<pre class="language-rust" data-language="rust"><code class="language-rust"><span class="token keyword">impl</span> <span class="token class-name">Solution</span> <span class="token punctuation">{</span>
+    <span class="token keyword">pub</span> <span class="token keyword">fn</span> <span class="token function-definition function">two_sum</span><span class="token punctuation">(</span>nums<span class="token punctuation">:</span> <span class="token class-name">Vec</span><span class="token operator">&lt;</span><span class="token keyword">i32</span><span class="token operator">&gt;</span><span class="token punctuation">,</span> target<span class="token punctuation">:</span> <span class="token keyword">i32</span><span class="token punctuation">)</span> <span class="token punctuation">-&gt;</span> <span class="token class-name">Vec</span><span class="token operator">&lt;</span><span class="token keyword">i32</span><span class="token operator">&gt;</span> <span class="token punctuation">{</span>
+        <span class="token keyword">let</span> len <span class="token operator">=</span> nums<span class="token punctuation">.</span><span class="token function">len</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">let</span> <span class="token keyword">mut</span> index_arr <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">..</span>len<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">collect</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        index_arr<span class="token punctuation">.</span><span class="token function">sort_by</span><span class="token punctuation">(</span><span class="token closure-params"><span class="token closure-punctuation punctuation">|</span>a<span class="token punctuation">,</span> b<span class="token closure-punctuation punctuation">|</span></span> nums<span class="token punctuation">[</span>a<span class="token punctuation">]</span><span class="token punctuation">.</span><span class="token function">cmp</span><span class="token punctuation">(</span>nums<span class="token punctuation">[</span>b<span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">let</span> <span class="token keyword">mut</span> i <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+        <span class="token keyword">let</span> <span class="token keyword">mut</span> j <span class="token operator">=</span> len <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">;</span>
+        <span class="token keyword">while</span> i <span class="token operator">&lt;</span> j <span class="token punctuation">{</span>
+            <span class="token keyword">match</span> <span class="token punctuation">(</span>nums<span class="token punctuation">[</span>index_arr<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">]</span> <span class="token operator">+</span> nums<span class="token punctuation">[</span>index_arr<span class="token punctuation">[</span>j<span class="token punctuation">]</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">cmp</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>target<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+                <span class="token namespace">std<span class="token punctuation">::</span>cmp<span class="token punctuation">::</span></span><span class="token class-name">Ordering</span><span class="token punctuation">::</span><span class="token class-name">Less</span> <span class="token operator">=&gt;</span> i <span class="token operator">=</span> i <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">,</span>
+                <span class="token namespace">std<span class="token punctuation">::</span>cmp<span class="token punctuation">::</span></span><span class="token class-name">Ordering</span><span class="token punctuation">::</span><span class="token class-name">Greater</span> <span class="token operator">=&gt;</span> j <span class="token operator">=</span> j <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">,</span>
+                <span class="token namespace">std<span class="token punctuation">::</span>cmp<span class="token punctuation">::</span></span><span class="token class-name">Ordering</span><span class="token punctuation">::</span><span class="token class-name">Equal</span> <span class="token operator">=&gt;</span> <span class="token punctuation">{</span>
+                    <span class="token keyword">return</span> <span class="token punctuation">{</span>index_arr<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">,</span> index_arr<span class="token punctuation">[</span>j<span class="token punctuation">]</span><span class="token punctuation">}</span><span class="token punctuation">;</span>  <span class="token comment">// ❌ 语法错误</span>
+                <span class="token punctuation">}</span>
+            <span class="token punctuation">}</span>
+        <span class="token punctuation">}</span>
+        <span class="token keyword">return</span> <span class="token punctuation">{</span><span class="token punctuation">}</span>  <span class="token comment">// ❌ 语法错误</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre>
+
+<h2 id="错误分析"><span class="section-index">2</span><span class="section-title">错误分析</span></h2>
+
+<h3 id="错误-1-返回值语法错误">错误 1：返回值语法错误</h3>
+
+<pre class="language-rust" data-language="rust"><code class="language-rust"><span class="token comment">// ❌ {a, b} 不是合法的 Rust 表达式</span>
+<span class="token keyword">return</span> <span class="token punctuation">{</span>index_arr<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">,</span> index_arr<span class="token punctuation">[</span>j<span class="token punctuation">]</span><span class="token punctuation">}</span><span class="token punctuation">;</span>
+
+<span class="token comment">// ✅ vec![a, b] 创建 Vec</span>
+<span class="token keyword">return</span> <span class="token macro property">vec!</span><span class="token punctuation">[</span>index_arr<span class="token punctuation">[</span>i<span class="token punctuation">]</span> <span class="token keyword">as</span> <span class="token keyword">i32</span><span class="token punctuation">,</span> index_arr<span class="token punctuation">[</span>j<span class="token punctuation">]</span> <span class="token keyword">as</span> <span class="token keyword">i32</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+
+<span class="token comment">// ✅ 空返回值</span>
+<span class="token macro property">vec!</span><span class="token punctuation">[</span><span class="token punctuation">]</span>
+</code></pre>
+
+<p><code>{a, b}</code> 会被解释为块表达式（block expression），在 Rust 中不合法。创建 Vec 的正确方式是用 <code>vec!</code> 宏。</p>
+
+<h3 id="错误-2-类型不匹配">错误 2：类型不匹配</h3>
+
+<pre class="language-rust" data-language="rust"><code class="language-rust"><span class="token comment">// ❌ index_arr 是 Vec&lt;usize&gt;，返回值需要 Vec&lt;i32&gt;</span>
+<span class="token keyword">return</span> <span class="token punctuation">{</span>index_arr<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">,</span> index_arr<span class="token punctuation">[</span>j<span class="token punctuation">]</span><span class="token punctuation">}</span><span class="token punctuation">;</span>
+
+<span class="token comment">// ✅ 用 as 做类型转换</span>
+<span class="token macro property">vec!</span><span class="token punctuation">[</span>index_arr<span class="token punctuation">[</span>i<span class="token punctuation">]</span> <span class="token keyword">as</span> <span class="token keyword">i32</span><span class="token punctuation">,</span> index_arr<span class="token punctuation">[</span>j<span class="token punctuation">]</span> <span class="token keyword">as</span> <span class="token keyword">i32</span><span class="token punctuation">]</span>
+</code></pre>
+
+<p><code>(0..len).collect()</code> 根据后续用法推断为 <code>Vec&lt;usize&gt;</code>，而函数签名要求 <code>Vec&lt;i32&gt;</code>。需要用 <code>as i32</code> 显式转换。</p>
+
+<h3 id="错误-3-整数下溢">错误 3：整数下溢</h3>
+
+<pre class="language-rust" data-language="rust"><code class="language-rust"><span class="token comment">// ❌ 当 nums 为空时，len = 0, 0 - 1 在 usize 下 panic</span>
+<span class="token keyword">let</span> <span class="token keyword">mut</span> j <span class="token operator">=</span> len <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">;</span>
+
+<span class="token comment">// ✅ 提前检查并返回</span>
+<span class="token keyword">if</span> len <span class="token operator">&lt;</span> <span class="token number">2</span> <span class="token punctuation">{</span> <span class="token keyword">return</span> <span class="token macro property">vec!</span><span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">;</span> <span class="token punctuation">}</span>
+<span class="token keyword">let</span> <span class="token keyword">mut</span> j <span class="token operator">=</span> len <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">;</span>
+</code></pre>
+
+<p><code>usize</code> 是无符号类型，<code>0 - 1</code> 在 debug 模式下会 panic 溢出。</p>
+
+<h2 id="修正后的完整代码"><span class="section-index">3</span><span class="section-title">修正后的完整代码</span></h2>
+
+<pre class="language-rust" data-language="rust"><code class="language-rust"><span class="token keyword">impl</span> <span class="token class-name">Solution</span> <span class="token punctuation">{</span>
+    <span class="token keyword">pub</span> <span class="token keyword">fn</span> <span class="token function-definition function">two_sum</span><span class="token punctuation">(</span>nums<span class="token punctuation">:</span> <span class="token class-name">Vec</span><span class="token operator">&lt;</span><span class="token keyword">i32</span><span class="token operator">&gt;</span><span class="token punctuation">,</span> target<span class="token punctuation">:</span> <span class="token keyword">i32</span><span class="token punctuation">)</span> <span class="token punctuation">-&gt;</span> <span class="token class-name">Vec</span><span class="token operator">&lt;</span><span class="token keyword">i32</span><span class="token operator">&gt;</span> <span class="token punctuation">{</span>
+        <span class="token keyword">let</span> len <span class="token operator">=</span> nums<span class="token punctuation">.</span><span class="token function">len</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">if</span> len <span class="token operator">&lt;</span> <span class="token number">2</span> <span class="token punctuation">{</span>
+            <span class="token keyword">return</span> <span class="token macro property">vec!</span><span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+        <span class="token keyword">let</span> <span class="token keyword">mut</span> index_arr<span class="token punctuation">:</span> <span class="token class-name">Vec</span><span class="token operator">&lt;</span><span class="token keyword">usize</span><span class="token operator">&gt;</span> <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">..</span>len<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">collect</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        index_arr<span class="token punctuation">.</span><span class="token function">sort_by</span><span class="token punctuation">(</span><span class="token closure-params"><span class="token closure-punctuation punctuation">|</span><span class="token operator">&amp;</span>a<span class="token punctuation">,</span> <span class="token operator">&amp;</span>b<span class="token closure-punctuation punctuation">|</span></span> nums<span class="token punctuation">[</span>a<span class="token punctuation">]</span><span class="token punctuation">.</span><span class="token function">cmp</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>nums<span class="token punctuation">[</span>b<span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+        <span class="token keyword">let</span> <span class="token keyword">mut</span> i <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+        <span class="token keyword">let</span> <span class="token keyword">mut</span> j <span class="token operator">=</span> len <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">;</span>
+        <span class="token keyword">while</span> i <span class="token operator">&lt;</span> j <span class="token punctuation">{</span>
+            <span class="token keyword">match</span> <span class="token punctuation">(</span>nums<span class="token punctuation">[</span>index_arr<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">]</span> <span class="token operator">+</span> nums<span class="token punctuation">[</span>index_arr<span class="token punctuation">[</span>j<span class="token punctuation">]</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">cmp</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>target<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+                <span class="token namespace">std<span class="token punctuation">::</span>cmp<span class="token punctuation">::</span></span><span class="token class-name">Ordering</span><span class="token punctuation">::</span><span class="token class-name">Less</span> <span class="token operator">=&gt;</span> i <span class="token operator">+=</span> <span class="token number">1</span><span class="token punctuation">,</span>
+                <span class="token namespace">std<span class="token punctuation">::</span>cmp<span class="token punctuation">::</span></span><span class="token class-name">Ordering</span><span class="token punctuation">::</span><span class="token class-name">Greater</span> <span class="token operator">=&gt;</span> j <span class="token operator">-=</span> <span class="token number">1</span><span class="token punctuation">,</span>
+                <span class="token namespace">std<span class="token punctuation">::</span>cmp<span class="token punctuation">::</span></span><span class="token class-name">Ordering</span><span class="token punctuation">::</span><span class="token class-name">Equal</span> <span class="token operator">=&gt;</span> <span class="token punctuation">{</span>
+                    <span class="token keyword">return</span> <span class="token macro property">vec!</span><span class="token punctuation">[</span>index_arr<span class="token punctuation">[</span>i<span class="token punctuation">]</span> <span class="token keyword">as</span> <span class="token keyword">i32</span><span class="token punctuation">,</span> index_arr<span class="token punctuation">[</span>j<span class="token punctuation">]</span> <span class="token keyword">as</span> <span class="token keyword">i32</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+                <span class="token punctuation">}</span>
+            <span class="token punctuation">}</span>
+        <span class="token punctuation">}</span>
+        <span class="token macro property">vec!</span><span class="token punctuation">[</span><span class="token punctuation">]</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre>
+
+<h2 id="涉及到的-rust-知识点"><span class="section-index">4</span><span class="section-title">涉及到的 Rust 知识点</span></h2>
+
+<table>
+  <tbody><tr><th>#</th><th>知识点</th><th>说明</th></tr>
+  <tr><td>1</td><td>impl 块与关联函数</td><td><code>impl Solution { pub fn two_sum(...) }</code>，没有 <code>&amp;self</code> 是静态方法</td></tr>
+  <tr><td>2</td><td>所有权与移动语义</td><td><code>nums: Vec&lt;i32&gt;</code> 值传参，所有权移入函数</td></tr>
+  <tr><td>3</td><td>Range 与迭代器</td><td><code>(0..len)</code> 是 <code>Range&lt;usize&gt;</code>，实现了 <code>Iterator</code></td></tr>
+  <tr><td>4</td><td>类型推断</td><td><code>(0..len).collect()</code> 推断为 <code>Vec&lt;usize&gt;</code></td></tr>
+  <tr><td>5</td><td>闭包与排序</td><td><code>sort_by(|a, b| ...)</code> 捕获 <code>nums</code>，按值排序索引</td></tr>
+  <tr><td>6</td><td>match 与 Ordering 枚举</td><td><code>.cmp()</code> 返回 <code>Ordering::Less/Greater/Equal</code>，必须穷尽</td></tr>
+  <tr><td>7</td><td>usize 与索引</td><td>数组索引必须是 <code>usize</code>，无符号类型有下溢风险</td></tr>
+  <tr><td>8</td><td>as 类型转换</td><td><code>usize as i32</code> 显式转换</td></tr>
+  <tr><td>9</td><td>vec! 宏</td><td><code>vec![a, b]</code> 创建 Vec，<code>vec![]</code> 创建空 Vec</td></tr>
+  <tr><td>10</td><td>mut 可变绑定</td><td>变量默认不可变，<code>let mut i = 0</code> 才能修改</td></tr>
+</tbody></table>
+
+<h2 id="简写技巧"><span class="section-index">5</span><span class="section-title">简写技巧</span></h2>
+
+<pre class="language-rust" data-language="rust"><code class="language-rust"><span class="token comment">// ✅ 自增简写</span>
+i <span class="token operator">+=</span> <span class="token number">1</span>      <span class="token comment">// 等价于 i = i + 1</span>
+
+<span class="token comment">// ✅ 闭包参数解引用</span>
+<span class="token function">sort_by</span><span class="token punctuation">(</span><span class="token closure-params"><span class="token closure-punctuation punctuation">|</span><span class="token operator">&amp;</span>a<span class="token punctuation">,</span> <span class="token operator">&amp;</span>b<span class="token closure-punctuation punctuation">|</span></span> <span class="token punctuation">...</span><span class="token punctuation">)</span>  <span class="token comment">// 相比于 |a, b| ... ，少写 *a, *b</span>
+</code></pre>
+
+<blockquote>
+这些知识点覆盖了 Rust 入门阶段最核心的领域。1、2、5、6、7 项必须完全理解，3、4、8 项可以先使用再逐步深入。
+</blockquote>
+
+<p class="back"><a href="../index.html">← 返回索引</a></p>
+
+
+  <section class="tag-list" aria-label="文章标签">
+    
+      <a class="tag-chip" href="../../tags/Rust.html">#Rust</a>
+    
+      <a class="tag-chip" href="../../tags/综合案例.html">#综合案例</a>
+    
+  </section>
+
+
+
+  <section class="comments" aria-label="评论">
+    <h2 class="plain-heading">评论</h2>
+    <script src="https://utteranc.es/client.js"
+      repo="CodeKillerCoser/notebook"
+      issue-term="pathname"
+      label="comment"
+      theme="preferred-color-scheme"
+      crossorigin="anonymous"
+      async>
+    </script>
+  </section>
+
+
+    </main>
+  </div>
+</body>
+</html>

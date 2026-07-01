@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  
+    
+    
+  
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LeetCode T7 整数反转 · Rust 笔记 | Notebook</title>
+  <meta name="description" content="这题的关键是让累积结果始终保持原数字的符号，并在执行 reverse_num * 10 + last_digit 之前完成溢出判断。 1 符号处理 Rust 的整数取余会保留被除数的符号： 123 % 10 == 3 - 123 % 10 == - 3 因此负数不需要先取绝对值，也不需要最后再乘回符号。每次取到的 last_digit 已经带着正确符号。 2">
+  <link rel="alternate" type="application/rss+xml" title="Notebook RSS" href="../../feed.xml">
+  <link rel="stylesheet" href="../../assets/site.css">
+  
+</head>
+<body>
+  
+    
+    
+    
+    
+    
+    
+  
+
+  <div class="page-shell">
+    <header id="title-block-header" class="hero-grid">
+      <div class="hero-spacer" aria-hidden="true"></div>
+      <div class="hero-content">
+        <div class="eyebrow">Rust</div>
+        <h1>LeetCode T7 整数反转 · Rust 笔记</h1>
+        
+          <p class="subtitle">这题的关键是让累积结果始终保持原数字的符号，并在执行 reverse_num * 10 + last_digit 之前完成溢出判断。 1 符号处理 Rust 的整数取余会保留被除数的符号： 123 % 10 == 3 - 123 % 10 == - 3 因此负数不需要先取绝对值，也不需要最后再乘回符号。每次取到的 last_digit 已经带着正确符号。 2</p>
+        
+        <nav class="pathline" aria-label="博客路径">
+          
+            
+              <a href="../../index.html">Notebook</a>
+              <span aria-hidden="true">›</span>
+            
+              <a href="../index.html">Rust</a>
+              <span aria-hidden="true">›</span>
+            
+              <a href="index.html">综合案例</a>
+              <span aria-hidden="true">›</span>
+            
+              <a href="LeetCode-T7整数反转.html">LeetCode T7 整数反转 · Rust 笔记</a>
+              
+            
+          
+        </nav>
+        <div class="meta">
+          
+            <time class="chip" datetime="2026-05-12T17:41:31.000Z">2026/05/13</time>
+          
+          
+            <span class="chip tag-chip">Rust</span>
+          
+            <span class="chip tag-chip">综合案例</span>
+          
+          <a class="chip" href="../../search.html">搜索</a>
+          <a class="chip" href="../../tags/index.html">标签</a>
+          <a class="chip" href="../../feed.xml">RSS</a>
+        </div>
+        <hr class="article-divider">
+      </div>
+    </header>
+  </div>
+
+  <div class="content-grid">
+    <nav class="toc" aria-label="目录">
+      <div class="toc-title">目录</div>
+      
+        <ol>
+          
+            <li><a href="#符号处理">符号处理</a></li>
+          
+            <li><a href="#溢出判断">溢出判断</a></li>
+          
+            <li><a href="#修正版">修正版</a></li>
+          
+            <li><a href="#草稿里的小问题">草稿里的小问题</a></li>
+          
+        </ol>
+      
+    </nav>
+
+    <main class="article-content" data-pagefind-body>
+      <p>这题的关键是让累积结果始终保持原数字的符号，并在执行 <code>reverse_num * 10 + last_digit</code> 之前完成溢出判断。</p>
+
+<h2 id="符号处理"><span class="section-index">1</span><span class="section-title">符号处理</span></h2>
+
+<p>Rust 的整数取余会保留被除数的符号：</p>
+
+<pre class="language-rust" data-language="rust"><code class="language-rust"><span class="token number">123</span> <span class="token operator">%</span> <span class="token number">10</span> <span class="token operator">==</span> <span class="token number">3</span>
+<span class="token operator">-</span><span class="token number">123</span> <span class="token operator">%</span> <span class="token number">10</span> <span class="token operator">==</span> <span class="token operator">-</span><span class="token number">3</span></code></pre>
+
+<p>因此负数不需要先取绝对值，也不需要最后再乘回符号。每次取到的 <code>last_digit</code> 已经带着正确符号。</p>
+
+<h2 id="溢出判断"><span class="section-index">2</span><span class="section-title">溢出判断</span></h2>
+
+<p><code>i32</code> 边界拆成“前 9 位”和“最后 1 位”来看：</p>
+
+<table>
+  <tbody><tr><th>边界</th><th>除以 10</th><th>最后一位</th></tr>
+  <tr><td><code>i32::MAX = 2147483647</code></td><td><code>214748364</code></td><td><code>7</code></td></tr>
+  <tr><td><code>i32::MIN = -2147483648</code></td><td><code>-214748364</code></td><td><code>-8</code></td></tr>
+</tbody></table>
+
+<p>当 <code>reverse_num</code> 已经到达边界的十分之一时，就必须比较最后一位。</p>
+
+<pre class="language-rust" data-language="rust"><code class="language-rust"><span class="token keyword">if</span> reverse_num <span class="token operator">&gt;</span> <span class="token keyword">i32</span><span class="token punctuation">::</span><span class="token constant">MAX</span> <span class="token operator">/</span> <span class="token number">10</span>
+    <span class="token operator">||</span> <span class="token punctuation">(</span>reverse_num <span class="token operator">==</span> <span class="token keyword">i32</span><span class="token punctuation">::</span><span class="token constant">MAX</span> <span class="token operator">/</span> <span class="token number">10</span> <span class="token operator">&amp;&amp;</span> last_digit <span class="token operator">&gt;</span> <span class="token keyword">i32</span><span class="token punctuation">::</span><span class="token constant">MAX</span> <span class="token operator">%</span> <span class="token number">10</span><span class="token punctuation">)</span>
+<span class="token punctuation">{</span>
+    <span class="token keyword">return</span> <span class="token number">0</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token keyword">if</span> reverse_num <span class="token operator">&lt;</span> <span class="token keyword">i32</span><span class="token punctuation">::</span><span class="token constant">MIN</span> <span class="token operator">/</span> <span class="token number">10</span>
+    <span class="token operator">||</span> <span class="token punctuation">(</span>reverse_num <span class="token operator">==</span> <span class="token keyword">i32</span><span class="token punctuation">::</span><span class="token constant">MIN</span> <span class="token operator">/</span> <span class="token number">10</span> <span class="token operator">&amp;&amp;</span> last_digit <span class="token operator">&lt;</span> <span class="token keyword">i32</span><span class="token punctuation">::</span><span class="token constant">MIN</span> <span class="token operator">%</span> <span class="token number">10</span><span class="token punctuation">)</span>
+<span class="token punctuation">{</span>
+    <span class="token keyword">return</span> <span class="token number">0</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span></code></pre>
+
+<h2 id="修正版"><span class="section-index">3</span><span class="section-title">修正版</span></h2>
+
+<pre class="language-rust" data-language="rust"><code class="language-rust"><span class="token keyword">impl</span> <span class="token class-name">Solution</span> <span class="token punctuation">{</span>
+    <span class="token keyword">pub</span> <span class="token keyword">fn</span> <span class="token function-definition function">reverse</span><span class="token punctuation">(</span><span class="token keyword">mut</span> x<span class="token punctuation">:</span> <span class="token keyword">i32</span><span class="token punctuation">)</span> <span class="token punctuation">-&gt;</span> <span class="token keyword">i32</span> <span class="token punctuation">{</span>
+        <span class="token keyword">let</span> <span class="token keyword">mut</span> reverse_num <span class="token operator">=</span> <span class="token number">0i32</span><span class="token punctuation">;</span>
+
+        <span class="token keyword">while</span> x <span class="token operator">!=</span> <span class="token number">0</span> <span class="token punctuation">{</span>
+            <span class="token keyword">let</span> last_digit <span class="token operator">=</span> x <span class="token operator">%</span> <span class="token number">10</span><span class="token punctuation">;</span>
+
+            <span class="token keyword">if</span> reverse_num <span class="token operator">&gt;</span> <span class="token keyword">i32</span><span class="token punctuation">::</span><span class="token constant">MAX</span> <span class="token operator">/</span> <span class="token number">10</span>
+                <span class="token operator">||</span> <span class="token punctuation">(</span>reverse_num <span class="token operator">==</span> <span class="token keyword">i32</span><span class="token punctuation">::</span><span class="token constant">MAX</span> <span class="token operator">/</span> <span class="token number">10</span> <span class="token operator">&amp;&amp;</span> last_digit <span class="token operator">&gt;</span> <span class="token keyword">i32</span><span class="token punctuation">::</span><span class="token constant">MAX</span> <span class="token operator">%</span> <span class="token number">10</span><span class="token punctuation">)</span>
+            <span class="token punctuation">{</span>
+                <span class="token keyword">return</span> <span class="token number">0</span><span class="token punctuation">;</span>
+            <span class="token punctuation">}</span>
+
+            <span class="token keyword">if</span> reverse_num <span class="token operator">&lt;</span> <span class="token keyword">i32</span><span class="token punctuation">::</span><span class="token constant">MIN</span> <span class="token operator">/</span> <span class="token number">10</span>
+                <span class="token operator">||</span> <span class="token punctuation">(</span>reverse_num <span class="token operator">==</span> <span class="token keyword">i32</span><span class="token punctuation">::</span><span class="token constant">MIN</span> <span class="token operator">/</span> <span class="token number">10</span> <span class="token operator">&amp;&amp;</span> last_digit <span class="token operator">&lt;</span> <span class="token keyword">i32</span><span class="token punctuation">::</span><span class="token constant">MIN</span> <span class="token operator">%</span> <span class="token number">10</span><span class="token punctuation">)</span>
+            <span class="token punctuation">{</span>
+                <span class="token keyword">return</span> <span class="token number">0</span><span class="token punctuation">;</span>
+            <span class="token punctuation">}</span>
+
+            reverse_num <span class="token operator">=</span> reverse_num <span class="token operator">*</span> <span class="token number">10</span> <span class="token operator">+</span> last_digit<span class="token punctuation">;</span>
+            x <span class="token operator">/=</span> <span class="token number">10</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+
+        reverse_num
+    <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+
+<h2 id="草稿里的小问题"><span class="section-index">4</span><span class="section-title">草稿里的小问题</span></h2>
+
+<ul>
+  <li>多余的 <code>})</code> 应删掉，只保留函数或 <code>impl</code> 需要的右花括号。</li>
+  <li>已经保存了 <code>let last_digit = x % 10;</code>，后面直接复用即可，没必要再写一次 <code>x % 10</code>。</li>
+</ul>
+
+<blockquote>记忆点：不要等乘法和加法发生后再判断溢出，先判断下一步是否安全。</blockquote>
+
+<p class="back"><a href="../index.html">← 返回 Rust 索引</a></p>
+
+
+  <section class="tag-list" aria-label="文章标签">
+    
+      <a class="tag-chip" href="../../tags/Rust.html">#Rust</a>
+    
+      <a class="tag-chip" href="../../tags/综合案例.html">#综合案例</a>
+    
+  </section>
+
+
+
+  <section class="comments" aria-label="评论">
+    <h2 class="plain-heading">评论</h2>
+    <script src="https://utteranc.es/client.js"
+      repo="CodeKillerCoser/notebook"
+      issue-term="pathname"
+      label="comment"
+      theme="preferred-color-scheme"
+      crossorigin="anonymous"
+      async>
+    </script>
+  </section>
+
+
+    </main>
+  </div>
+</body>
+</html>

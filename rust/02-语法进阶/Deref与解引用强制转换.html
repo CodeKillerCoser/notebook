@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  
+    
+    
+  
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Deref Trait 与解引用强制转换 | Notebook</title>
+  <meta name="description" content="Rust 中所有 *ptr 解引用操作在底层都等价于 *(ptr.deref()) 。理解这个两层结构是理解智能指针的关键。 1 Deref Trait 定义 pub trait Deref { type Target : ? Sized ; fn deref ( &amp;amp; self ) -&amp;gt; &amp;amp; Self :: Target ; // 返回">
+  <link rel="alternate" type="application/rss+xml" title="Notebook RSS" href="../../feed.xml">
+  <link rel="stylesheet" href="../../assets/site.css">
+  
+</head>
+<body>
+  
+    
+    
+    
+    
+    
+    
+  
+
+  <div class="page-shell">
+    <header id="title-block-header" class="hero-grid">
+      <div class="hero-spacer" aria-hidden="true"></div>
+      <div class="hero-content">
+        <div class="eyebrow">Rust</div>
+        <h1>Deref Trait 与解引用强制转换</h1>
+        
+          <p class="subtitle">Rust 中所有 *ptr 解引用操作在底层都等价于 *(ptr.deref()) 。理解这个两层结构是理解智能指针的关键。 1 Deref Trait 定义 pub trait Deref { type Target : ? Sized ; fn deref ( &amp;amp; self ) -&amp;gt; &amp;amp; Self :: Target ; // 返回</p>
+        
+        <nav class="pathline" aria-label="博客路径">
+          
+            
+              <a href="../../index.html">Notebook</a>
+              <span aria-hidden="true">›</span>
+            
+              <a href="../index.html">Rust</a>
+              <span aria-hidden="true">›</span>
+            
+              <a href="index.html">语法进阶</a>
+              <span aria-hidden="true">›</span>
+            
+              <a href="Deref与解引用强制转换.html">Deref Trait 与解引用强制转换</a>
+              
+            
+          
+        </nav>
+        <div class="meta">
+          
+            <time class="chip" datetime="2026-05-10T11:26:29.000Z">2026/05/10</time>
+          
+          
+            <span class="chip tag-chip">Rust</span>
+          
+            <span class="chip tag-chip">语法进阶</span>
+          
+          <a class="chip" href="../../search.html">搜索</a>
+          <a class="chip" href="../../tags/index.html">标签</a>
+          <a class="chip" href="../../feed.xml">RSS</a>
+        </div>
+        <hr class="article-divider">
+      </div>
+    </header>
+  </div>
+
+  <div class="content-grid">
+    <nav class="toc" aria-label="目录">
+      <div class="toc-title">目录</div>
+      
+        <ol>
+          
+            <li><a href="#deref-trait-定义">Deref Trait 定义</a></li>
+          
+            <li><a href="#为什么-deref-返回引用而不是值">为什么 deref() 返回引用而不是值</a></li>
+          
+            <li><a href="#自动解引用规则-deref-coercion">自动解引用规则：Deref Coercion</a></li>
+          
+            <li><a href="#关键陷阱">关键陷阱</a></li>
+          
+            <li><a href="#演示-自定义智能指针">演示：自定义智能指针</a></li>
+          
+        </ol>
+      
+    </nav>
+
+    <main class="article-content" data-pagefind-body>
+      <p>Rust 中所有 <code>*ptr</code> 解引用操作在底层都等价于 <code>*(ptr.deref())</code>。理解这个两层结构是理解智能指针的关键。</p>
+
+<h2 id="deref-trait-定义"><span class="section-index">1</span><span class="section-title">Deref Trait 定义</span></h2>
+
+<pre class="language-rust" data-language="rust"><code class="language-rust"><span class="token keyword">pub</span> <span class="token keyword">trait</span> <span class="token type-definition class-name">Deref</span> <span class="token punctuation">{</span>
+    <span class="token keyword">type</span> <span class="token type-definition class-name">Target</span><span class="token punctuation">:</span> <span class="token operator">?</span><span class="token class-name">Sized</span><span class="token punctuation">;</span>
+    <span class="token keyword">fn</span> <span class="token function-definition function">deref</span><span class="token punctuation">(</span><span class="token operator">&amp;</span><span class="token keyword">self</span><span class="token punctuation">)</span> <span class="token punctuation">-&gt;</span> <span class="token operator">&amp;</span><span class="token keyword">Self</span><span class="token punctuation">::</span><span class="token class-name">Target</span><span class="token punctuation">;</span>   <span class="token comment">// 返回引用，不是值</span>
+<span class="token punctuation">}</span>
+
+<span class="token keyword">pub</span> <span class="token keyword">trait</span> <span class="token type-definition class-name">DerefMut</span><span class="token punctuation">:</span> <span class="token class-name">Deref</span> <span class="token punctuation">{</span>
+    <span class="token keyword">fn</span> <span class="token function-definition function">deref_mut</span><span class="token punctuation">(</span><span class="token operator">&amp;</span><span class="token keyword">mut</span> <span class="token keyword">self</span><span class="token punctuation">)</span> <span class="token punctuation">-&gt;</span> <span class="token operator">&amp;</span><span class="token keyword">mut</span> <span class="token keyword">Self</span><span class="token punctuation">::</span><span class="token class-name">Target</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+
+<h2 id="为什么-deref-返回引用而不是值"><span class="section-index">2</span><span class="section-title">为什么 deref() 返回引用而不是值</span></h2>
+
+<p>三个原因：</p>
+<ol>
+  <li><strong>不能转移所有权</strong> — 如果 <code>deref(self) -&gt; Self::Target</code>，智能指针被消耗后无法继续使用</li>
+  <li><strong>保持借用语义</strong> — <code>*ptr</code> 应该返回借用的值，否则第二次 <code>*ptr</code> 会拿到空数据</li>
+  <li><strong>统一设计</strong> — 编译器用 <code>*(ptr.deref())</code> 统一了所有解引用，<code>*</code> 只负责"顺着引用取到值"</li>
+</ol>
+
+<pre class="language-rust" data-language="rust"><code class="language-rust"><span class="token comment">// 你写的：</span>
+<span class="token keyword">let</span> v <span class="token operator">=</span> <span class="token operator">*</span>box_ptr<span class="token punctuation">;</span>
+
+<span class="token comment">// 编译器展开的：</span>
+<span class="token keyword">let</span> v <span class="token operator">=</span> <span class="token operator">*</span><span class="token punctuation">(</span>box_ptr<span class="token punctuation">.</span><span class="token function">deref</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  <span class="token comment">// deref() 拿到 &amp;T，* 拿到 T</span>
+</code></pre>
+
+<h2 id="自动解引用规则-deref-coercion"><span class="section-index">3</span><span class="section-title">自动解引用规则：Deref Coercion</span></h2>
+
+<p>编译器只在特定场景自动插入解引用操作：</p>
+
+<table>
+  <tbody><tr><th>场景</th><th>是否自动解引用</th><th>能穿多层？</th></tr>
+  <tr><td>方法调用 <code>.method()</code></td><td>✅ 自动穿</td><td>✅ 穿到找到方法为止</td></tr>
+  <tr><td>函数参数类型不匹配</td><td>✅ Deref coercion</td><td>✅ 递归穿</td></tr>
+  <tr><td><code>*</code> 操作符</td><td>✅ 一层</td><td>❌ 只做一层</td></tr>
+  <tr><td>比较操作 <code>==</code> <code>&gt;</code></td><td>❌ 不自动</td><td>—</td></tr>
+</tbody></table>
+
+<h3 id="方法调用的自动解引用算法">方法调用的自动解引用算法</h3>
+
+<p>编译器看到 <code>receiver.method(args)</code> 时，按以下顺序尝试：</p>
+
+<pre class="language-text" data-language="text"><code class="language-text">1. 按值：     T           → 找方法
+2. 自动引用： &amp;T          → 找方法
+3. 自动引用： &amp;mut T      → 找方法
+4. 解引用：   *T (= deref) → 回到步骤 1，用 Target 类型重复
+</code></pre>
+
+<h3 id="走一遍完整流程-guard-push-4">走一遍完整流程：guard.push(4)</h3>
+
+<pre class="language-text" data-language="text"><code class="language-text">T = MutexGuard&lt;Vec&lt;i32&gt;&gt;
+
+尝试 1: MutexGuard 有没有 .push()？       → 没有
+尝试 2: &amp;MutexGuard 有没有 .push()？       → 没有
+尝试 3: &amp;mut MutexGuard 有没有 .push()？   → 没有
+尝试 4: Deref → *T = Vec&lt;i32&gt;，回到步骤 1
+
+  T = Vec&lt;i32&gt;
+  尝试 1: Vec 有没有 .push()？            → 没有 (push 要 &amp;mut self)
+  尝试 2: &amp;Vec 有没有 .push()？            → 没有
+  尝试 3: &amp;mut Vec 有没有 .push()？        → 有！✅
+</code></pre>
+
+<h3 id="穿越多层例子-box-len">穿越多层例子：box.len()</h3>
+
+<pre class="language-rust" data-language="rust"><code class="language-rust"><span class="token keyword">let</span> b <span class="token operator">=</span> <span class="token class-name">Box</span><span class="token punctuation">::</span><span class="token function">new</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">::</span><span class="token function">from</span><span class="token punctuation">(</span><span class="token string">"hello"</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">let</span> len <span class="token operator">=</span> b<span class="token punctuation">.</span><span class="token function">len</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  <span class="token comment">// Box → String → str → .len()</span>
+</code></pre>
+
+<p>编译器自动穿越两层 Deref：<code>Box&lt;String&gt;</code> → <code>String</code> → <code>str</code>，找到 <code>str::len(&amp;self)</code>。</p>
+
+<h2 id="关键陷阱"><span class="section-index">4</span><span class="section-title">关键陷阱</span></h2>
+
+<pre class="language-rust" data-language="rust"><code class="language-rust"><span class="token keyword">let</span> b <span class="token operator">=</span> <span class="token class-name">Box</span><span class="token punctuation">::</span><span class="token function">new</span><span class="token punctuation">(</span><span class="token class-name">Box</span><span class="token punctuation">::</span><span class="token function">new</span><span class="token punctuation">(</span><span class="token number">42</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token operator">*</span>b <span class="token operator">=</span> <span class="token number">5</span><span class="token punctuation">;</span>     <span class="token comment">// ❌ *b 是 Box&lt;i32&gt;，不能赋 i32</span>
+<span class="token operator">*</span><span class="token operator">*</span>b <span class="token operator">=</span> <span class="token number">5</span><span class="token punctuation">;</span>    <span class="token comment">// ✅ **b 是 i32</span>
+</code></pre>
+
+<p><code>*</code> 操作符只做一层解引用，不会自动穿越。</p>
+
+<h2 id="演示-自定义智能指针"><span class="section-index">5</span><span class="section-title">演示：自定义智能指针</span></h2>
+
+<pre class="language-rust" data-language="rust"><code class="language-rust"><span class="token keyword">struct</span> <span class="token type-definition class-name">MyBox</span><span class="token operator">&lt;</span><span class="token class-name">T</span><span class="token operator">&gt;</span><span class="token punctuation">(</span><span class="token class-name">T</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token keyword">impl</span><span class="token operator">&lt;</span><span class="token class-name">T</span><span class="token operator">&gt;</span> <span class="token class-name">Deref</span> <span class="token keyword">for</span> <span class="token class-name">MyBox</span><span class="token operator">&lt;</span><span class="token class-name">T</span><span class="token operator">&gt;</span> <span class="token punctuation">{</span>
+    <span class="token keyword">type</span> <span class="token type-definition class-name">Target</span> <span class="token operator">=</span> <span class="token class-name">T</span><span class="token punctuation">;</span>
+    <span class="token keyword">fn</span> <span class="token function-definition function">deref</span><span class="token punctuation">(</span><span class="token operator">&amp;</span><span class="token keyword">self</span><span class="token punctuation">)</span> <span class="token punctuation">-&gt;</span> <span class="token operator">&amp;</span><span class="token class-name">T</span> <span class="token punctuation">{</span>
+        <span class="token operator">&amp;</span><span class="token keyword">self</span><span class="token punctuation">.</span><span class="token number">0</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+
+<span class="token keyword">let</span> b <span class="token operator">=</span> <span class="token class-name">MyBox</span><span class="token punctuation">(</span><span class="token number">42</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token macro property">println!</span><span class="token punctuation">(</span><span class="token string">"{}"</span><span class="token punctuation">,</span> <span class="token operator">*</span>b<span class="token punctuation">)</span><span class="token punctuation">;</span>     <span class="token comment">// *b → *(b.deref()) → 42</span>
+<span class="token macro property">println!</span><span class="token punctuation">(</span><span class="token string">"{}"</span><span class="token punctuation">,</span> b<span class="token punctuation">.</span><span class="token function">abs</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 自动解引用 → i32::abs</span>
+</code></pre>
+
+<blockquote>
+核心记忆：编译器只会在 <code>.</code>（方法调用/字段访问）和函数传参时自动穿解引用链。<code>*</code> 操作符、比较、赋值解引用只帮你做一层。
+</blockquote>
+
+<p class="back"><a href="../index.html">← 返回索引</a></p>
+
+
+  <section class="tag-list" aria-label="文章标签">
+    
+      <a class="tag-chip" href="../../tags/Rust.html">#Rust</a>
+    
+      <a class="tag-chip" href="../../tags/语法进阶.html">#语法进阶</a>
+    
+  </section>
+
+
+
+  <section class="comments" aria-label="评论">
+    <h2 class="plain-heading">评论</h2>
+    <script src="https://utteranc.es/client.js"
+      repo="CodeKillerCoser/notebook"
+      issue-term="pathname"
+      label="comment"
+      theme="preferred-color-scheme"
+      crossorigin="anonymous"
+      async>
+    </script>
+  </section>
+
+
+    </main>
+  </div>
+</body>
+</html>

@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  
+    
+    
+  
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>所有权与借用心智模型 · Rust 笔记 | Notebook</title>
+  <meta name="description" content="Rust 笔记 › 01-基础入门 所有权与借用心智模型 核心概念 Option 1 核心矛盾 Rust 不允许直接碰 Option&amp;lt;Box&amp;lt;T&amp;gt;&amp;gt; 里面的 Box&amp;lt;T&amp;gt; ——碰了就意味着所有权转移，原变量就废了。 其他语言里直接 node.val 就行（背后是 GC 引用/指针拷贝），Rust 没有 GC，所有权的账必须">
+  <link rel="alternate" type="application/rss+xml" title="Notebook RSS" href="../../feed.xml">
+  <link rel="stylesheet" href="../../assets/site.css">
+  
+</head>
+<body>
+  
+    
+    
+    
+    
+    
+    
+  
+
+  <div class="page-shell">
+    <header id="title-block-header" class="hero-grid">
+      <div class="hero-spacer" aria-hidden="true"></div>
+      <div class="hero-content">
+        <div class="eyebrow">Rust</div>
+        <h1>所有权与借用心智模型 · Rust 笔记</h1>
+        
+          <p class="subtitle">Rust 笔记 › 01-基础入门 所有权与借用心智模型 核心概念 Option 1 核心矛盾 Rust 不允许直接碰 Option&amp;lt;Box&amp;lt;T&amp;gt;&amp;gt; 里面的 Box&amp;lt;T&amp;gt; ——碰了就意味着所有权转移，原变量就废了。 其他语言里直接 node.val 就行（背后是 GC 引用/指针拷贝），Rust 没有 GC，所有权的账必须</p>
+        
+        <nav class="pathline" aria-label="博客路径">
+          
+            
+              <a href="../../index.html">Notebook</a>
+              <span aria-hidden="true">›</span>
+            
+              <a href="../index.html">Rust</a>
+              <span aria-hidden="true">›</span>
+            
+              <a href="index.html">基础入门</a>
+              <span aria-hidden="true">›</span>
+            
+              <a href="所有权与借用心智模型.html">所有权与借用心智模型 · Rust 笔记</a>
+              
+            
+          
+        </nav>
+        <div class="meta">
+          
+            <time class="chip" datetime="2026-05-10T13:43:14.000Z">2026/05/10</time>
+          
+          
+            <span class="chip tag-chip">Rust</span>
+          
+            <span class="chip tag-chip">基础入门</span>
+          
+          <a class="chip" href="../../search.html">搜索</a>
+          <a class="chip" href="../../tags/index.html">标签</a>
+          <a class="chip" href="../../feed.xml">RSS</a>
+        </div>
+        <hr class="article-divider">
+      </div>
+    </header>
+  </div>
+
+  <div class="content-grid">
+    <nav class="toc" aria-label="目录">
+      <div class="toc-title">目录</div>
+      
+        <ol>
+          
+            <li><a href="#核心矛盾">核心矛盾</a></li>
+          
+            <li><a href="#根本思路切换">根本思路切换</a></li>
+          
+            <li><a href="#两条路径对照">两条路径对照</a></li>
+          
+            <li><a href="#动手前的第一问">动手前的第一问</a></li>
+          
+            <li><a href="#related">Related</a></li>
+          
+        </ol>
+      
+    </nav>
+
+    <main class="article-content" data-pagefind-body>
+      <div class="container">
+  <p class="breadcrumb"><a href="../index.html">Rust 笔记</a> › 01-基础入门</p>
+  <h1>所有权与借用心智模型</h1>
+  <p><span class="tag">核心概念</span><span class="tag">Option</span></p>
+
+  <h2 id="核心矛盾"><span class="section-index">1</span><span class="section-title">核心矛盾</span></h2>
+  <p>Rust 不允许直接碰 <code>Option&lt;Box&lt;T&gt;&gt;</code> 里面的 <code>Box&lt;T&gt;</code>——碰了就意味着所有权转移，原变量就废了。</p>
+  <p>其他语言里直接 <code>node.val</code> 就行（背后是 GC 引用/指针拷贝），Rust 没有 GC，所有权的账必须算清楚。于是催生了 <code>as_ref / as_mut / map / and_then / unwrap</code> 这一整套工具方法。</p>
+
+  <h2 id="根本思路切换"><span class="section-index">2</span><span class="section-title">根本思路切换</span></h2>
+  <div class="decision-tree">其他语言思维：我有一个值 → 我直接用
+
+Rust 思维：
+  我有没有所有权？
+    ├── 有 → 可以 unwrap / map / and_then（消费式）
+    └── 没有 → 只能 as_ref / match / if let（借用式）</div>
+
+  <div class="block warn">
+    <strong>核心困境：</strong>想用"消费式"方法（<code>unwrap</code>）取出值，但又想保留原变量给后面用。这在 Rust 里是矛盾的。
+  </div>
+
+  <h3 id="解法只有两个">解法只有两个</h3>
+  <ul>
+    <li><strong>路径 A</strong>：提前 <code>clone</code>，各自消费各自的</li>
+    <li><strong>路径 B</strong>：用借用式方法（<code>as_ref</code>、<code>as_deref</code>、<code>match</code>、<code>if let</code>），不消费原值</li>
+  </ul>
+
+  <h2 id="两条路径对照"><span class="section-index">3</span><span class="section-title">两条路径对照</span></h2>
+
+  <h3 id="路径-a-消费式-变量用完即废">路径 A：消费式（变量用完即废）</h3>
+  <pre class="language-text" data-language="text"><code class="language-text">let p: Option&lt;Box&lt;ListNode&gt;&gt; = ...;
+
+// 一次性取出，之后 p 不能再用了
+let val = p.unwrap().val;
+
+// 一次性转换，生成新的 Option
+let next: Option&lt;Box&lt;ListNode&gt;&gt; = p.and_then(|node| node.next);</code></pre>
+
+  <h3 id="路径-b-借用式-变量保留">路径 B：借用式（变量保留）</h3>
+  <pre class="language-text" data-language="text"><code class="language-text">let p: Option&lt;Box&lt;ListNode&gt;&gt; = ...;
+
+// 借出来看一眼，p 还在
+let val = p.as_ref().map_or(0, |node| node.val);
+
+// 用 match + 引用，同样不消费 p
+let val = match &amp;p {
+    Some(node) =&gt; node.val,
+    None =&gt; 0,
+};
+
+// if let 也是借用
+if let Some(ref node) = p {
+    println!("{}", node.val);
+}</code></pre>
+
+  <h2 id="动手前的第一问"><span class="section-index">4</span><span class="section-title">动手前的第一问</span></h2>
+  <div class="decision-tree">我还要继续用这个变量吗？
+  ├── 不用了 → 消费式：unwrap / map / and_then / unwrap_or ...
+  └── 还要用 → 借用式：as_ref / as_deref / match &amp; / if let</div>
+
+  <div class="block good">
+    <strong>记住：</strong>方法签名中 <code>self</code>（不是 <code>&amp;self</code>）的参数一定会消费原值。看签名就能判断会不会 move。
+  </div>
+
+  <h2 id="related"><span class="section-index">5</span><span class="section-title">Related</span></h2>
+  <ul>
+    <li><a href="../02-语法进阶/Option方法全景图.html">Option 方法全景图</a> — 完整方法分类速查</li>
+    <li><a href="../04-综合案例/LeetCode-T2两数相加.html">LeetCode T2 实战</a> — 真实错误演示</li>
+  </ul>
+</div>
+
+
+  <section class="tag-list" aria-label="文章标签">
+    
+      <a class="tag-chip" href="../../tags/Rust.html">#Rust</a>
+    
+      <a class="tag-chip" href="../../tags/基础入门.html">#基础入门</a>
+    
+  </section>
+
+
+
+  <section class="comments" aria-label="评论">
+    <h2 class="plain-heading">评论</h2>
+    <script src="https://utteranc.es/client.js"
+      repo="CodeKillerCoser/notebook"
+      issue-term="pathname"
+      label="comment"
+      theme="preferred-color-scheme"
+      crossorigin="anonymous"
+      async>
+    </script>
+  </section>
+
+
+    </main>
+  </div>
+</body>
+</html>

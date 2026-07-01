@@ -1,0 +1,735 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  
+    
+    
+  
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Agent 沙箱系统深度笔记：从平台机制到自研实现路线 | Notebook</title>
+  <meta name="description" content="Agent 沙箱不是一句“让模型别乱来”的提示词，而是一套围绕模型外部动作构建的执行边界：文件能碰哪里、命令能怎么跑、网络能去哪、凭据如何给、资源如何限制、越界时谁审批、出问题后如何审计和回放。 1 一、总览：Agent 沙箱到底是什么 在 agent 系统里，sandbox 保护的不是模型内部的推理过程，而是模型发起的外部动作。模型可以提出“我要运行命令”">
+  <link rel="alternate" type="application/rss+xml" title="Notebook RSS" href="../../feed.xml">
+  <link rel="stylesheet" href="../../assets/site.css">
+  
+</head>
+<body>
+  
+    
+    
+    
+    
+    
+    
+  
+
+  <div class="page-shell">
+    <header id="title-block-header" class="hero-grid">
+      <div class="hero-spacer" aria-hidden="true"></div>
+      <div class="hero-content">
+        <div class="eyebrow">AI 工程</div>
+        <h1>Agent 沙箱系统深度笔记：从平台机制到自研实现路线</h1>
+        
+          <p class="subtitle">Agent 沙箱不是一句“让模型别乱来”的提示词，而是一套围绕模型外部动作构建的执行边界：文件能碰哪里、命令能怎么跑、网络能去哪、凭据如何给、资源如何限制、越界时谁审批、出问题后如何审计和回放。 1 一、总览：Agent 沙箱到底是什么 在 agent 系统里，sandbox 保护的不是模型内部的推理过程，而是模型发起的外部动作。模型可以提出“我要运行命令”</p>
+        
+        <nav class="pathline" aria-label="博客路径">
+          
+            
+              <a href="../../index.html">Notebook</a>
+              <span aria-hidden="true">›</span>
+            
+              <a href="../index.html">AI 工程</a>
+              <span aria-hidden="true">›</span>
+            
+              <a href="index.html">Agent Runtime</a>
+              <span aria-hidden="true">›</span>
+            
+              <a href="Agent沙箱系统深度笔记.html">Agent 沙箱系统深度笔记：从平台机制到自研实现路线</a>
+              
+            
+          
+        </nav>
+        <div class="meta">
+          
+            <time class="chip" datetime="2026-06-23T07:00:00.000Z">2026/06/23</time>
+          
+          
+            <span class="chip tag-chip">AI 工程</span>
+          
+            <span class="chip tag-chip">Agent Runtime</span>
+          
+            <span class="chip tag-chip">Sandbox</span>
+          
+            <span class="chip tag-chip">Linux</span>
+          
+            <span class="chip tag-chip">Windows</span>
+          
+            <span class="chip tag-chip">macOS</span>
+          
+          <a class="chip" href="../../search.html">搜索</a>
+          <a class="chip" href="../../tags/index.html">标签</a>
+          <a class="chip" href="../../feed.xml">RSS</a>
+        </div>
+        <hr class="article-divider">
+      </div>
+    </header>
+  </div>
+
+  <div class="content-grid">
+    <nav class="toc" aria-label="目录">
+      <div class="toc-title">目录</div>
+      
+        <ol>
+          
+            <li><a href="#总览-agent-沙箱到底是什么">总览：Agent 沙箱到底是什么</a></li>
+          
+            <li><a href="#为什么-agent-比普通代码更需要沙箱">为什么 agent 比普通代码更需要沙箱</a></li>
+          
+            <li><a href="#成熟-agent-sandbox-的运行时架构">成熟 agent sandbox 的运行时架构</a></li>
+          
+            <li><a href="#要管的不是-shell-而是能力">要管的不是 shell，而是能力</a></li>
+          
+            <li><a href="#三平台实现哲学对比">三平台实现哲学对比</a></li>
+          
+            <li><a href="#linux-沙箱机制详解">Linux 沙箱机制详解</a></li>
+          
+            <li><a href="#windows-沙箱机制详解">Windows 沙箱机制详解</a></li>
+          
+            <li><a href="#macos-沙箱机制详解">macOS 沙箱机制详解</a></li>
+          
+            <li><a href="#为什么第一站建议选-linux">为什么第一站建议选 Linux</a></li>
+          
+            <li><a href="#从零实现-推荐路线">从零实现：推荐路线</a></li>
+          
+            <li><a href="#linux-mvp-bubblewrap-runner">Linux MVP：bubblewrap runner</a></li>
+          
+            <li><a href="#工程化-docker-runner">工程化：Docker runner</a></li>
+          
+            <li><a href="#policy-审批-网络代理与凭据-broker">Policy、审批、网络代理与凭据 broker</a></li>
+          
+            <li><a href="#攻击测试集与验收标准">攻击测试集与验收标准</a></li>
+          
+            <li><a href="#演进路线与学习地图">演进路线与学习地图</a></li>
+          
+            <li><a href="#参考资料">参考资料</a></li>
+          
+        </ol>
+      
+    </nav>
+
+    <main class="article-content" data-pagefind-body>
+      <p class="lead">Agent 沙箱不是一句“让模型别乱来”的提示词，而是一套围绕模型外部动作构建的执行边界：文件能碰哪里、命令能怎么跑、网络能去哪、凭据如何给、资源如何限制、越界时谁审批、出问题后如何审计和回放。</p>
+
+  <section id="mental-model">
+    <h2 id="总览-agent-沙箱到底是什么"><span class="section-index">1</span><span class="section-title">一、总览：Agent 沙箱到底是什么</span></h2>
+    <p>在 agent 系统里，sandbox 保护的不是模型内部的推理过程，而是模型发起的外部动作。模型可以提出“我要运行命令”“我要修改文件”“我要访问网站”“我要调用工具”，但这些动作不应该直接落到宿主机上，而应该经过 runtime、policy 和 sandbox 的组合。</p>
+    <pre class="language-text" data-language="text"><code class="language-text">Agent Sandbox = 隔离执行环境
+              + 文件系统策略
+              + 网络出口治理
+              + 资源限制
+              + 凭据代理
+              + 审批流程
+              + 审计与恢复</code></pre>
+    <p>一个成熟的 agent runtime 大致可以拆成以下链路：</p>
+    <pre class="language-text" data-language="text"><code class="language-text">用户任务
+  ↓
+Agent Harness / Orchestrator
+  - 调模型
+  - 管上下文
+  - 选择工具
+  - 执行策略和审批
+  - 记录 trace
+  ↓
+Policy / Gateway
+  - 文件策略
+  - 网络策略
+  - 命令策略
+  - 凭据代理
+  - 人工确认
+  ↓
+Sandbox Session
+  - 文件系统
+  - shell / Python / Node
+  - 浏览器 / GUI / 测试 runner
+  - 资源限制
+  - 临时状态
+  ↓
+Artifacts / Logs / Diff
+  - stdout / stderr
+  - 文件 diff
+  - 生成产物
+  - 审计记录</code></pre>
+    <blockquote><p>核心原则：不要相信模型一定不会做错事，而是让模型即使做错，影响范围也被限制在可控边界内。</p></blockquote>
+  </section>
+
+  <section id="why-agent-needs-sandbox">
+    <h2 id="为什么-agent-比普通代码更需要沙箱"><span class="section-index">2</span><span class="section-title">二、为什么 agent 比普通代码更需要沙箱</span></h2>
+    <p>传统服务的执行路径通常是开发者提前写好、测试过、review 后部署。Agent 的不同点在于：它可能在运行时根据网页、issue、README、日志、用户文件和工具返回结果生成命令、脚本、补丁、浏览器动作或 MCP 工具调用。执行路径本身是动态的。</p>
+    <table>
+      <tbody><tr><th>风险</th><th>例子</th><th>主要防线</th></tr>
+      <tr><td>误操作</td><td>模型误删文件、改错目录、覆盖配置</td><td>workspace-only、只读根文件系统、diff review</td></tr>
+      <tr><td>提示注入</td><td>网页或项目文档诱导 agent 执行不该执行的动作</td><td>默认禁网、文件隔离、输出审查、工具策略</td></tr>
+      <tr><td>供应链风险</td><td>安装依赖时执行不可信脚本</td><td>setup / agent 阶段分离、包源 allowlist、无长期凭据</td></tr>
+      <tr><td>主机逃逸</td><td>恶意二进制攻击内核或容器 runtime</td><td>seccomp、LSM、gVisor、Kata、Firecracker、VM</td></tr>
+      <tr><td>敏感数据泄露</td><td>读取本机配置、项目私密文件或长期凭据</td><td>clearenv、禁止挂载宿主用户目录、credential broker</td></tr>
+      <tr><td>网络外传</td><td>把项目内容或凭据发送到外部站点</td><td>network namespace、egress proxy、domain allowlist</td></tr>
+      <tr><td>资源滥用</td><td>无限循环、爆内存、创建大量子进程、写满磁盘</td><td>cgroup、Job Object、timeout、quota</td></tr>
+      <tr><td>现实副作用</td><td>提交代码、发消息、部署、调用云 API</td><td>tool broker、最小 scope、human-in-the-loop</td></tr>
+    </tbody></table>
+    <p>Prompt 是软约束，sandbox 是硬约束。“请不要读取敏感文件”不应该是主要防线；更好的设计是让沙箱里根本看不到敏感文件，让 agent 默认不能联网，让真实凭据留在可信 broker 里。</p>
+  </section>
+
+  <section id="runtime-architecture">
+    <h2 id="成熟-agent-sandbox-的运行时架构"><span class="section-index">3</span><span class="section-title">三、成熟 agent sandbox 的运行时架构</span></h2>
+    <p>一个成熟的 agent sandbox 不应该只是 <code>subprocess.run()</code> 外面套一层容器，而应该拆成控制面、执行面、策略面和产物面。</p>
+    <table>
+      <tbody><tr><th>层</th><th>职责</th><th>不应该放什么</th></tr>
+      <tr><td>Control Plane</td><td>模型调用、工具路由、任务状态、审批、trace、恢复</td><td>不要和不可信代码放在同一个边界里</td></tr>
+      <tr><td>Execution Plane</td><td>shell、Python、Node、浏览器、测试、构建、文件系统</td><td>不要放长期凭据和宿主用户目录</td></tr>
+      <tr><td>Policy Plane</td><td>文件、网络、命令、凭据、资源、工具权限</td><td>不要只靠正则黑名单</td></tr>
+      <tr><td>Artifact Plane</td><td>stdout/stderr、diff、报告、生成文件、日志、快照</td><td>不要让沙箱任意写回真实系统</td></tr>
+    </tbody></table>
+    <p>从工程接口看，关键抽象不是“执行一段 shell 字符串”，而是一个明确的 session API：</p>
+    <pre class="language-text" data-language="text"><code class="language-text">SandboxSession:
+  exec(argv, cwd, env, timeout, network_policy) -&gt; ExecResult
+  read_file(path) -&gt; bytes
+  write_file(path, bytes) -&gt; void
+  list_files(path) -&gt; list
+  diff() -&gt; patch
+  export_artifact(path) -&gt; artifact
+  destroy() -&gt; void</code></pre>
+    <p>这样你的 agent harness 不关心底层是 bubblewrap、Docker、gVisor、Kata 还是 Firecracker。先实现一个简单 runner，后续替换底层隔离后端即可。</p>
+  </section>
+
+  <section id="capability-model">
+    <h2 id="要管的不是-shell-而是能力"><span class="section-index">4</span><span class="section-title">四、要管的不是 shell，而是能力</span></h2>
+    <p>很多人第一次做 agent sandbox 时，会把注意力集中在“禁止哪些命令”。这只是辅助。模型可以通过 Python、Node、构建脚本、Git hook、依赖安装脚本或二进制工具绕过字符串黑名单。更正确的模型是 capability-based security：显式建模 agent 具有什么能力。</p>
+    <pre class="language-text" data-language="text"><code class="language-text">filesystem:
+  read:
+    - /workspace
+  write:
+    - /workspace
+    - /tmp
+  deny_host_user_data: true
+  deny_runtime_sockets: true
+
+network:
+  default: deny
+  allow_domains: []
+  block_private_cidrs: true
+  block_metadata_service: true
+
+process:
+  user: nonroot
+  timeout_seconds: 600
+  memory: 4GiB
+  cpu: 2
+  pids: 256
+
+secrets:
+  raw_values_inside_sandbox: false
+  injection: brokered_proxy
+  ttl: short
+
+approvals:
+  require_for:
+    - new_network_domain
+    - write_outside_workspace
+    - production_api_call
+    - destructive_command</code></pre>
+    <p>在这个模型里，命令策略是前置判断；真正的硬边界来自 OS/container/VM、文件系统、网络、资源限制和凭据代理。</p>
+  </section>
+
+  <section id="platform-overview">
+    <h2 id="三平台实现哲学对比"><span class="section-index">5</span><span class="section-title">五、三平台实现哲学对比</span></h2>
+    <p>Linux、Windows、macOS 都能做沙箱，但底层哲学不同。</p>
+    <table>
+      <tbody><tr><th>平台</th><th>核心哲学</th><th>关键机制</th><th>最适合的 agent 形态</th></tr>
+      <tr><td>Linux</td><td>给进程造一个新的小世界</td><td>namespace、cgroup、capabilities、seccomp、AppArmor/SELinux/Landlock、container runtime、microVM</td><td>云端 agent runner、代码执行器、CI-like coding agent、多租户 sandbox</td></tr>
+      <tr><td>Windows</td><td>给进程一个受限身份，让它无法访问未授权对象</td><td>Access Token、SID、DACL、Integrity Level、Restricted Token、AppContainer/LPAC、Job Object、Windows Container、Hyper-V、Windows Sandbox</td><td>Windows GUI agent、Win32 工具自动化、企业桌面自动化、Windows 容器任务</td></tr>
+      <tr><td>macOS</td><td>签名应用声明少量 entitlement，其余默认被系统拒绝</td><td>App Sandbox、entitlements、security-scoped bookmarks、TCC、SIP、Hardened Runtime、Seatbelt/sandbox-exec、XPC</td><td>本地 Mac agent、IDE agent、保护用户文件和隐私资源</td></tr>
+    </tbody></table>
+    <blockquote><p>一句话：Linux 是“看不到”；Windows 是“看到了也打不开”；macOS 是“没 entitlement 和用户授权就不给”。</p></blockquote>
+  </section>
+
+  <section id="linux">
+    <h2 id="linux-沙箱机制详解"><span class="section-index">6</span><span class="section-title">六、Linux 沙箱机制详解</span></h2>
+    <p>Linux 沙箱不是一个单独 API，而是一组内核原语的组合。核心包括 namespace、cgroup、capabilities、no_new_privs、seccomp 和 LSM。</p>
+
+    <h3 id="1-mount-namespace-文件系统视图">6.1 Mount namespace：文件系统视图</h3>
+    <p>Mount namespace 决定沙箱里能看到哪些目录、哪些目录只读、哪些目录可写。Agent sandbox 典型文件系统视图如下：</p>
+    <pre class="language-text" data-language="text"><code class="language-text">sandbox root
+├── workspace/      rw bind mount，agent 的工作区
+├── tmp/            tmpfs，任务结束销毁
+├── usr/            ro bind mount，运行时程序
+├── bin/            ro bind mount
+├── lib/            ro bind mount
+├── proc/           沙箱自己的 proc
+└── dev/            最小设备节点</code></pre>
+    <p>不要挂载宿主用户目录、浏览器 profile、运行时控制 socket 或宿主系统的可写路径。文件隔离不能只靠应用层 path check，因为 path check 可能被符号链接、路径跳转、挂载和竞态绕过；mount namespace 是内核层的文件系统视图隔离。</p>
+
+    <h3 id="2-pid-namespace-进程树隔离">6.2 PID namespace：进程树隔离</h3>
+    <p>PID namespace 让沙箱里的进程看到自己的 PID 空间。沙箱内 <code>ps</code> 看不到宿主机进程，沙箱内的进程管理动作也不会直接作用到宿主进程树。但 PID namespace 不防资源滥用，所以还要配合 <code>pids.max</code> 或进程数限制。</p>
+
+    <h3 id="3-network-namespace-网络栈隔离">6.3 Network namespace：网络栈隔离</h3>
+    <p>Network namespace 隔离网卡、路由表、防火墙规则、端口空间等。Agent 默认应该无网络。需要安装依赖时，可以把流程拆成 setup phase 和 agent phase：setup 阶段只允许有限包源；agent 自主执行阶段重新回到 no network。</p>
+    <pre class="language-text" data-language="text"><code class="language-text">默认：
+  no network
+
+需要安装依赖时：
+  setup phase 允许受控包源
+  agent phase 重新回到 no network
+
+需要访问外部 API 时：
+  sandbox -&gt; egress proxy -&gt; allowlist / audit / token broker -&gt; internet</code></pre>
+
+    <h3 id="4-user-namespace-与-capabilities">6.4 User namespace 与 capabilities</h3>
+    <p>User namespace 允许沙箱内的 root 映射成宿主机上的普通用户，这是 rootless container 的基础。Capabilities 则把传统 root 权限拆成多个细粒度能力。Agent sandbox 默认应该 drop 所有 capabilities，尤其不要给 mount、网络管理、进程调试、内核模块、绕过文件权限等高风险能力。</p>
+
+    <h3 id="5-cgroup-v2-资源限制">6.5 cgroup v2：资源限制</h3>
+    <p>Namespace 解决“看到什么”，cgroup 解决“能用多少”。Agent runner 至少要限制内存、CPU、进程数、IO、运行时间和输出大小。</p>
+    <table>
+      <tbody><tr><th>资源</th><th>常见控制项</th><th>agent 风险</th></tr>
+      <tr><td>内存</td><td><code>memory.max</code>、<code>memory.swap.max</code></td><td>爆内存拖垮宿主</td></tr>
+      <tr><td>CPU</td><td><code>cpu.max</code></td><td>无限循环或构建任务吃满 CPU</td></tr>
+      <tr><td>进程数</td><td><code>pids.max</code></td><td>创建大量进程</td></tr>
+      <tr><td>IO</td><td><code>io.max</code></td><td>写爆磁盘或 IO 饥饿</td></tr>
+      <tr><td>清理</td><td><code>cgroup.kill</code></td><td>任务结束后残留子进程</td></tr>
+    </tbody></table>
+
+    <h3 id="6-no-new-privs-与-seccomp">6.6 no_new_privs 与 seccomp</h3>
+    <p><code>no_new_privs</code> 设置后会跨 fork/clone/execve 继承，阻止 exec 后获得新权限。seccomp filter 用 BPF 过滤系统调用，适合减少内核攻击面，例如限制挂载、进程调试、加载内核模块、性能探测等高风险 syscall。</p>
+    <blockquote><p>seccomp 不是路径策略。它不能可靠表达“允许打开某个工作区路径，拒绝打开另一个宿主路径”。路径策略应该交给 mount namespace、LSM、Landlock、AppArmor/SELinux 或应用层 broker。</p></blockquote>
+
+    <h3 id="7-lsm-apparmor-selinux-landlock">6.7 LSM：AppArmor、SELinux、Landlock</h3>
+    <p>AppArmor 和 SELinux 是 Linux 上常见的 Mandatory Access Control。AppArmor 更偏路径 profile，SELinux 更偏 label/type enforcement。Landlock 值得重点学习，因为它是非特权进程也可以使用的访问控制机制，可以让 runner 自己把未来子进程限制在特定文件层级中。</p>
+
+    <h3 id="8-从容器到强隔离">6.8 从容器到强隔离</h3>
+    <table>
+      <tbody><tr><th>方案</th><th>特点</th><th>适合</th><th>注意</th></tr>
+      <tr><td>bubblewrap</td><td>轻量 namespace/mount 工具</td><td>学习、本地 agent、无网命令执行</td><td>策略要自己设计</td></tr>
+      <tr><td>Docker rootless</td><td>镜像生态成熟，资源限制方便</td><td>工程化 runner</td><td>仍共享宿主 kernel；不要挂宿主控制接口</td></tr>
+      <tr><td>gVisor</td><td>用户态内核拦截 syscall</td><td>多租户代码执行，想保留容器体验</td><td>兼容性和性能要测试</td></tr>
+      <tr><td>Kata / Firecracker</td><td>microVM / VM 边界</td><td>高风险、多租户、不可信代码</td><td>镜像、网络、快照和调度更复杂</td></tr>
+    </tbody></table>
+  </section>
+
+  <section id="windows">
+    <h2 id="windows-沙箱机制详解"><span class="section-index">7</span><span class="section-title">七、Windows 沙箱机制详解</span></h2>
+    <p>Windows 更像“给进程一个受限身份，并让所有 securable object 都按 token、SID、DACL、Integrity Level 做访问检查”。文件、注册表 key、进程、线程、named pipe、window station、desktop、Job Object 等大多是 securable object。</p>
+
+    <h3 id="1-restricted-token">7.1 Restricted Token</h3>
+    <p>Restricted Token 可以删除 privileges、把 SID 标为 deny-only、添加 restricting SID。访问对象时，Windows 会对 enabled SID 和 restricting SID 做双重检查。Agent runner 可以给每个 session 一个受限身份，并让 workspace ACL 只授权给这个身份。</p>
+    <pre class="language-text" data-language="text"><code class="language-text">普通进程：
+  token = user + groups + privileges
+
+受限进程：
+  token = user + deny-only groups + removed privileges + sandbox restricting SID
+
+workspace ACL：
+  allow sandbox identity read/write
+
+最终效果：
+  只能访问明确授权给 sandbox identity 的资源</code></pre>
+
+    <h3 id="2-mandatory-integrity-control">7.2 Mandatory Integrity Control</h3>
+    <p>Windows 有 Low、Medium、High、System 等完整性级别。普通用户进程通常是 Medium，管理员提升后是 High，浏览器沙箱子进程常常是 Low。低完整性进程通常不能写中高完整性对象，也不能轻易影响更高完整性的进程。</p>
+
+    <h3 id="3-appcontainer-与-lpac">7.3 AppContainer 与 LPAC</h3>
+    <p>AppContainer 是 Windows 原生应用沙箱，基于 Package SID 和 Capability SID 做最小权限控制，覆盖 credential、device、file、registry、network、process、window 等隔离面。LPAC，即 Less Privileged AppContainer，比普通 AppContainer 更收紧，很多普通 AppContainer 默认可访问的资源也需要显式 capability。</p>
+
+    <h3 id="4-job-object">7.4 Job Object</h3>
+    <p>Job Object 可以把一组进程作为一个单元管理，限制内存、CPU、活跃进程数量、运行时间，并能终止 job 里的所有进程。它类似 Linux cgroup 的一部分功能，但不是文件系统或网络沙箱。</p>
+    <pre class="language-text" data-language="text"><code class="language-text">Windows agent worker:
+  CreateJobObject
+  SetInformationJobObject
+    - memory limit
+    - CPU rate
+    - active process limit
+    - kill-on-job-close
+  CreateProcess suspended
+  AssignProcessToJobObject
+  ResumeThread
+  timeout 后 TerminateJobObject</code></pre>
+
+    <h3 id="5-windows-sandbox-windows-container-与-hyper-v-isolation">7.5 Windows Sandbox、Windows Container 与 Hyper-V isolation</h3>
+    <p>Windows Sandbox 是轻量隔离桌面环境，适合运行未知 exe 和 GUI 测试。但它默认并不是 agent 最小权限模型；网络、剪贴板、映射目录都需要谨慎配置。Windows Container 有 process isolation 和 Hyper-V isolation。Process isolation 共享宿主 kernel，Hyper-V isolation 则给容器更强的 VM 边界。</p>
+  </section>
+
+  <section id="macos">
+    <h2 id="macos-沙箱机制详解"><span class="section-index">8</span><span class="section-title">八、macOS 沙箱机制详解</span></h2>
+    <p>macOS 更偏“签名应用声明少量能力”。你先给应用签名，开启 App Sandbox，然后通过 entitlement 恢复少量文件、网络、硬件、自动化能力。除此之外，还有 TCC、SIP、Hardened Runtime 和 XPC privilege separation。</p>
+
+    <h3 id="1-app-sandbox-与-entitlements">8.1 App Sandbox 与 entitlements</h3>
+    <p>启用 <code>com.apple.security.app-sandbox</code> 后，应用默认失去大多数系统交互能力，再通过 entitlement 恢复需要的能力。常见能力包括 user-selected file read/write、network.client/server、application-groups、inherit 等。</p>
+    <table>
+      <tbody><tr><th>能力</th><th>例子</th><th>agent 含义</th></tr>
+      <tr><td>文件访问</td><td>user-selected read-only / read-write</td><td>用户选择项目目录后才允许访问</td></tr>
+      <tr><td>网络</td><td>network.client / network.server</td><td>只能粗粒度控制出站/入站，不是域名 allowlist</td></tr>
+      <tr><td>App Group</td><td>application-groups</td><td>多个 helper 共享受控目录</td></tr>
+      <tr><td>继承</td><td>inherit</td><td>子进程继承父应用静态 sandbox 权限</td></tr>
+    </tbody></table>
+
+    <h3 id="2-tcc">8.2 TCC</h3>
+    <p>TCC 保护用户隐私资源，例如 Desktop、Documents、Downloads、iCloud Drive、Photos、Contacts、Camera、Microphone、Screen Recording、Accessibility、Automation 和 Full Disk Access。GUI/computer-use agent 常常需要 Screen Recording、Accessibility、Automation，这些都必须由用户显式授权。</p>
+    <blockquote><p>TCC 和 App Sandbox 是两套机制。App Sandbox 放行不代表 TCC 放行；TCC 放行也不代表 App Sandbox 放行。</p></blockquote>
+
+    <h3 id="3-sip-hardened-runtime-与-sandbox-exec">8.3 SIP、Hardened Runtime 与 sandbox-exec</h3>
+    <p>SIP 保护 Apple 提供的系统组件，限制 root 修改系统路径或 attach 受保护进程。Hardened Runtime 主要保护你的 app 自身运行时完整性，限制代码注入、JIT、动态库注入、调试等高风险能力。它们不是运行任意不可信代码的完整 sandbox。</p>
+    <p>macOS 还可以用 <code>sandbox-exec</code> / Seatbelt / SBPL 限制命令行进程，例如只允许读写 workspace。它适合本地 Mac agent 的轻量命令沙箱，但文档和调试体验不如 Linux namespace/container 直接。</p>
+  </section>
+
+  <section id="why-linux-first">
+    <h2 id="为什么第一站建议选-linux"><span class="section-index">9</span><span class="section-title">九、为什么第一站建议选 Linux</span></h2>
+    <p>推荐先从 Linux 开始，并不是因为 Windows/macOS 不能做沙箱，而是因为 Linux 最接近现代 agent runner、容器、Kubernetes、gVisor、Kata、Firecracker 的底层模型。</p>
+    <table>
+      <tbody><tr><th>学习目标</th><th>Linux 对应机制</th><th>后续工程路线</th></tr>
+      <tr><td>文件系统隔离</td><td>mount namespace、bind mount、tmpfs、overlayfs</td><td>Docker volumes、rootfs、snapshot</td></tr>
+      <tr><td>网络隔离</td><td>network namespace、veth、nftables、proxy</td><td>Kubernetes NetworkPolicy、egress gateway</td></tr>
+      <tr><td>资源限制</td><td>cgroup v2</td><td>container resource limits、K8s requests/limits</td></tr>
+      <tr><td>系统调用面</td><td>seccomp</td><td>Docker seccomp、gVisor、microVM</td></tr>
+      <tr><td>权限拆分</td><td>capabilities、user namespace</td><td>rootless Docker、Podman</td></tr>
+      <tr><td>访问控制</td><td>AppArmor、SELinux、Landlock</td><td>企业安全 profile、runtime policy</td></tr>
+    </tbody></table>
+  </section>
+
+  <section id="implementation-route">
+    <h2 id="从零实现-推荐路线"><span class="section-index">10</span><span class="section-title">十、从零实现：推荐路线</span></h2>
+    <p>不要一上来就从零写容器或 VM。更稳的路线是：先实现一个 agent sandbox runtime，而不是先实现一个隔离内核。</p>
+    <pre class="language-text" data-language="text"><code class="language-text">阶段 0：威胁模型
+  明确 agent 能做什么，不能做什么
+
+阶段 1：bubblewrap MVP
+  workspace-only、no network、clearenv、timeout、stdout/stderr
+
+阶段 2：Sandbox API
+  exec/read/write/list/diff/export/destroy
+
+阶段 3：资源和审计
+  cgroup v2、audit log、artifact、diff、攻击测试
+
+阶段 4：Docker runner
+  镜像化、依赖管理、工程化执行
+
+阶段 5：网络代理与凭据 broker
+  allowlist、审计、短期 token、approval
+
+阶段 6：gVisor / microVM
+  多租户、不可信代码、强隔离</code></pre>
+    <table>
+      <tbody><tr><th>允许</th><th>禁止</th></tr>
+      <tr><td>在 <code>/workspace</code> 读写文件</td><td>默认联网</td></tr>
+      <tr><td>运行 shell、Python、Node、测试命令</td><td>读取宿主用户数据</td></tr>
+      <tr><td>生成 artifacts</td><td>写 workspace 外文件</td></tr>
+      <tr><td>返回 stdout/stderr/exit code/diff</td><td>拿真实长期凭据</td></tr>
+      <tr><td>超时后清理进程树</td><td>访问宿主 runtime 控制接口</td></tr>
+    </tbody></table>
+  </section>
+
+  <section id="bubblewrap-mvp">
+    <h2 id="linux-mvp-bubblewrap-runner"><span class="section-index">11</span><span class="section-title">十一、Linux MVP：bubblewrap runner</span></h2>
+    <p>bubblewrap 适合第一版学习实现。它可以显式构造 mount namespace、PID namespace、network namespace、tmpfs、只读 bind mount 等。</p>
+    <pre class="language-bash" data-language="bash"><code class="language-bash"><span class="token function">mkdir</span> <span class="token parameter variable">-p</span> /tmp/agent-workspace
+<span class="token function">cat</span> <span class="token operator">&gt;</span> /tmp/agent-workspace/main.py <span class="token operator">&lt;&lt;</span><span class="token string">'PY'
+import os
+print("cwd:", os.getcwd())
+print("home:", os.environ.get("HOME"))
+print("hello from sandbox")
+PY</span>
+
+bwrap <span class="token punctuation">\</span>
+  --die-with-parent <span class="token punctuation">\</span>
+  --new-session <span class="token punctuation">\</span>
+  --unshare-pid <span class="token punctuation">\</span>
+  --unshare-ipc <span class="token punctuation">\</span>
+  --unshare-uts <span class="token punctuation">\</span>
+  --unshare-cgroup <span class="token punctuation">\</span>
+  --unshare-net <span class="token punctuation">\</span>
+  <span class="token parameter variable">--proc</span> /proc <span class="token punctuation">\</span>
+  <span class="token parameter variable">--dev</span> /dev <span class="token punctuation">\</span>
+  <span class="token parameter variable">--tmpfs</span> /tmp <span class="token punctuation">\</span>
+  <span class="token parameter variable">--dir</span> /run <span class="token punctuation">\</span>
+  --ro-bind /usr /usr <span class="token punctuation">\</span>
+  --ro-bind-try /bin /bin <span class="token punctuation">\</span>
+  --ro-bind-try /sbin /sbin <span class="token punctuation">\</span>
+  --ro-bind-try /lib /lib <span class="token punctuation">\</span>
+  --ro-bind-try /lib64 /lib64 <span class="token punctuation">\</span>
+  --ro-bind-try /etc/ld.so.cache /etc/ld.so.cache <span class="token punctuation">\</span>
+  <span class="token parameter variable">--bind</span> /tmp/agent-workspace /workspace <span class="token punctuation">\</span>
+  <span class="token parameter variable">--chdir</span> /workspace <span class="token punctuation">\</span>
+  <span class="token parameter variable">--clearenv</span> <span class="token punctuation">\</span>
+  <span class="token parameter variable">--setenv</span> <span class="token environment constant">HOME</span> /tmp <span class="token punctuation">\</span>
+  <span class="token parameter variable">--setenv</span> <span class="token environment constant">PATH</span> /usr/local/bin:/usr/bin:/bin <span class="token punctuation">\</span>
+  <span class="token parameter variable">--setenv</span> <span class="token environment constant">LANG</span> C.UTF-8 <span class="token punctuation">\</span>
+  python3 main.py</code></pre>
+    <p>这个版本具备 <code>/workspace</code> 可写、<code>/tmp</code> 为沙箱 tmpfs、运行时目录只读、无网络、清空环境变量、隔离 PID/IPC/UTS/cgroup 视图等基本特性。</p>
+
+    <h3 id="1-python-wrapper">11.1 Python wrapper</h3>
+    <pre class="language-python" data-language="python"><code class="language-python"><span class="token keyword">from</span> __future__ <span class="token keyword">import</span> annotations
+
+<span class="token keyword">import</span> json
+<span class="token keyword">import</span> resource
+<span class="token keyword">import</span> subprocess
+<span class="token keyword">import</span> tempfile
+<span class="token keyword">import</span> time
+<span class="token keyword">from</span> dataclasses <span class="token keyword">import</span> dataclass
+<span class="token keyword">from</span> pathlib <span class="token keyword">import</span> Path
+
+
+<span class="token decorator annotation punctuation">@dataclass</span>
+<span class="token keyword">class</span> <span class="token class-name">ExecResult</span><span class="token punctuation">:</span>
+    argv<span class="token punctuation">:</span> <span class="token builtin">list</span><span class="token punctuation">[</span><span class="token builtin">str</span><span class="token punctuation">]</span>
+    exit_code<span class="token punctuation">:</span> <span class="token builtin">int</span> <span class="token operator">|</span> <span class="token boolean">None</span>
+    stdout<span class="token punctuation">:</span> <span class="token builtin">str</span>
+    stderr<span class="token punctuation">:</span> <span class="token builtin">str</span>
+    timed_out<span class="token punctuation">:</span> <span class="token builtin">bool</span>
+    duration_ms<span class="token punctuation">:</span> <span class="token builtin">int</span>
+
+
+<span class="token keyword">class</span> <span class="token class-name">BubblewrapSandbox</span><span class="token punctuation">:</span>
+    <span class="token keyword">def</span> <span class="token function">__init__</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> workspace<span class="token punctuation">:</span> <span class="token builtin">str</span> <span class="token operator">|</span> Path<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        self<span class="token punctuation">.</span>workspace <span class="token operator">=</span> Path<span class="token punctuation">(</span>workspace<span class="token punctuation">)</span><span class="token punctuation">.</span>resolve<span class="token punctuation">(</span><span class="token punctuation">)</span>
+        <span class="token keyword">if</span> <span class="token keyword">not</span> self<span class="token punctuation">.</span>workspace<span class="token punctuation">.</span>exists<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+            <span class="token keyword">raise</span> FileNotFoundError<span class="token punctuation">(</span>self<span class="token punctuation">.</span>workspace<span class="token punctuation">)</span>
+        <span class="token keyword">if</span> <span class="token keyword">not</span> self<span class="token punctuation">.</span>workspace<span class="token punctuation">.</span>is_dir<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+            <span class="token keyword">raise</span> NotADirectoryError<span class="token punctuation">(</span>self<span class="token punctuation">.</span>workspace<span class="token punctuation">)</span>
+
+    <span class="token keyword">def</span> <span class="token function">_limit_child</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span> <span class="token operator">-</span><span class="token operator">&gt;</span> <span class="token boolean">None</span><span class="token punctuation">:</span>
+        resource<span class="token punctuation">.</span>setrlimit<span class="token punctuation">(</span>resource<span class="token punctuation">.</span>RLIMIT_CPU<span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token number">10</span><span class="token punctuation">,</span> <span class="token number">10</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+        resource<span class="token punctuation">.</span>setrlimit<span class="token punctuation">(</span>resource<span class="token punctuation">.</span>RLIMIT_AS<span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token number">2</span> <span class="token operator">*</span> <span class="token number">1024</span><span class="token operator">**</span><span class="token number">3</span><span class="token punctuation">,</span> <span class="token number">2</span> <span class="token operator">*</span> <span class="token number">1024</span><span class="token operator">**</span><span class="token number">3</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+        resource<span class="token punctuation">.</span>setrlimit<span class="token punctuation">(</span>resource<span class="token punctuation">.</span>RLIMIT_FSIZE<span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token number">200</span> <span class="token operator">*</span> <span class="token number">1024</span><span class="token operator">**</span><span class="token number">2</span><span class="token punctuation">,</span> <span class="token number">200</span> <span class="token operator">*</span> <span class="token number">1024</span><span class="token operator">**</span><span class="token number">2</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+        resource<span class="token punctuation">.</span>setrlimit<span class="token punctuation">(</span>resource<span class="token punctuation">.</span>RLIMIT_NPROC<span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token number">128</span><span class="token punctuation">,</span> <span class="token number">128</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+
+    <span class="token keyword">def</span> <span class="token function">build_argv</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> argv<span class="token punctuation">:</span> <span class="token builtin">list</span><span class="token punctuation">[</span><span class="token builtin">str</span><span class="token punctuation">]</span><span class="token punctuation">,</span> network<span class="token punctuation">:</span> <span class="token builtin">bool</span> <span class="token operator">=</span> <span class="token boolean">False</span><span class="token punctuation">)</span> <span class="token operator">-</span><span class="token operator">&gt;</span> <span class="token builtin">list</span><span class="token punctuation">[</span><span class="token builtin">str</span><span class="token punctuation">]</span><span class="token punctuation">:</span>
+        <span class="token keyword">if</span> <span class="token keyword">not</span> argv<span class="token punctuation">:</span>
+            <span class="token keyword">raise</span> ValueError<span class="token punctuation">(</span><span class="token string">"argv must not be empty"</span><span class="token punctuation">)</span>
+
+        bwrap <span class="token operator">=</span> <span class="token punctuation">[</span>
+            <span class="token string">"bwrap"</span><span class="token punctuation">,</span> <span class="token string">"--die-with-parent"</span><span class="token punctuation">,</span> <span class="token string">"--new-session"</span><span class="token punctuation">,</span>
+            <span class="token string">"--unshare-pid"</span><span class="token punctuation">,</span> <span class="token string">"--unshare-ipc"</span><span class="token punctuation">,</span> <span class="token string">"--unshare-uts"</span><span class="token punctuation">,</span> <span class="token string">"--unshare-cgroup"</span><span class="token punctuation">,</span>
+            <span class="token string">"--proc"</span><span class="token punctuation">,</span> <span class="token string">"/proc"</span><span class="token punctuation">,</span> <span class="token string">"--dev"</span><span class="token punctuation">,</span> <span class="token string">"/dev"</span><span class="token punctuation">,</span> <span class="token string">"--tmpfs"</span><span class="token punctuation">,</span> <span class="token string">"/tmp"</span><span class="token punctuation">,</span> <span class="token string">"--dir"</span><span class="token punctuation">,</span> <span class="token string">"/run"</span><span class="token punctuation">,</span>
+            <span class="token string">"--ro-bind"</span><span class="token punctuation">,</span> <span class="token string">"/usr"</span><span class="token punctuation">,</span> <span class="token string">"/usr"</span><span class="token punctuation">,</span>
+            <span class="token string">"--ro-bind-try"</span><span class="token punctuation">,</span> <span class="token string">"/bin"</span><span class="token punctuation">,</span> <span class="token string">"/bin"</span><span class="token punctuation">,</span>
+            <span class="token string">"--ro-bind-try"</span><span class="token punctuation">,</span> <span class="token string">"/sbin"</span><span class="token punctuation">,</span> <span class="token string">"/sbin"</span><span class="token punctuation">,</span>
+            <span class="token string">"--ro-bind-try"</span><span class="token punctuation">,</span> <span class="token string">"/lib"</span><span class="token punctuation">,</span> <span class="token string">"/lib"</span><span class="token punctuation">,</span>
+            <span class="token string">"--ro-bind-try"</span><span class="token punctuation">,</span> <span class="token string">"/lib64"</span><span class="token punctuation">,</span> <span class="token string">"/lib64"</span><span class="token punctuation">,</span>
+            <span class="token string">"--ro-bind-try"</span><span class="token punctuation">,</span> <span class="token string">"/etc/ld.so.cache"</span><span class="token punctuation">,</span> <span class="token string">"/etc/ld.so.cache"</span><span class="token punctuation">,</span>
+            <span class="token string">"--bind"</span><span class="token punctuation">,</span> <span class="token builtin">str</span><span class="token punctuation">(</span>self<span class="token punctuation">.</span>workspace<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token string">"/workspace"</span><span class="token punctuation">,</span>
+            <span class="token string">"--chdir"</span><span class="token punctuation">,</span> <span class="token string">"/workspace"</span><span class="token punctuation">,</span>
+            <span class="token string">"--clearenv"</span><span class="token punctuation">,</span>
+            <span class="token string">"--setenv"</span><span class="token punctuation">,</span> <span class="token string">"HOME"</span><span class="token punctuation">,</span> <span class="token string">"/tmp"</span><span class="token punctuation">,</span>
+            <span class="token string">"--setenv"</span><span class="token punctuation">,</span> <span class="token string">"PATH"</span><span class="token punctuation">,</span> <span class="token string">"/usr/local/bin:/usr/bin:/bin"</span><span class="token punctuation">,</span>
+            <span class="token string">"--setenv"</span><span class="token punctuation">,</span> <span class="token string">"LANG"</span><span class="token punctuation">,</span> <span class="token string">"C.UTF-8"</span><span class="token punctuation">,</span>
+            <span class="token string">"--setenv"</span><span class="token punctuation">,</span> <span class="token string">"PYTHONPYCACHEPREFIX"</span><span class="token punctuation">,</span> <span class="token string">"/tmp/pycache"</span><span class="token punctuation">,</span>
+        <span class="token punctuation">]</span>
+        <span class="token keyword">if</span> <span class="token keyword">not</span> network<span class="token punctuation">:</span>
+            bwrap<span class="token punctuation">.</span>append<span class="token punctuation">(</span><span class="token string">"--unshare-net"</span><span class="token punctuation">)</span>
+        <span class="token keyword">return</span> bwrap <span class="token operator">+</span> argv
+
+    <span class="token keyword">def</span> <span class="token function">exec</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> argv<span class="token punctuation">:</span> <span class="token builtin">list</span><span class="token punctuation">[</span><span class="token builtin">str</span><span class="token punctuation">]</span><span class="token punctuation">,</span> timeout_s<span class="token punctuation">:</span> <span class="token builtin">int</span> <span class="token operator">=</span> <span class="token number">30</span><span class="token punctuation">,</span> network<span class="token punctuation">:</span> <span class="token builtin">bool</span> <span class="token operator">=</span> <span class="token boolean">False</span><span class="token punctuation">)</span> <span class="token operator">-</span><span class="token operator">&gt;</span> ExecResult<span class="token punctuation">:</span>
+        started <span class="token operator">=</span> time<span class="token punctuation">.</span>monotonic<span class="token punctuation">(</span><span class="token punctuation">)</span>
+        <span class="token keyword">try</span><span class="token punctuation">:</span>
+            proc <span class="token operator">=</span> subprocess<span class="token punctuation">.</span>run<span class="token punctuation">(</span>
+                self<span class="token punctuation">.</span>build_argv<span class="token punctuation">(</span>argv<span class="token punctuation">,</span> network<span class="token operator">=</span>network<span class="token punctuation">)</span><span class="token punctuation">,</span>
+                cwd<span class="token operator">=</span><span class="token builtin">str</span><span class="token punctuation">(</span>self<span class="token punctuation">.</span>workspace<span class="token punctuation">)</span><span class="token punctuation">,</span>
+                stdin<span class="token operator">=</span>subprocess<span class="token punctuation">.</span>DEVNULL<span class="token punctuation">,</span>
+                stdout<span class="token operator">=</span>subprocess<span class="token punctuation">.</span>PIPE<span class="token punctuation">,</span>
+                stderr<span class="token operator">=</span>subprocess<span class="token punctuation">.</span>PIPE<span class="token punctuation">,</span>
+                text<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">,</span>
+                timeout<span class="token operator">=</span>timeout_s<span class="token punctuation">,</span>
+                preexec_fn<span class="token operator">=</span>self<span class="token punctuation">.</span>_limit_child<span class="token punctuation">,</span>
+            <span class="token punctuation">)</span>
+            <span class="token keyword">return</span> ExecResult<span class="token punctuation">(</span>argv<span class="token punctuation">,</span> proc<span class="token punctuation">.</span>returncode<span class="token punctuation">,</span> proc<span class="token punctuation">.</span>stdout<span class="token punctuation">[</span><span class="token operator">-</span><span class="token number">200_000</span><span class="token punctuation">:</span><span class="token punctuation">]</span><span class="token punctuation">,</span> proc<span class="token punctuation">.</span>stderr<span class="token punctuation">[</span><span class="token operator">-</span><span class="token number">200_000</span><span class="token punctuation">:</span><span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token boolean">False</span><span class="token punctuation">,</span> <span class="token builtin">int</span><span class="token punctuation">(</span><span class="token punctuation">(</span>time<span class="token punctuation">.</span>monotonic<span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">-</span> started<span class="token punctuation">)</span> <span class="token operator">*</span> <span class="token number">1000</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+        <span class="token keyword">except</span> subprocess<span class="token punctuation">.</span>TimeoutExpired <span class="token keyword">as</span> e<span class="token punctuation">:</span>
+            stdout <span class="token operator">=</span> e<span class="token punctuation">.</span>stdout <span class="token keyword">or</span> <span class="token string">""</span>
+            stderr <span class="token operator">=</span> e<span class="token punctuation">.</span>stderr <span class="token keyword">or</span> <span class="token string">""</span>
+            <span class="token keyword">if</span> <span class="token builtin">isinstance</span><span class="token punctuation">(</span>stdout<span class="token punctuation">,</span> <span class="token builtin">bytes</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+                stdout <span class="token operator">=</span> stdout<span class="token punctuation">.</span>decode<span class="token punctuation">(</span><span class="token string">"utf-8"</span><span class="token punctuation">,</span> errors<span class="token operator">=</span><span class="token string">"replace"</span><span class="token punctuation">)</span>
+            <span class="token keyword">if</span> <span class="token builtin">isinstance</span><span class="token punctuation">(</span>stderr<span class="token punctuation">,</span> <span class="token builtin">bytes</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+                stderr <span class="token operator">=</span> stderr<span class="token punctuation">.</span>decode<span class="token punctuation">(</span><span class="token string">"utf-8"</span><span class="token punctuation">,</span> errors<span class="token operator">=</span><span class="token string">"replace"</span><span class="token punctuation">)</span>
+            <span class="token keyword">return</span> ExecResult<span class="token punctuation">(</span>argv<span class="token punctuation">,</span> <span class="token boolean">None</span><span class="token punctuation">,</span> stdout<span class="token punctuation">[</span><span class="token operator">-</span><span class="token number">200_000</span><span class="token punctuation">:</span><span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token punctuation">(</span>stderr <span class="token operator">+</span> <span class="token string">"\n[timeout]"</span><span class="token punctuation">)</span><span class="token punctuation">[</span><span class="token operator">-</span><span class="token number">200_000</span><span class="token punctuation">:</span><span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token boolean">True</span><span class="token punctuation">,</span> <span class="token builtin">int</span><span class="token punctuation">(</span><span class="token punctuation">(</span>time<span class="token punctuation">.</span>monotonic<span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">-</span> started<span class="token punctuation">)</span> <span class="token operator">*</span> <span class="token number">1000</span><span class="token punctuation">)</span><span class="token punctuation">)</span></code></pre>
+  </section>
+
+  <section id="docker-runner">
+    <h2 id="工程化-docker-runner"><span class="section-index">12</span><span class="section-title">十二、工程化：Docker runner</span></h2>
+    <p>bubblewrap 适合学习和本地轻量执行，但工程化时会遇到依赖打包问题。Docker/Podman 的优势是镜像生态成熟、语言运行时容易预装、资源限制参数现成、CI 集成简单。</p>
+    <pre class="language-bash" data-language="bash"><code class="language-bash"><span class="token function">docker</span> run <span class="token parameter variable">--rm</span> <span class="token punctuation">\</span>
+  <span class="token parameter variable">--network</span> none <span class="token punctuation">\</span>
+  <span class="token parameter variable">--user</span> <span class="token number">1000</span>:1000 <span class="token punctuation">\</span>
+  --read-only <span class="token punctuation">\</span>
+  <span class="token parameter variable">--tmpfs</span> /tmp:rw,nosuid,nodev,size<span class="token operator">=</span>512m <span class="token punctuation">\</span>
+  <span class="token parameter variable">--tmpfs</span> /run:rw,nosuid,nodev,size<span class="token operator">=</span>64m <span class="token punctuation">\</span>
+  --pids-limit <span class="token number">128</span> <span class="token punctuation">\</span>
+  <span class="token parameter variable">--memory</span> 2g <span class="token punctuation">\</span>
+  <span class="token parameter variable">--cpus</span> <span class="token number">2</span> <span class="token punctuation">\</span>
+  --cap-drop ALL <span class="token punctuation">\</span>
+  --security-opt no-new-privileges <span class="token punctuation">\</span>
+  <span class="token parameter variable">-e</span> <span class="token assign-left variable"><span class="token environment constant">HOME</span></span><span class="token operator">=</span>/tmp <span class="token punctuation">\</span>
+  <span class="token parameter variable">-e</span> <span class="token assign-left variable">PYTHONPYCACHEPREFIX</span><span class="token operator">=</span>/tmp/pycache <span class="token punctuation">\</span>
+  <span class="token parameter variable">-v</span> <span class="token string">"<span class="token environment constant">$PWD</span>/workspace:/workspace:rw"</span> <span class="token punctuation">\</span>
+  <span class="token parameter variable">-w</span> /workspace <span class="token punctuation">\</span>
+  python:3.12-slim <span class="token punctuation">\</span>
+  python main.py</code></pre>
+    <p>关键点是：<code>--network none</code> 默认无网，<code>--read-only</code> 让根文件系统只读，<code>--cap-drop ALL</code> 移除 capabilities，<code>no-new-privileges</code> 阻止 exec 后提权。不要使用 privileged 模式，不要使用 host network，不要挂宿主用户目录，不要把真实凭据放进环境变量。</p>
+  </section>
+
+  <section id="policy-broker">
+    <h2 id="policy-审批-网络代理与凭据-broker"><span class="section-index">13</span><span class="section-title">十三、Policy、审批、网络代理与凭据 broker</span></h2>
+    <p>Agent sandbox 从“代码执行器”升级为“agent runtime”，关键在 policy、approval、egress proxy 和 credential broker。</p>
+    <h3 id="1-命令策略">13.1 命令策略</h3>
+    <p>明显高风险的命令应该在执行前触发审批或拒绝，例如提权、挂载、修改网络、控制容器 runtime、发布包、推送代码、调用云 CLI 等。但命令黑名单只是辅助，真正的防线仍然是无网络、无长期凭据、无挂载权限、无高风险 capabilities、workspace-only。</p>
+
+    <h3 id="2-网络代理">13.2 网络代理</h3>
+    <pre class="language-text" data-language="text"><code class="language-text">sandbox:
+  没有全网访问
+  只能连到本地代理或无网络
+
+proxy:
+  解析目标域名
+  检查 allowlist
+  阻断内网 CIDR 和 metadata endpoint
+  记录请求日志
+  注入短期凭据
+  必要时触发用户审批</code></pre>
+
+    <h3 id="3-凭据-broker">13.3 凭据 broker</h3>
+    <p>不要把真实长期凭据放进沙箱。更好的模式是：</p>
+    <pre class="language-text" data-language="text"><code class="language-text">agent 生成 patch
+  ↓
+sandbox 返回 diff
+  ↓
+harness 展示 diff / 策略审核
+  ↓
+用户或自动规则批准
+  ↓
+broker 用真实凭据创建 PR 或执行外部动作
+  ↓
+sandbox 永远看不到长期凭据</code></pre>
+  </section>
+
+  <section id="tests">
+    <h2 id="攻击测试集与验收标准"><span class="section-index">14</span><span class="section-title">十四、攻击测试集与验收标准</span></h2>
+    <p>在接入 agent 前，先写攻击测试。沙箱不是靠“看起来安全”，而是靠反复验证。</p>
+    <table>
+      <tbody><tr><th>测试类别</th><th>验证目标</th><th>期望结果</th></tr>
+      <tr><td>文件读取逃逸</td><td>尝试访问宿主用户目录、系统敏感区域、runtime 控制接口</td><td>不可见或不可读</td></tr>
+      <tr><td>写越界</td><td>尝试写入 workspace 外路径</td><td>失败或只读</td></tr>
+      <tr><td>网络外传</td><td>尝试连接公网、内网、metadata 地址</td><td>默认失败</td></tr>
+      <tr><td>环境变量泄露</td><td>查看沙箱环境变量</td><td>只有最小必要变量</td></tr>
+      <tr><td>进程数滥用</td><td>创建大量子进程</td><td>被进程数限制拦住</td></tr>
+      <tr><td>内存滥用</td><td>持续申请内存</td><td>被内存限制拦住</td></tr>
+      <tr><td>CPU 滥用</td><td>无限循环</td><td>被 timeout 或 CPU quota 控制</td></tr>
+    </tbody></table>
+    <p>验收清单：</p>
+    <ul>
+      <li><code>exec(argv)</code> 不使用裸 shell string</li>
+      <li>默认 no network</li>
+      <li>默认 clearenv</li>
+      <li>默认 workspace-only</li>
+      <li>没有宿主用户目录</li>
+      <li>没有真实长期凭据</li>
+      <li>有 timeout、内存、CPU、进程数限制</li>
+      <li>stdout/stderr 截断</li>
+      <li>有 audit log</li>
+      <li>有 file diff 或 hash snapshot</li>
+      <li>高风险动作走 approval</li>
+    </ul>
+  </section>
+
+  <section id="roadmap">
+    <h2 id="演进路线与学习地图"><span class="section-index">15</span><span class="section-title">十五、演进路线与学习地图</span></h2>
+    <pre class="language-text" data-language="text"><code class="language-text">第 1 周：Linux bubblewrap MVP
+  - mount namespace
+  - network namespace
+  - clearenv
+  - timeout
+  - stdout/stderr capture
+  - 攻击测试集
+
+第 2 周：工程化 runner
+  - Docker runner
+  - image/runtime 管理
+  - resource policy
+  - diff/artifact/audit
+
+第 3 周：policy 与 broker
+  - command policy
+  - approval workflow
+  - egress proxy
+  - credential broker
+
+第 4 周：平台扩展
+  - macOS sandbox-exec / App Sandbox 理解
+  - Windows Restricted Token / Job Object / AppContainer 理解
+
+后续：强隔离
+  - gVisor
+  - Kata Containers
+  - Firecracker microVM
+  - Kubernetes runtime class
+  - snapshot/warm pool</code></pre>
+    <p>最终判断标准：一个 agent sandbox 是否靠谱，不看它叫什么，而看模型被提示注入诱导、生成恶意命令、尝试读敏感数据、尝试联网外传、尝试消耗资源时，系统边界是否仍然强制拦住。</p>
+  </section>
+
+  <section id="refs">
+    <h2 id="参考资料"><span class="section-index">16</span><span class="section-title">参考资料</span></h2>
+    <ul>
+      <li><a href="https://developers.openai.com/codex/concepts/sandboxing">OpenAI Codex：Sandboxing</a></li>
+      <li><a href="https://developers.openai.com/api/docs/guides/agents/sandboxes">OpenAI API：Sandbox Agents</a></li>
+      <li><a href="https://www.anthropic.com/engineering/claude-code-sandboxing">Anthropic：Making Claude Code more secure and autonomous with sandboxing</a></li>
+      <li><a href="https://modelcontextprotocol.io/docs/tutorials/security/security_best_practices">Model Context Protocol：Security Best Practices</a></li>
+      <li><a href="https://man7.org/linux/man-pages/man7/namespaces.7.html">Linux man-pages：namespaces(7)</a></li>
+      <li><a href="https://docs.kernel.org/admin-guide/cgroup-v2.html">Linux Kernel Documentation：Control Group v2</a></li>
+      <li><a href="https://docs.kernel.org/userspace-api/seccomp_filter.html">Linux Kernel Documentation：Seccomp BPF</a></li>
+      <li><a href="https://docs.kernel.org/userspace-api/landlock.html">Linux Kernel Documentation：Landlock</a></li>
+      <li><a href="https://docs.docker.com/engine/security/rootless/">Docker Docs：Rootless mode</a></li>
+      <li><a href="https://docs.docker.com/engine/security/seccomp/">Docker Docs：Seccomp security profiles</a></li>
+      <li><a href="https://gvisor.dev/docs/">gVisor Docs：What is gVisor?</a></li>
+      <li><a href="https://firecracker-microvm.github.io/">Firecracker microVM</a></li>
+      <li><a href="https://learn.microsoft.com/en-us/windows/win32/secauthz/restricted-tokens">Microsoft Learn：Restricted Tokens</a></li>
+      <li><a href="https://learn.microsoft.com/en-us/windows/win32/secauthz/appcontainer-isolation">Microsoft Learn：AppContainer isolation</a></li>
+      <li><a href="https://learn.microsoft.com/en-us/windows/win32/procthread/job-objects">Microsoft Learn：Job Objects</a></li>
+      <li><a href="https://learn.microsoft.com/en-us/windows/security/application-security/application-isolation/windows-sandbox/">Microsoft Learn：Windows Sandbox</a></li>
+      <li><a href="https://developer.apple.com/documentation/security/app-sandbox">Apple Developer Documentation：App Sandbox</a></li>
+      <li><a href="https://support.apple.com/guide/security/controlling-app-access-to-files-secddd1d86a6/web">Apple Platform Security：Controlling app access to files in macOS</a></li>
+      <li><a href="https://developer.apple.com/library/archive/documentation/Security/Conceptual/System_Integrity_Protection_Guide/Introduction/Introduction.html">Apple Developer Archive：System Integrity Protection Guide</a></li>
+      <li><a href="https://github.com/containers/bubblewrap">containers/bubblewrap</a></li>
+    </ul>
+  </section>
+
+
+  <section class="tag-list" aria-label="文章标签">
+    
+      <a class="tag-chip" href="../../tags/AI-工程.html">#AI 工程</a>
+    
+      <a class="tag-chip" href="../../tags/Agent-Runtime.html">#Agent Runtime</a>
+    
+      <a class="tag-chip" href="../../tags/Sandbox.html">#Sandbox</a>
+    
+      <a class="tag-chip" href="../../tags/Linux.html">#Linux</a>
+    
+      <a class="tag-chip" href="../../tags/Windows.html">#Windows</a>
+    
+      <a class="tag-chip" href="../../tags/macOS.html">#macOS</a>
+    
+  </section>
+
+
+
+  <section class="comments" aria-label="评论">
+    <h2 class="plain-heading">评论</h2>
+    <script src="https://utteranc.es/client.js"
+      repo="CodeKillerCoser/notebook"
+      issue-term="pathname"
+      label="comment"
+      theme="preferred-color-scheme"
+      crossorigin="anonymous"
+      async>
+    </script>
+  </section>
+
+
+    </main>
+  </div>
+</body>
+</html>
