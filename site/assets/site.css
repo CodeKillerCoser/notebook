@@ -31,8 +31,42 @@ body {
   color: var(--text);
   margin: 0;
   padding: 0 0 72px;
-  background: #fff;
+  background: #fbfcff;
   letter-spacing: 0;
+}
+
+.ambient-flow {
+  position: fixed;
+  inset: -18vh -12vw;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(120deg, rgba(37, 99, 235, .11), transparent 32%),
+    linear-gradient(240deg, rgba(15, 118, 110, .12), transparent 36%),
+    linear-gradient(25deg, transparent 54%, rgba(194, 65, 12, .08)),
+    #fbfcff;
+  background-size: 180% 180%, 160% 160%, 190% 190%, auto;
+  animation: ambient-flow 24s ease-in-out infinite alternate;
+}
+.ambient-flow::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-linear-gradient(115deg, rgba(37, 99, 235, .055) 0 1px, transparent 1px 72px),
+    repeating-linear-gradient(25deg, rgba(15, 118, 110, .045) 0 1px, transparent 1px 86px);
+  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, .8), rgba(0, 0, 0, .18) 64%, transparent);
+  -webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, .8), rgba(0, 0, 0, .18) 64%, transparent);
+  animation: field-drift 34s linear infinite;
+}
+.ion-field {
+  position: fixed;
+  inset: 0;
+  z-index: 45;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  mix-blend-mode: multiply;
 }
 
 .toc-state,
@@ -50,7 +84,7 @@ body {
   margin: 0 auto;
   padding: .68rem var(--page-pad);
   border-bottom: 1px solid rgba(229, 231, 235, .9);
-  background: rgba(255, 255, 255, .92);
+  background: rgba(255, 255, 255, .88);
   color: var(--muted);
   font-size: .86rem;
   line-height: 1.45;
@@ -63,6 +97,8 @@ body {
 
 .page-shell,
 .content-grid {
+  position: relative;
+  z-index: 1;
   max-width: var(--page-max);
   margin-left: auto;
   margin-right: auto;
@@ -175,7 +211,7 @@ li { margin: .24rem 0; }
   display: inline-flex;
   align-items: center;
   border: 1px solid var(--line);
-  background: #fff;
+  background: rgba(255, 255, 255, .86);
   color: #6b7280;
   border-radius: 999px;
   padding: .18rem .62rem;
@@ -394,7 +430,9 @@ figure svg { display: block; width: 100%; height: auto; padding: .4rem .5rem .2r
   border: 1px solid var(--line);
   border-radius: 10px;
   padding: 1rem;
-  background: #fff;
+  background: rgba(255, 255, 255, .82);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 .card h3 { margin-top: 0; }
 .directory-grid {
@@ -410,7 +448,13 @@ figure svg { display: block; width: 100%; height: auto; padding: .4rem .5rem .2r
   justify-content: space-between;
   color: var(--text);
 }
-.directory-card:hover { text-decoration: none; border-color: #cbd5e1; }
+.directory-card:hover {
+  text-decoration: none;
+  border-color: #cbd5e1;
+  box-shadow: 0 16px 40px rgba(15, 23, 42, .08);
+  transform: translateY(-2px);
+}
+.directory-card { transition: border-color .16s ease, box-shadow .16s ease, transform .16s ease; }
 .directory-card strong { font-size: 1.05rem; }
 .directory-card span { color: var(--muted); font-size: .88rem; }
 
@@ -465,6 +509,16 @@ hr { border: 0; border-top: 1px solid var(--line); margin: 2.2rem 0; }
 
 .pagefind-ui { --pagefind-ui-primary: var(--blue); --pagefind-ui-border: var(--line); --pagefind-ui-border-radius: 10px; }
 .pagefind-ui__search-input { font-family: inherit; }
+
+@keyframes ambient-flow {
+  0% { background-position: 0% 35%, 100% 20%, 35% 100%, 0 0; }
+  100% { background-position: 100% 62%, 12% 88%, 95% 0%, 0 0; }
+}
+
+@keyframes field-drift {
+  from { transform: translate3d(-3vw, -2vh, 0); }
+  to { transform: translate3d(3vw, 2vh, 0); }
+}
 
 @media (max-width: 1020px) {
   :root { --page-pad: 24px; }
@@ -641,7 +695,20 @@ hr { border: 0; border-top: 1px solid var(--line); margin: 2.2rem 0; }
   }
 }
 
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .ambient-flow,
+  .ambient-flow::before,
+  .directory-card {
+    animation: none;
+    transition: none;
+  }
+  .ion-field { display: none; }
+}
+
 @media print {
+  .ambient-flow,
+  .ion-field { display: none; }
   body { margin: 0; padding: 24px 36px; }
   .page-shell, .content-grid { max-width: none; margin: 0; padding: 0; display: block; }
   .hero-grid { display: block; }
