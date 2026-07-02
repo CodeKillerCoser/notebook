@@ -7,9 +7,9 @@
   
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>LeetCode T8 字符串转换整数 · Rust 笔记 | Notebook</title>
+  <title>LeetCode T8 字符串转换整数 · Rust 笔记 | 工程星图</title>
   <meta name="description" content="这题可以看成一个小状态机：跳过前导空白、读取可选符号、连续读取数字，遇到第一个非法字符后停止。 1 状态与符号 当前解法用 sign 同时表示“是否已经进入解析状态”和“当前符号”。 sign 含义 0 还没有读到符号或数字 1 当前结果按正数累积 -1 当前结果按负数累积 遇到数字且还没有显式符号时，默认按正数处理： sign = if sign == 0">
-  <link rel="alternate" type="application/rss+xml" title="Notebook RSS" href="../../feed.xml">
+  <link rel="alternate" type="application/rss+xml" title="工程星图 RSS" href="../../feed.xml">
   <link rel="stylesheet" href="../../assets/site.css">
   
 </head>
@@ -26,18 +26,24 @@
   
 
   <nav class="breadcrumb-bar" aria-label="博客路径">
+    <a href="../../index.html">工程星图</a>
     
       
-        <a href="../../index.html">Notebook</a>
-        <span aria-hidden="true">›</span>
+        
       
-        <a href="../index.html">Rust</a>
-        <span aria-hidden="true">›</span>
+        
+          <span aria-hidden="true">›</span>
+          <a href="../index.html">Rust</a>
+        
       
-        <a href="index.html">综合案例</a>
-        <span aria-hidden="true">›</span>
+        
+          <span aria-hidden="true">›</span>
+          <a href="index.html">综合案例</a>
+        
       
-        <a href="LeetCode-T8字符串转换整数.html">LeetCode T8 字符串转换整数 · Rust 笔记</a>
+        
+          <span aria-hidden="true">›</span>
+          <a href="LeetCode-T8字符串转换整数.html">LeetCode T8 字符串转换整数 · Rust 笔记</a>
         
       
     
@@ -243,6 +249,23 @@
       document.addEventListener("keydown", (event) => {
         if (event.key === "Escape") state.checked = false;
       });
+
+      const links = [...toc.querySelectorAll('a[href^="#"]')];
+      const targets = links
+        .map((link) => document.getElementById(decodeURIComponent(link.getAttribute("href").slice(1))))
+        .filter(Boolean);
+      if ("IntersectionObserver" in window && targets.length) {
+        const activate = (id) => {
+          links.forEach((link) => link.classList.toggle("is-active", link.getAttribute("href") === `#${id}`));
+        };
+        const observer = new IntersectionObserver((entries) => {
+          const visible = entries
+            .filter((entry) => entry.isIntersecting)
+            .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0];
+          if (visible) activate(visible.target.id);
+        }, { rootMargin: "-18% 0px -68% 0px", threshold: 0 });
+        targets.forEach((target) => observer.observe(target));
+      }
     })();
 
     (() => {

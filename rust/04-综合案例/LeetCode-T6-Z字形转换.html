@@ -7,9 +7,9 @@
   
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>LeetCode T6 Z 字形转换 · Rust 笔记 | Notebook</title>
+  <title>LeetCode T6 Z 字形转换 · Rust 笔记 | 工程星图</title>
   <meta name="description" content="这题适合直接按行模拟。维护当前行 cur_row 和方向 going_down ，到顶部或底部时切换方向。 1 当前解法 impl Solution { pub fn convert ( s : String , num_rows : i32 ) -&amp;gt; String { if s . is_empty ( ) || num_rows &amp;lt;= 1 {">
-  <link rel="alternate" type="application/rss+xml" title="Notebook RSS" href="../../feed.xml">
+  <link rel="alternate" type="application/rss+xml" title="工程星图 RSS" href="../../feed.xml">
   <link rel="stylesheet" href="../../assets/site.css">
   
 </head>
@@ -26,18 +26,24 @@
   
 
   <nav class="breadcrumb-bar" aria-label="博客路径">
+    <a href="../../index.html">工程星图</a>
     
       
-        <a href="../../index.html">Notebook</a>
-        <span aria-hidden="true">›</span>
+        
       
-        <a href="../index.html">Rust</a>
-        <span aria-hidden="true">›</span>
+        
+          <span aria-hidden="true">›</span>
+          <a href="../index.html">Rust</a>
+        
       
-        <a href="index.html">综合案例</a>
-        <span aria-hidden="true">›</span>
+        
+          <span aria-hidden="true">›</span>
+          <a href="index.html">综合案例</a>
+        
       
-        <a href="LeetCode-T6-Z字形转换.html">LeetCode T6 Z 字形转换 · Rust 笔记</a>
+        
+          <span aria-hidden="true">›</span>
+          <a href="LeetCode-T6-Z字形转换.html">LeetCode T6 Z 字形转换 · Rust 笔记</a>
         
       
     
@@ -215,6 +221,23 @@
       document.addEventListener("keydown", (event) => {
         if (event.key === "Escape") state.checked = false;
       });
+
+      const links = [...toc.querySelectorAll('a[href^="#"]')];
+      const targets = links
+        .map((link) => document.getElementById(decodeURIComponent(link.getAttribute("href").slice(1))))
+        .filter(Boolean);
+      if ("IntersectionObserver" in window && targets.length) {
+        const activate = (id) => {
+          links.forEach((link) => link.classList.toggle("is-active", link.getAttribute("href") === `#${id}`));
+        };
+        const observer = new IntersectionObserver((entries) => {
+          const visible = entries
+            .filter((entry) => entry.isIntersecting)
+            .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0];
+          if (visible) activate(visible.target.id);
+        }, { rootMargin: "-18% 0px -68% 0px", threshold: 0 });
+        targets.forEach((target) => observer.observe(target));
+      }
     })();
 
     (() => {

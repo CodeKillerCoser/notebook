@@ -7,9 +7,9 @@
   
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Hello World — 第一个 Rust 程序 | Notebook</title>
+  <title>Hello World — 第一个 Rust 程序 | 工程星图</title>
   <meta name="description" content="1 最简单的 Rust 程序 fn main ( ) { println! ( &quot;Hello, world!&quot; ) ; } 要点 fn 声明函数， main() 是程序入口 println! 是 宏 （macro），不是普通函数——后缀 ! 标识宏调用 语句以分号 ; 结尾 字符串用双引号 &quot;&quot; ，字符用单引号 &#39;&#39; 2 直接运行 .rs 文件 Rust 不">
-  <link rel="alternate" type="application/rss+xml" title="Notebook RSS" href="../../feed.xml">
+  <link rel="alternate" type="application/rss+xml" title="工程星图 RSS" href="../../feed.xml">
   <link rel="stylesheet" href="../../assets/site.css">
   
 </head>
@@ -26,18 +26,24 @@
   
 
   <nav class="breadcrumb-bar" aria-label="博客路径">
+    <a href="../../index.html">工程星图</a>
     
       
-        <a href="../../index.html">Notebook</a>
-        <span aria-hidden="true">›</span>
+        
       
-        <a href="../index.html">Rust</a>
-        <span aria-hidden="true">›</span>
+        
+          <span aria-hidden="true">›</span>
+          <a href="../index.html">Rust</a>
+        
       
-        <a href="index.html">基础入门</a>
-        <span aria-hidden="true">›</span>
+        
+          <span aria-hidden="true">›</span>
+          <a href="index.html">基础入门</a>
+        
       
-        <a href="Hello-World.html">Hello World — 第一个 Rust 程序</a>
+        
+          <span aria-hidden="true">›</span>
+          <a href="Hello-World.html">Hello World — 第一个 Rust 程序</a>
         
       
     
@@ -166,6 +172,23 @@
       document.addEventListener("keydown", (event) => {
         if (event.key === "Escape") state.checked = false;
       });
+
+      const links = [...toc.querySelectorAll('a[href^="#"]')];
+      const targets = links
+        .map((link) => document.getElementById(decodeURIComponent(link.getAttribute("href").slice(1))))
+        .filter(Boolean);
+      if ("IntersectionObserver" in window && targets.length) {
+        const activate = (id) => {
+          links.forEach((link) => link.classList.toggle("is-active", link.getAttribute("href") === `#${id}`));
+        };
+        const observer = new IntersectionObserver((entries) => {
+          const visible = entries
+            .filter((entry) => entry.isIntersecting)
+            .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0];
+          if (visible) activate(visible.target.id);
+        }, { rootMargin: "-18% 0px -68% 0px", threshold: 0 });
+        targets.forEach((target) => observer.observe(target));
+      }
     })();
 
     (() => {

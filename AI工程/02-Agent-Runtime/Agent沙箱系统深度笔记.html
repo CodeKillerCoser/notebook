@@ -7,9 +7,9 @@
   
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Agent 沙箱系统深度笔记：从平台机制到自研实现路线 | Notebook</title>
+  <title>Agent 沙箱系统深度笔记：从平台机制到自研实现路线 | 工程星图</title>
   <meta name="description" content="Agent 沙箱不是一句“让模型别乱来”的提示词，而是一套围绕模型外部动作构建的执行边界：文件能碰哪里、命令能怎么跑、网络能去哪、凭据如何给、资源如何限制、越界时谁审批、出问题后如何审计和回放。 1 一、总览：Agent 沙箱到底是什么 在 agent 系统里，sandbox 保护的不是模型内部的推理过程，而是模型发起的外部动作。模型可以提出“我要运行命令”">
-  <link rel="alternate" type="application/rss+xml" title="Notebook RSS" href="../../feed.xml">
+  <link rel="alternate" type="application/rss+xml" title="工程星图 RSS" href="../../feed.xml">
   <link rel="stylesheet" href="../../assets/site.css">
   
 </head>
@@ -26,18 +26,24 @@
   
 
   <nav class="breadcrumb-bar" aria-label="博客路径">
+    <a href="../../index.html">工程星图</a>
     
       
-        <a href="../../index.html">Notebook</a>
-        <span aria-hidden="true">›</span>
+        
       
-        <a href="../index.html">AI 工程</a>
-        <span aria-hidden="true">›</span>
+        
+          <span aria-hidden="true">›</span>
+          <a href="../index.html">AI 工程</a>
+        
       
-        <a href="index.html">Agent Runtime</a>
-        <span aria-hidden="true">›</span>
+        
+          <span aria-hidden="true">›</span>
+          <a href="index.html">Agent Runtime</a>
+        
       
-        <a href="Agent沙箱系统深度笔记.html">Agent 沙箱系统深度笔记：从平台机制到自研实现路线</a>
+        
+          <span aria-hidden="true">›</span>
+          <a href="Agent沙箱系统深度笔记.html">Agent 沙箱系统深度笔记：从平台机制到自研实现路线</a>
         
       
     
@@ -754,6 +760,23 @@ sandbox 永远看不到长期凭据</code></pre>
       document.addEventListener("keydown", (event) => {
         if (event.key === "Escape") state.checked = false;
       });
+
+      const links = [...toc.querySelectorAll('a[href^="#"]')];
+      const targets = links
+        .map((link) => document.getElementById(decodeURIComponent(link.getAttribute("href").slice(1))))
+        .filter(Boolean);
+      if ("IntersectionObserver" in window && targets.length) {
+        const activate = (id) => {
+          links.forEach((link) => link.classList.toggle("is-active", link.getAttribute("href") === `#${id}`));
+        };
+        const observer = new IntersectionObserver((entries) => {
+          const visible = entries
+            .filter((entry) => entry.isIntersecting)
+            .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0];
+          if (visible) activate(visible.target.id);
+        }, { rootMargin: "-18% 0px -68% 0px", threshold: 0 });
+        targets.forEach((target) => observer.observe(target));
+      }
     })();
 
     (() => {

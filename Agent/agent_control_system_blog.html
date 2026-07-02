@@ -7,9 +7,9 @@
   
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>把 Agent 当作控制系统来设计：从工具调用到闭环智能工程 | Notebook</title>
+  <title>把 Agent 当作控制系统来设计：从工具调用到闭环智能工程 | 工程星图</title>
   <meta name="description" content="如果操作系统视角回答的是“Agent 如何被安全地运行”，控制系统视角回答的就是“Agent 如何在不确定环境中稳定逼近目标”。这篇文章尝试把 Agent、AI-native 开发、多 Agent 协作、自动验证与自愈，统一放进一个闭环控制框架里。">
-  <link rel="alternate" type="application/rss+xml" title="Notebook RSS" href="../feed.xml">
+  <link rel="alternate" type="application/rss+xml" title="工程星图 RSS" href="../feed.xml">
   <link rel="stylesheet" href="../assets/site.css">
   
 </head>
@@ -26,15 +26,19 @@
   
 
   <nav class="breadcrumb-bar" aria-label="博客路径">
+    <a href="../index.html">工程星图</a>
     
       
-        <a href="../index.html">Notebook</a>
-        <span aria-hidden="true">›</span>
+        
       
-        <a href="index.html">Agent</a>
-        <span aria-hidden="true">›</span>
+        
+          <span aria-hidden="true">›</span>
+          <a href="index.html">Agent</a>
+        
       
-        <a href="agent_control_system_blog.html">把 Agent 当作控制系统来设计：从工具调用到闭环智能工程</a>
+        
+          <span aria-hidden="true">›</span>
+          <a href="agent_control_system_blog.html">把 Agent 当作控制系统来设计：从工具调用到闭环智能工程</a>
         
       
     
@@ -747,6 +751,23 @@ subject to:
       document.addEventListener("keydown", (event) => {
         if (event.key === "Escape") state.checked = false;
       });
+
+      const links = [...toc.querySelectorAll('a[href^="#"]')];
+      const targets = links
+        .map((link) => document.getElementById(decodeURIComponent(link.getAttribute("href").slice(1))))
+        .filter(Boolean);
+      if ("IntersectionObserver" in window && targets.length) {
+        const activate = (id) => {
+          links.forEach((link) => link.classList.toggle("is-active", link.getAttribute("href") === `#${id}`));
+        };
+        const observer = new IntersectionObserver((entries) => {
+          const visible = entries
+            .filter((entry) => entry.isIntersecting)
+            .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0];
+          if (visible) activate(visible.target.id);
+        }, { rootMargin: "-18% 0px -68% 0px", threshold: 0 });
+        targets.forEach((target) => observer.observe(target));
+      }
     })();
 
     (() => {

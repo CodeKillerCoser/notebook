@@ -7,9 +7,9 @@
   
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>GitHub Actions 自动生成 index.html | Notebook</title>
+  <title>GitHub Actions 自动生成 index.html | 工程星图</title>
   <meta name="description" content="通过 GitHub Actions 在每次 push 时自动扫描目录结构、生成 index.html 并推送回仓库，无需手动维护文件浏览器。 1 整体流程 push → GitHub Actions(ubuntu) → python generate_index.py → git commit → git push → Pages 自动更新 2 核心文件结构">
-  <link rel="alternate" type="application/rss+xml" title="Notebook RSS" href="../../feed.xml">
+  <link rel="alternate" type="application/rss+xml" title="工程星图 RSS" href="../../feed.xml">
   <link rel="stylesheet" href="../../assets/site.css">
   
 </head>
@@ -26,18 +26,24 @@
   
 
   <nav class="breadcrumb-bar" aria-label="博客路径">
+    <a href="../../index.html">工程星图</a>
     
       
-        <a href="../../index.html">Notebook</a>
-        <span aria-hidden="true">›</span>
+        
       
-        <a href="../index.html">Git 部署</a>
-        <span aria-hidden="true">›</span>
+        
+          <span aria-hidden="true">›</span>
+          <a href="../index.html">Git 部署</a>
+        
       
-        <a href="index.html">自动化</a>
-        <span aria-hidden="true">›</span>
+        
+          <span aria-hidden="true">›</span>
+          <a href="index.html">自动化</a>
+        
       
-        <a href="index-html-自动生成.html">GitHub Actions 自动生成 index.html</a>
+        
+          <span aria-hidden="true">›</span>
+          <a href="index-html-自动生成.html">GitHub Actions 自动生成 index.html</a>
         
       
     
@@ -221,6 +227,23 @@ notebook/
       document.addEventListener("keydown", (event) => {
         if (event.key === "Escape") state.checked = false;
       });
+
+      const links = [...toc.querySelectorAll('a[href^="#"]')];
+      const targets = links
+        .map((link) => document.getElementById(decodeURIComponent(link.getAttribute("href").slice(1))))
+        .filter(Boolean);
+      if ("IntersectionObserver" in window && targets.length) {
+        const activate = (id) => {
+          links.forEach((link) => link.classList.toggle("is-active", link.getAttribute("href") === `#${id}`));
+        };
+        const observer = new IntersectionObserver((entries) => {
+          const visible = entries
+            .filter((entry) => entry.isIntersecting)
+            .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0];
+          if (visible) activate(visible.target.id);
+        }, { rootMargin: "-18% 0px -68% 0px", threshold: 0 });
+        targets.forEach((target) => observer.observe(target));
+      }
     })();
 
     (() => {

@@ -7,9 +7,9 @@
   
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Deref Trait 与解引用强制转换 | Notebook</title>
+  <title>Deref Trait 与解引用强制转换 | 工程星图</title>
   <meta name="description" content="Rust 中所有 *ptr 解引用操作在底层都等价于 *(ptr.deref()) 。理解这个两层结构是理解智能指针的关键。 1 Deref Trait 定义 pub trait Deref { type Target : ? Sized ; fn deref ( &amp;amp; self ) -&amp;gt; &amp;amp; Self :: Target ; // 返回">
-  <link rel="alternate" type="application/rss+xml" title="Notebook RSS" href="../../feed.xml">
+  <link rel="alternate" type="application/rss+xml" title="工程星图 RSS" href="../../feed.xml">
   <link rel="stylesheet" href="../../assets/site.css">
   
 </head>
@@ -26,18 +26,24 @@
   
 
   <nav class="breadcrumb-bar" aria-label="博客路径">
+    <a href="../../index.html">工程星图</a>
     
       
-        <a href="../../index.html">Notebook</a>
-        <span aria-hidden="true">›</span>
+        
       
-        <a href="../index.html">Rust</a>
-        <span aria-hidden="true">›</span>
+        
+          <span aria-hidden="true">›</span>
+          <a href="../index.html">Rust</a>
+        
       
-        <a href="index.html">语法进阶</a>
-        <span aria-hidden="true">›</span>
+        
+          <span aria-hidden="true">›</span>
+          <a href="index.html">语法进阶</a>
+        
       
-        <a href="Deref与解引用强制转换.html">Deref Trait 与解引用强制转换</a>
+        
+          <span aria-hidden="true">›</span>
+          <a href="Deref与解引用强制转换.html">Deref Trait 与解引用强制转换</a>
         
       
     
@@ -243,6 +249,23 @@
       document.addEventListener("keydown", (event) => {
         if (event.key === "Escape") state.checked = false;
       });
+
+      const links = [...toc.querySelectorAll('a[href^="#"]')];
+      const targets = links
+        .map((link) => document.getElementById(decodeURIComponent(link.getAttribute("href").slice(1))))
+        .filter(Boolean);
+      if ("IntersectionObserver" in window && targets.length) {
+        const activate = (id) => {
+          links.forEach((link) => link.classList.toggle("is-active", link.getAttribute("href") === `#${id}`));
+        };
+        const observer = new IntersectionObserver((entries) => {
+          const visible = entries
+            .filter((entry) => entry.isIntersecting)
+            .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0];
+          if (visible) activate(visible.target.id);
+        }, { rootMargin: "-18% 0px -68% 0px", threshold: 0 });
+        targets.forEach((target) => observer.observe(target));
+      }
     })();
 
     (() => {

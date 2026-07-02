@@ -7,9 +7,9 @@
   
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>ch2 - 理解软件开发 | Notebook</title>
+  <title>ch2 - 理解软件开发 | 工程星图</title>
   <meta name="description" content="1 核心观点 编程不是“上来就写代码”，而更像建造建筑：先定义目标、需求、结构和实施计划，再进入编码、测试和维护。 2 软件开发的完整活动 明确问题：要解决什么问题，服务谁，成功标准是什么。 明确需求：功能边界、约束、输入输出、异常情况。 设计结构：模块划分、数据结构、关键算法、接口边界。 制定计划：开发顺序、风险点、测试策略、验收标准。 编码实现：让代码服">
-  <link rel="alternate" type="application/rss+xml" title="Notebook RSS" href="../feed.xml">
+  <link rel="alternate" type="application/rss+xml" title="工程星图 RSS" href="../feed.xml">
   <link rel="stylesheet" href="../assets/site.css">
   
 </head>
@@ -26,15 +26,19 @@
   
 
   <nav class="breadcrumb-bar" aria-label="博客路径">
+    <a href="../index.html">工程星图</a>
     
       
-        <a href="../index.html">Notebook</a>
-        <span aria-hidden="true">›</span>
+        
       
-        <a href="index.html">代码大全阅读笔记</a>
-        <span aria-hidden="true">›</span>
+        
+          <span aria-hidden="true">›</span>
+          <a href="index.html">代码大全阅读笔记</a>
+        
       
-        <a href="ch2-理解编程.html">ch2 - 理解软件开发</a>
+        
+          <span aria-hidden="true">›</span>
+          <a href="ch2-理解编程.html">ch2 - 理解软件开发</a>
         
       
     
@@ -145,6 +149,23 @@
       document.addEventListener("keydown", (event) => {
         if (event.key === "Escape") state.checked = false;
       });
+
+      const links = [...toc.querySelectorAll('a[href^="#"]')];
+      const targets = links
+        .map((link) => document.getElementById(decodeURIComponent(link.getAttribute("href").slice(1))))
+        .filter(Boolean);
+      if ("IntersectionObserver" in window && targets.length) {
+        const activate = (id) => {
+          links.forEach((link) => link.classList.toggle("is-active", link.getAttribute("href") === `#${id}`));
+        };
+        const observer = new IntersectionObserver((entries) => {
+          const visible = entries
+            .filter((entry) => entry.isIntersecting)
+            .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0];
+          if (visible) activate(visible.target.id);
+        }, { rootMargin: "-18% 0px -68% 0px", threshold: 0 });
+        targets.forEach((target) => observer.observe(target));
+      }
     })();
 
     (() => {

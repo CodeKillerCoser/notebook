@@ -9,7 +9,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>搜索</title>
   <meta name="description" content="搜索会覆盖文章正文、目录页和标签页。">
-  <link rel="alternate" type="application/rss+xml" title="Notebook RSS" href="feed.xml">
+  <link rel="alternate" type="application/rss+xml" title="工程星图 RSS" href="feed.xml">
   <link rel="stylesheet" href="assets/site.css">
   
 </head>
@@ -26,12 +26,12 @@
   
 
   <nav class="breadcrumb-bar" aria-label="博客路径">
+    <a href="index.html">工程星图</a>
     
       
-        <a href="index.html">Notebook</a>
-        <span aria-hidden="true">›</span>
-      
-        <a href="search.html">搜索</a>
+        
+          <span aria-hidden="true">›</span>
+          <a href="search.html">搜索</a>
         
       
     
@@ -41,7 +41,7 @@
     <header id="title-block-header" class="hero-grid">
       <div class="hero-spacer" aria-hidden="true"></div>
       <div class="hero-content">
-        <div class="eyebrow">Notebook</div>
+        <div class="eyebrow">Knowledge Atlas</div>
         <h1>搜索</h1>
         
           <p class="subtitle">搜索会覆盖文章正文、目录页和标签页。</p>
@@ -101,6 +101,23 @@
       document.addEventListener("keydown", (event) => {
         if (event.key === "Escape") state.checked = false;
       });
+
+      const links = [...toc.querySelectorAll('a[href^="#"]')];
+      const targets = links
+        .map((link) => document.getElementById(decodeURIComponent(link.getAttribute("href").slice(1))))
+        .filter(Boolean);
+      if ("IntersectionObserver" in window && targets.length) {
+        const activate = (id) => {
+          links.forEach((link) => link.classList.toggle("is-active", link.getAttribute("href") === `#${id}`));
+        };
+        const observer = new IntersectionObserver((entries) => {
+          const visible = entries
+            .filter((entry) => entry.isIntersecting)
+            .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0];
+          if (visible) activate(visible.target.id);
+        }, { rootMargin: "-18% 0px -68% 0px", threshold: 0 });
+        targets.forEach((target) => observer.observe(target));
+      }
     })();
 
     (() => {

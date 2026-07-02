@@ -7,9 +7,9 @@
   
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>rand crate 版本兼容 | Notebook</title>
+  <title>rand crate 版本兼容 | 工程星图</title>
   <meta name="description" content="rand crate 是 Rust 生态中最常用的随机数生成库。不同版本的 API 差异很大，升级时需要对照迁移。 1 版本速查表 rand 版本 获取 RNG 生成范围随机数 需要 use 0.7 及以前 rand::thread_rng() .gen_range(1, 101) use rand::Rng; 0.8 rand::thread_rng() ">
-  <link rel="alternate" type="application/rss+xml" title="Notebook RSS" href="../../feed.xml">
+  <link rel="alternate" type="application/rss+xml" title="工程星图 RSS" href="../../feed.xml">
   <link rel="stylesheet" href="../../assets/site.css">
   
 </head>
@@ -26,18 +26,24 @@
   
 
   <nav class="breadcrumb-bar" aria-label="博客路径">
+    <a href="../../index.html">工程星图</a>
     
       
-        <a href="../../index.html">Notebook</a>
-        <span aria-hidden="true">›</span>
+        
       
-        <a href="../index.html">Rust</a>
-        <span aria-hidden="true">›</span>
+        
+          <span aria-hidden="true">›</span>
+          <a href="../index.html">Rust</a>
+        
       
-        <a href="index.html">工具链与生态</a>
-        <span aria-hidden="true">›</span>
+        
+          <span aria-hidden="true">›</span>
+          <a href="index.html">工具链与生态</a>
+        
       
-        <a href="rand-crate-版本.html">rand crate 版本兼容</a>
+        
+          <span aria-hidden="true">›</span>
+          <a href="rand-crate-版本.html">rand crate 版本兼容</a>
         
       
     
@@ -252,6 +258,23 @@ rng<span class="token punctuation">.</span><span class="token function">gen_rang
       document.addEventListener("keydown", (event) => {
         if (event.key === "Escape") state.checked = false;
       });
+
+      const links = [...toc.querySelectorAll('a[href^="#"]')];
+      const targets = links
+        .map((link) => document.getElementById(decodeURIComponent(link.getAttribute("href").slice(1))))
+        .filter(Boolean);
+      if ("IntersectionObserver" in window && targets.length) {
+        const activate = (id) => {
+          links.forEach((link) => link.classList.toggle("is-active", link.getAttribute("href") === `#${id}`));
+        };
+        const observer = new IntersectionObserver((entries) => {
+          const visible = entries
+            .filter((entry) => entry.isIntersecting)
+            .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0];
+          if (visible) activate(visible.target.id);
+        }, { rootMargin: "-18% 0px -68% 0px", threshold: 0 });
+        targets.forEach((target) => observer.observe(target));
+      }
     })();
 
     (() => {

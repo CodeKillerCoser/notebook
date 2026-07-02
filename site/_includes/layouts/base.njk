@@ -12,7 +12,7 @@
     {% set pageDescription = "标签文章：" ~ tagPage.name %}
   {% else %}
     {% set pageTitle = title or site.title %}
-    {% set pageDescription = description or site.description %}
+    {% set pageDescription = description or site.tagline or site.description %}
   {% endif %}
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -47,22 +47,23 @@
     {% set heroChips = [tagPage.name] %}
     {% set tocItems = toc %}
   {% else %}
-    {% set heroTitle = title or site.title %}
-    {% set heroEyebrow = eyebrow or "Notebook" %}
-    {% set heroSubtitle = description or site.description %}
+    {% set heroTitle = site.title if home else title or site.title %}
+    {% set heroEyebrow = site.eyebrow if home else eyebrow or site.eyebrow or site.title %}
+    {% set heroSubtitle = site.tagline if home else description or site.tagline or site.description %}
     {% set activeBreadcrumbs = breadcrumbs %}
     {% set heroChips = chips or [] %}
     {% set tocItems = toc %}
   {% endif %}
 
   <nav class="breadcrumb-bar" aria-label="博客路径">
+    <a href="{{ '/index.html' | relativeUrl(page.url) }}">{{ site.title }}</a>
     {% if activeBreadcrumbs %}
       {% for crumb in activeBreadcrumbs %}
-        <a href="{{ crumb.url | relativeUrl(page.url) }}">{{ crumb.title }}</a>
-        {% if not loop.last %}<span aria-hidden="true">›</span>{% endif %}
+        {% if not (loop.first and crumb.url == '/index.html') %}
+          <span aria-hidden="true">›</span>
+          <a href="{{ crumb.url | relativeUrl(page.url) }}">{{ crumb.title }}</a>
+        {% endif %}
       {% endfor %}
-    {% else %}
-      <a href="{{ '/index.html' | relativeUrl(page.url) }}">Notebook</a>
     {% endif %}
   </nav>
 
@@ -135,6 +136,23 @@
       document.addEventListener("keydown", (event) => {
         if (event.key === "Escape") state.checked = false;
       });
+
+      const links = [...toc.querySelectorAll('a[href^="#"]')];
+      const targets = links
+        .map((link) => document.getElementById(decodeURIComponent(link.getAttribute("href").slice(1))))
+        .filter(Boolean);
+      if ("IntersectionObserver" in window && targets.length) {
+        const activate = (id) => {
+          links.forEach((link) => link.classList.toggle("is-active", link.getAttribute("href") === `#${id}`));
+        };
+        const observer = new IntersectionObserver((entries) => {
+          const visible = entries
+            .filter((entry) => entry.isIntersecting)
+            .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0];
+          if (visible) activate(visible.target.id);
+        }, { rootMargin: "-18% 0px -68% 0px", threshold: 0 });
+        targets.forEach((target) => observer.observe(target));
+      }
     })();
 
     (() => {

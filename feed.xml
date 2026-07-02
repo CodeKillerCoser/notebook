@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Notebook</title>
+    <title>工程星图</title>
     <link>https://codekillercoser.github.io/notebook/</link>
-    <description>个人技术笔记与工程实践记录</description>
+    <description>把零散实践整理成可复用的技术坐标。</description>
     <language>zh-CN</language>
     <atom:link href="https://codekillercoser.github.io/notebook/feed.xml" rel="self" type="application/rss+xml" />
     

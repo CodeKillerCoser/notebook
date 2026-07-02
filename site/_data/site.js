@@ -1,6 +1,8 @@
 export default {
-  title: "Notebook",
-  description: "个人技术笔记与工程实践记录",
+  title: "工程星图",
+  tagline: "把零散实践整理成可复用的技术坐标。",
+  eyebrow: "Knowledge Atlas",
+  description: "把零散实践整理成可复用的技术坐标。",
   author: "CodeKillerCoser",
   url: "https://codekillercoser.github.io/notebook",
   repository: "CodeKillerCoser/notebook",

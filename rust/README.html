@@ -7,9 +7,9 @@
   
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Rust 学习笔记知识库 | Notebook</title>
+  <title>Rust 学习笔记知识库 | 工程星图</title>
   <meta name="description" content="Rust 知识库按“基础心智模型 → 语言核心 → 标准库与容器 → 工具链 → 综合案例”的顺序组织。 1 推荐学习路径 先看 所有权与借用心智模型 ，建立所有权、借用、消费的基本判断。 再看字符串、Option、Deref、容器这些高频主题。 工具链笔记用于解决 Cargo、rand、VS Code 配置问题。 LeetCode 和项目案例用于把语法落到">
-  <link rel="alternate" type="application/rss+xml" title="Notebook RSS" href="../feed.xml">
+  <link rel="alternate" type="application/rss+xml" title="工程星图 RSS" href="../feed.xml">
   <link rel="stylesheet" href="../assets/site.css">
   
 </head>
@@ -26,15 +26,19 @@
   
 
   <nav class="breadcrumb-bar" aria-label="博客路径">
+    <a href="../index.html">工程星图</a>
     
       
-        <a href="../index.html">Notebook</a>
-        <span aria-hidden="true">›</span>
+        
       
-        <a href="index.html">Rust</a>
-        <span aria-hidden="true">›</span>
+        
+          <span aria-hidden="true">›</span>
+          <a href="index.html">Rust</a>
+        
       
-        <a href="README.html">Rust 学习笔记知识库</a>
+        
+          <span aria-hidden="true">›</span>
+          <a href="README.html">Rust 学习笔记知识库</a>
         
       
     
@@ -144,6 +148,23 @@
       document.addEventListener("keydown", (event) => {
         if (event.key === "Escape") state.checked = false;
       });
+
+      const links = [...toc.querySelectorAll('a[href^="#"]')];
+      const targets = links
+        .map((link) => document.getElementById(decodeURIComponent(link.getAttribute("href").slice(1))))
+        .filter(Boolean);
+      if ("IntersectionObserver" in window && targets.length) {
+        const activate = (id) => {
+          links.forEach((link) => link.classList.toggle("is-active", link.getAttribute("href") === `#${id}`));
+        };
+        const observer = new IntersectionObserver((entries) => {
+          const visible = entries
+            .filter((entry) => entry.isIntersecting)
+            .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0];
+          if (visible) activate(visible.target.id);
+        }, { rootMargin: "-18% 0px -68% 0px", threshold: 0 });
+        targets.forEach((target) => observer.observe(target));
+      }
     })();
 
     (() => {

@@ -7,9 +7,9 @@
   
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Option 常用组合模式 · Rust 笔记 | Notebook</title>
+  <title>Option 常用组合模式 · Rust 笔记 | 工程星图</title>
   <meta name="description" content="Rust 笔记 › 02-语法进阶 Option 常用组合模式 实战模式 4 个高频场景 1 1 借读取值 场景：我有一个 Option&amp;lt;Box&amp;lt;ListNode&amp;gt;&amp;gt; ，需要读 val ，但不想消费它。 // p: Option&amp;lt;Box&amp;lt;ListNode&amp;gt;&amp;gt;，我要读 val，但不消费 p let x = p.a">
-  <link rel="alternate" type="application/rss+xml" title="Notebook RSS" href="../../feed.xml">
+  <link rel="alternate" type="application/rss+xml" title="工程星图 RSS" href="../../feed.xml">
   <link rel="stylesheet" href="../../assets/site.css">
   
 </head>
@@ -26,18 +26,24 @@
   
 
   <nav class="breadcrumb-bar" aria-label="博客路径">
+    <a href="../../index.html">工程星图</a>
     
       
-        <a href="../../index.html">Notebook</a>
-        <span aria-hidden="true">›</span>
+        
       
-        <a href="../index.html">Rust</a>
-        <span aria-hidden="true">›</span>
+        
+          <span aria-hidden="true">›</span>
+          <a href="../index.html">Rust</a>
+        
       
-        <a href="index.html">语法进阶</a>
-        <span aria-hidden="true">›</span>
+        
+          <span aria-hidden="true">›</span>
+          <a href="index.html">语法进阶</a>
+        
       
-        <a href="Option常用组合模式.html">Option 常用组合模式 · Rust 笔记</a>
+        
+          <span aria-hidden="true">›</span>
+          <a href="Option常用组合模式.html">Option 常用组合模式 · Rust 笔记</a>
         
       
     
@@ -193,6 +199,23 @@ tail.next.as_mut().unwrap().val = 42;  // 修改链表节点的值</code></pre>
       document.addEventListener("keydown", (event) => {
         if (event.key === "Escape") state.checked = false;
       });
+
+      const links = [...toc.querySelectorAll('a[href^="#"]')];
+      const targets = links
+        .map((link) => document.getElementById(decodeURIComponent(link.getAttribute("href").slice(1))))
+        .filter(Boolean);
+      if ("IntersectionObserver" in window && targets.length) {
+        const activate = (id) => {
+          links.forEach((link) => link.classList.toggle("is-active", link.getAttribute("href") === `#${id}`));
+        };
+        const observer = new IntersectionObserver((entries) => {
+          const visible = entries
+            .filter((entry) => entry.isIntersecting)
+            .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0];
+          if (visible) activate(visible.target.id);
+        }, { rootMargin: "-18% 0px -68% 0px", threshold: 0 });
+        targets.forEach((target) => observer.observe(target));
+      }
     })();
 
     (() => {

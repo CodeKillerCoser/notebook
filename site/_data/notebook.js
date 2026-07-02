@@ -5,6 +5,7 @@ import matter from "gray-matter";
 import { load } from "cheerio";
 import Prism from "prismjs";
 import loadLanguages from "prismjs/components/index.js";
+import site from "./site.js";
 
 const CONTENT_DIR = path.join(process.cwd(), "content");
 loadLanguages(["rust", "bash", "json", "yaml", "toml", "javascript", "typescript", "css", "markup", "python", "powershell"]);
@@ -129,7 +130,7 @@ function parentDir(dirPath) {
 }
 
 function makeCrumbs(parts, includeFile, title) {
-  const crumbs = [{ title: "Notebook", url: "/index.html" }];
+  const crumbs = [{ title: site.title, url: "/index.html" }];
   const folderParts = includeFile ? parts.slice(0, -1) : parts;
   folderParts.forEach((part, index) => {
     const dirPath = parts.slice(0, index + 1).join("/");
@@ -230,7 +231,7 @@ function loadArticles() {
       const title = parsed.data.title || extracted.title;
       const stat = fs.statSync(filePath);
       const date = parsed.data.date || gitDate(relPath) || stat.mtime.toISOString();
-      const category = parsed.data.category || titleFromSegment(parts[0] || "Notebook");
+      const category = parsed.data.category || titleFromSegment(parts[0] || site.title);
       const tags = normalizeTags(parsed.data.tags, relPath);
 
       return {
@@ -305,7 +306,7 @@ function buildTags(articles) {
           slug: tagSlug(tag),
           permalink: `/tags/${tagSlug(tag)}.html`,
           breadcrumbs: [
-            { title: "Notebook", url: "/index.html" },
+            { title: site.title, url: "/index.html" },
             { title: "标签", url: "/tags/index.html" },
             { title: tag, url: `/tags/${tagSlug(tag)}.html` }
           ],
