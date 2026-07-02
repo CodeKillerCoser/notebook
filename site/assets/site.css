@@ -317,7 +317,10 @@ a.chip:hover { text-decoration: none; color: var(--text); border-color: #cbd5e1;
 }
 .toc a {
   position: relative;
-  display: block;
+  display: grid;
+  grid-template-columns: 2.15rem minmax(0, 1fr);
+  align-items: baseline;
+  gap: .15rem;
   margin-left: -1rem;
   padding: .32rem .15rem .32rem 1rem;
   border-radius: 0 8px 8px 0;
@@ -326,6 +329,14 @@ a.chip:hover { text-decoration: none; color: var(--text); border-color: #cbd5e1;
   transition: color .14s ease, background-color .14s ease;
 }
 .toc a::before {
+  content: counter(toc) ".";
+  color: #64748b;
+  font-size: .76rem;
+  font-weight: 750;
+  font-variant-numeric: tabular-nums;
+  transition: color .14s ease;
+}
+.toc a::after {
   content: "";
   position: absolute;
   left: -1px;
@@ -346,7 +357,8 @@ a.chip:hover { text-decoration: none; color: var(--text); border-color: #cbd5e1;
   background: linear-gradient(90deg, rgba(15, 118, 110, .1), transparent 88%);
   font-weight: 750;
 }
-.toc a.is-active::before { background: #0f766e; }
+.toc a.is-active::before { color: #0f766e; }
+.toc a.is-active::after { background: #0f766e; }
 
 blockquote { border-left: 4px solid var(--blue); margin: 1.4rem 0; padding: .4rem 1rem; background: var(--soft); color: #0f172a; }
 blockquote p { margin: .6rem 0; }
@@ -622,6 +634,7 @@ hr { border: 0; border-top: 1px solid var(--line); margin: 2.2rem 0; }
     background: rgba(248, 250, 252, .18);
   }
   .toc-state:checked + .toc-backdrop { display: block; }
+  .toc-state:checked ~ .content-grid { z-index: 80; }
   .toc {
     position: fixed;
     left: 12px;
@@ -633,7 +646,8 @@ hr { border: 0; border-top: 1px solid var(--line); margin: 2.2rem 0; }
     max-height: min(72vh, 620px);
     margin: 0;
     padding: 0;
-    overflow: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
     border: 1px solid #dbe2ea;
     border-radius: 16px;
     background: rgba(255, 255, 255, .96);
@@ -674,8 +688,8 @@ hr { border: 0; border-top: 1px solid var(--line); margin: 2.2rem 0; }
   }
   .toc ol {
     columns: 1;
-    max-height: calc(min(72vh, 620px) - 76px);
-    overflow: auto;
+    max-height: none;
+    overflow: visible;
     padding: .75rem 1rem 1rem;
     -webkit-overflow-scrolling: touch;
   }
