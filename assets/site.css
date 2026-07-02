@@ -24,7 +24,7 @@
 }
 
 * { box-sizing: border-box; }
-html { scroll-behavior: smooth; scroll-padding-top: 28px; }
+html { scroll-behavior: smooth; scroll-padding-top: 86px; }
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", Arial, sans-serif;
   line-height: 1.78;
@@ -39,6 +39,28 @@ body {
 .mobile-toc-button,
 .toc-backdrop { display: none; }
 
+.breadcrumb-bar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  display: flex;
+  flex-wrap: wrap;
+  gap: .34rem;
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding: .68rem var(--page-pad);
+  border-bottom: 1px solid rgba(229, 231, 235, .9);
+  background: rgba(255, 255, 255, .92);
+  color: var(--muted);
+  font-size: .86rem;
+  line-height: 1.45;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+.breadcrumb-bar a { color: var(--muted); }
+.breadcrumb-bar a:last-of-type { color: #374151; font-weight: 700; }
+.breadcrumb-bar span { color: var(--muted-2); }
+
 .page-shell,
 .content-grid {
   max-width: var(--page-max);
@@ -47,7 +69,7 @@ body {
   padding-left: var(--page-pad);
   padding-right: var(--page-pad);
 }
-.page-shell { margin-top: 46px; }
+.page-shell { margin-top: 34px; }
 .hero-grid,
 .content-grid {
   display: grid;
@@ -66,6 +88,23 @@ h1 {
   margin: 0 0 1rem;
   letter-spacing: 0;
   font-weight: 850;
+}
+.home-hero h1 {
+  max-width: 780px;
+  font-size: clamp(3rem, 8vw, 5.8rem);
+  line-height: .98;
+  letter-spacing: 0;
+}
+.home-hero .subtitle {
+  max-width: 680px;
+  color: #334155;
+  font-size: 1.18rem;
+}
+.home-hero .eyebrow {
+  color: var(--green);
+}
+.home-hero .meta {
+  margin-top: 1.6rem;
 }
 h2 {
   display: flex;
@@ -202,9 +241,9 @@ a.chip:hover { text-decoration: none; color: var(--text); border-color: #cbd5e1;
 
 .toc {
   position: sticky;
-  top: 30px;
+  top: 72px;
   align-self: start;
-  max-height: calc(100vh - 60px);
+  max-height: calc(100vh - 96px);
   overflow: auto;
   border-right: 1px solid var(--line);
   padding: .55rem 30px 1rem 0;
@@ -449,9 +488,21 @@ hr { border: 0; border-top: 1px solid var(--line); margin: 2.2rem 0; }
 
 @media (max-width: 760px) {
   :root { --page-pad: 18px; }
-  html { scroll-padding-top: 18px; }
+  html { scroll-padding-top: 64px; }
   body { font-size: 15.5px; padding-bottom: 92px; }
+  .breadcrumb-bar {
+    padding-top: max(.58rem, env(safe-area-inset-top));
+    padding-bottom: .58rem;
+    font-size: .82rem;
+    white-space: nowrap;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    scrollbar-width: none;
+  }
+  .breadcrumb-bar::-webkit-scrollbar { display: none; }
   h1 { font-size: 1.72rem; line-height: 1.2; overflow-wrap: anywhere; }
+  .home-hero h1 { font-size: 3.15rem; }
+  .home-hero .subtitle { font-size: 1.08rem; }
   .subtitle,
   .pathline,
   .article-content { overflow-wrap: break-word; }

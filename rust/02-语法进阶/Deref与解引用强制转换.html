@@ -23,6 +23,24 @@
     
   
 
+  <nav class="breadcrumb-bar" aria-label="博客路径">
+    
+      
+        <a href="../../index.html">Notebook</a>
+        <span aria-hidden="true">›</span>
+      
+        <a href="../index.html">Rust</a>
+        <span aria-hidden="true">›</span>
+      
+        <a href="index.html">语法进阶</a>
+        <span aria-hidden="true">›</span>
+      
+        <a href="Deref与解引用强制转换.html">Deref Trait 与解引用强制转换</a>
+        
+      
+    
+  </nav>
+
   <div class="page-shell">
     <header id="title-block-header" class="hero-grid">
       <div class="hero-spacer" aria-hidden="true"></div>
@@ -32,23 +50,6 @@
         
           <p class="subtitle">Rust 中所有 *ptr 解引用操作在底层都等价于 *(ptr.deref()) 。理解这个两层结构是理解智能指针的关键。 1 Deref Trait 定义 pub trait Deref { type Target : ? Sized ; fn deref ( &amp;amp; self ) -&amp;gt; &amp;amp; Self :: Target ; // 返回</p>
         
-        <nav class="pathline" aria-label="博客路径">
-          
-            
-              <a href="../../index.html">Notebook</a>
-              <span aria-hidden="true">›</span>
-            
-              <a href="../index.html">Rust</a>
-              <span aria-hidden="true">›</span>
-            
-              <a href="index.html">语法进阶</a>
-              <span aria-hidden="true">›</span>
-            
-              <a href="Deref与解引用强制转换.html">Deref Trait 与解引用强制转换</a>
-              
-            
-          
-        </nav>
         <div class="meta">
           
             <time class="chip" datetime="2026-05-10T11:26:29.000Z">2026/05/10</time>

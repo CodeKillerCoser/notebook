@@ -23,6 +23,24 @@
     
   
 
+  <nav class="breadcrumb-bar" aria-label="博客路径">
+    
+      
+        <a href="../../index.html">Notebook</a>
+        <span aria-hidden="true">›</span>
+      
+        <a href="../index.html">Rust</a>
+        <span aria-hidden="true">›</span>
+      
+        <a href="index.html">语法进阶</a>
+        <span aria-hidden="true">›</span>
+      
+        <a href="match-模式匹配陷阱.html">match 模式匹配陷阱：裸标识符 vs 值比较</a>
+        
+      
+    
+  </nav>
+
   <div class="page-shell">
     <header id="title-block-header" class="hero-grid">
       <div class="hero-spacer" aria-hidden="true"></div>
@@ -32,23 +50,6 @@
         
           <p class="subtitle">1 问题：match 臂中的标识符是模式，不是引用 let secret_number = 42 ; let some_value = 100 ; // ❌ 这段代码看起来是对的，实际永远匹配第一个臂 match some_value { secret_number =&amp;gt; println! ( &quot;You win!&quot; ) , // 这不是值比较！ _ =</p>
         
-        <nav class="pathline" aria-label="博客路径">
-          
-            
-              <a href="../../index.html">Notebook</a>
-              <span aria-hidden="true">›</span>
-            
-              <a href="../index.html">Rust</a>
-              <span aria-hidden="true">›</span>
-            
-              <a href="index.html">语法进阶</a>
-              <span aria-hidden="true">›</span>
-            
-              <a href="match-模式匹配陷阱.html">match 模式匹配陷阱：裸标识符 vs 值比较</a>
-              
-            
-          
-        </nav>
         <div class="meta">
           
             <time class="chip" datetime="2026-05-09T15:49:00.000Z">2026/05/09</time>

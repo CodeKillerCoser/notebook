@@ -23,6 +23,24 @@
     
   
 
+  <nav class="breadcrumb-bar" aria-label="博客路径">
+    
+      
+        <a href="../../index.html">Notebook</a>
+        <span aria-hidden="true">›</span>
+      
+        <a href="../index.html">Rust</a>
+        <span aria-hidden="true">›</span>
+      
+        <a href="index.html">语法进阶</a>
+        <span aria-hidden="true">›</span>
+      
+        <a href="Send与Sync线程安全标记.html">Send / Sync 线程安全标记</a>
+        
+      
+    
+  </nav>
+
   <div class="page-shell">
     <header id="title-block-header" class="hero-grid">
       <div class="hero-spacer" aria-hidden="true"></div>
@@ -32,23 +50,6 @@
         
           <p class="subtitle">Send 和 Sync 是 Rust 线程安全体系的基石。它们是 marker trait — 没有方法要实现，标记了类型是否能在线程间安全传递。 1 定义 // Send：价值所有权可以安全地转移到另一个线程 pub unsafe auto trait Send { } // Sync：多个线程可以安全地通过共享引用访问 pub unsafe auto t</p>
         
-        <nav class="pathline" aria-label="博客路径">
-          
-            
-              <a href="../../index.html">Notebook</a>
-              <span aria-hidden="true">›</span>
-            
-              <a href="../index.html">Rust</a>
-              <span aria-hidden="true">›</span>
-            
-              <a href="index.html">语法进阶</a>
-              <span aria-hidden="true">›</span>
-            
-              <a href="Send与Sync线程安全标记.html">Send / Sync 线程安全标记</a>
-              
-            
-          
-        </nav>
         <div class="meta">
           
             <time class="chip" datetime="2026-05-10T11:26:29.000Z">2026/05/10</time>

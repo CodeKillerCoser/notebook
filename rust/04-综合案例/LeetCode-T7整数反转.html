@@ -23,6 +23,24 @@
     
   
 
+  <nav class="breadcrumb-bar" aria-label="博客路径">
+    
+      
+        <a href="../../index.html">Notebook</a>
+        <span aria-hidden="true">›</span>
+      
+        <a href="../index.html">Rust</a>
+        <span aria-hidden="true">›</span>
+      
+        <a href="index.html">综合案例</a>
+        <span aria-hidden="true">›</span>
+      
+        <a href="LeetCode-T7整数反转.html">LeetCode T7 整数反转 · Rust 笔记</a>
+        
+      
+    
+  </nav>
+
   <div class="page-shell">
     <header id="title-block-header" class="hero-grid">
       <div class="hero-spacer" aria-hidden="true"></div>
@@ -32,23 +50,6 @@
         
           <p class="subtitle">这题的关键是让累积结果始终保持原数字的符号，并在执行 reverse_num * 10 + last_digit 之前完成溢出判断。 1 符号处理 Rust 的整数取余会保留被除数的符号： 123 % 10 == 3 - 123 % 10 == - 3 因此负数不需要先取绝对值，也不需要最后再乘回符号。每次取到的 last_digit 已经带着正确符号。 2</p>
         
-        <nav class="pathline" aria-label="博客路径">
-          
-            
-              <a href="../../index.html">Notebook</a>
-              <span aria-hidden="true">›</span>
-            
-              <a href="../index.html">Rust</a>
-              <span aria-hidden="true">›</span>
-            
-              <a href="index.html">综合案例</a>
-              <span aria-hidden="true">›</span>
-            
-              <a href="LeetCode-T7整数反转.html">LeetCode T7 整数反转 · Rust 笔记</a>
-              
-            
-          
-        </nav>
         <div class="meta">
           
             <time class="chip" datetime="2026-05-12T17:41:31.000Z">2026/05/13</time>
