@@ -67,9 +67,18 @@
     </header>
   </div>
 
+  <input class="toc-state" type="checkbox" id="mobile-toc-state" aria-hidden="true">
+  <label class="toc-backdrop" for="mobile-toc-state" aria-hidden="true"></label>
+  <label class="mobile-toc-button" for="mobile-toc-state" aria-controls="page-toc">
+    <span>目录</span>
+  </label>
+
   <div class="content-grid">
-    <nav class="toc" aria-label="目录">
-      <div class="toc-title">目录</div>
+    <nav id="page-toc" class="toc" aria-label="目录">
+      <div class="toc-head">
+        <div class="toc-title">目录</div>
+        <label class="toc-close" for="mobile-toc-state" aria-label="关闭目录">×</label>
+      </div>
       
         <ol>
           
@@ -699,5 +708,18 @@ trace / replay
 
     </main>
   </div>
+  <script>
+    (() => {
+      const state = document.getElementById("mobile-toc-state");
+      const toc = document.getElementById("page-toc");
+      if (!state || !toc) return;
+      toc.addEventListener("click", (event) => {
+        if (event.target.closest("a")) state.checked = false;
+      });
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") state.checked = false;
+      });
+    })();
+  </script>
 </body>
 </html>
