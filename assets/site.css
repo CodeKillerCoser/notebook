@@ -619,9 +619,7 @@ hr { border: 0; border-top: 1px solid var(--line); margin: 2.2rem 0; }
     position: fixed;
     inset: 0;
     z-index: 60;
-    background: rgba(248, 250, 252, .28);
-    backdrop-filter: blur(3px);
-    -webkit-backdrop-filter: blur(3px);
+    background: rgba(248, 250, 252, .18);
   }
   .toc-state:checked + .toc-backdrop { display: block; }
   .toc {
