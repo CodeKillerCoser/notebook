@@ -301,6 +301,7 @@ a.chip:hover { text-decoration: none; color: var(--text); border-color: #cbd5e1;
 }
 .toc-head { display: block; }
 .toc-close { display: none; }
+.toc-footer-close { display: none; }
 .toc ol {
   margin: 0;
   padding: 0;
@@ -665,33 +666,57 @@ hr { border: 0; border-top: 1px solid var(--line); margin: 2.2rem 0; }
     transform: translateY(0);
   }
   .toc-head {
+    position: sticky;
+    top: 0;
+    z-index: 2;
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: center;
     gap: 1rem;
-    padding: .95rem 1rem .55rem;
+    padding: 1.18rem 1rem .62rem;
     border-bottom: 1px solid var(--line);
+    background: rgba(255, 255, 255, .96);
+  }
+  .toc-head::before {
+    content: "";
+    position: absolute;
+    top: .48rem;
+    left: 50%;
+    width: 44px;
+    height: 4px;
+    border-radius: 999px;
+    background: #cbd5e1;
+    transform: translateX(-50%);
   }
   .toc-title { margin: 0; font-size: .96rem; color: #374151; }
   .toc-close {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 34px;
-    height: 34px;
-    border: 1px solid var(--line);
-    border-radius: 999px;
-    color: #4b5563;
-    background: #fff;
-    font-size: 1.35rem;
-    line-height: 1;
+    display: none;
   }
   .toc ol {
     columns: 1;
     max-height: none;
     overflow: visible;
-    padding: .75rem 1rem 1rem;
+    padding: .75rem 1rem 5.25rem;
     -webkit-overflow-scrolling: touch;
+  }
+  .toc-footer-close {
+    position: sticky;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 2;
+    display: flex;
+    min-height: 58px;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    border-top: 1px solid rgba(226, 232, 240, .95);
+    background: linear-gradient(to top, rgba(255, 255, 255, .98), rgba(255, 255, 255, .92));
+    color: #0f172a;
+    font-size: .96rem;
+    font-weight: 850;
+    text-align: center;
+    touch-action: manipulation;
   }
   .toc li { font-size: .95rem; line-height: 1.5; margin: .2rem 0; }
   .toc a { color: #4b5563; overflow-wrap: anywhere; }
