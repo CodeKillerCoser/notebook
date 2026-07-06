@@ -1,4 +1,5 @@
 exclude:
+  - README.md
   - content
   - node_modules
   - package-lock.json
