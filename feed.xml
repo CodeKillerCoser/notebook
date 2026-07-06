@@ -8,6 +8,14 @@
     <atom:link href="https://codekillercoser.github.io/notebook/feed.xml" rel="self" type="application/rss+xml" />
     
       <item>
+        <title>UI 设计系统化完全指南</title>
+        <link>https://codekillercoser.github.io/notebook/UI设计/UI-设计系统化完全指南.html</link>
+        <guid>https://codekillercoser.github.io/notebook/UI设计/UI-设计系统化完全指南.html</guid>
+        <pubDate>Sun, 05 Jul 2026 15:00:00 GMT</pubDate>
+        <description><![CDATA[这份报告不是教你“把界面装饰得好看”，而是把 UI 拆成可判断、可复用、可实现的系统：信息架构、视觉层级、字体、间距、颜色、组件、状态、可访问性、响应式、数据展示、设计评审与工程落地。]]></description>
+      </item>
+    
+      <item>
         <title>从长程 SOP 到 Agent Runtime：如何设计一个可生产化的智能执行系统</title>
         <link>https://codekillercoser.github.io/notebook/AI工程/02-Agent-Runtime/从长程SOP到Agent-Runtime-可生产化智能执行系统.html</link>
         <guid>https://codekillercoser.github.io/notebook/AI工程/02-Agent-Runtime/从长程SOP到Agent-Runtime-可生产化智能执行系统.html</guid>
@@ -237,14 +245,6 @@
         <guid>https://codekillercoser.github.io/notebook/Git部署/01-基础入门/GitHub-Pages-部署.html</guid>
         <pubDate>Sat, 09 May 2026 18:11:09 GMT</pubDate>
         <description><![CDATA[GitHub Pages 是一个免费的静态站点托管服务，直接从 GitHub 仓库中获取文件渲染网页。 1 为什么访问链接只显示 README GitHub Pages 的渲染优先级： 如果根目录有 index.html ，渲染它 如果没有 index.html ，回退渲染 README.md 不会 自动生成文件目录列表（不像 Apache/Nginx 有 ]]></description>
-      </item>
-    
-      <item>
-        <title>猜数字游戏 — 综合案例</title>
-        <link>https://codekillercoser.github.io/notebook/rust/04-综合案例/猜数字游戏.html</link>
-        <guid>https://codekillercoser.github.io/notebook/rust/04-综合案例/猜数字游戏.html</guid>
-        <pubDate>Sat, 09 May 2026 15:49:00 GMT</pubDate>
-        <description><![CDATA[1 完整代码 use std :: io ; use rand ; use std :: cmp :: Ordering ; fn main ( ) { // 1. 生成随机数 let secret_number = rand :: random_range ( 1 ..= 100 ) ; println! ( &quot;Guess the number!&quot; ) ;]]></description>
       </item>
     
   </channel>

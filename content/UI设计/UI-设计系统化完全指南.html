@@ -1,0 +1,1070 @@
+---
+title: "UI 设计系统化完全指南"
+date: "2026-07-06T00:00:00+09:00"
+category: "UI设计"
+tags:
+  - "UI设计"
+  - "设计系统"
+  - "前端"
+  - "可访问性"
+breadcrumbs:
+  - title: "Notebook"
+    url: "/index.html"
+  - title: "UI设计"
+    url: "/UI设计/index.html"
+layout: layouts/article.njk
+type: article
+comments: true
+permalink: "/UI设计/index.html"
+---
+
+<style>
+
+:root{
+  --ui-bg:#fbfcff;
+  --ui-panel:#ffffff;
+  --ui-soft:#f8fafc;
+  --ui-soft-2:#f1f5f9;
+  --ui-text:#111827;
+  --ui-sub:#475569;
+  --ui-muted:#64748b;
+  --ui-line:#e5e7eb;
+  --ui-line-2:#cbd5e1;
+  --ui-blue:#2563eb;
+  --ui-blue-2:#1d4ed8;
+  --ui-blue-soft:#eff6ff;
+  --ui-green:#0f766e;
+  --ui-green-soft:#f0fdfa;
+  --ui-orange:#b45309;
+  --ui-orange-soft:#fff7ed;
+  --ui-red:#b91c1c;
+  --ui-red-soft:#fef2f2;
+  --ui-purple:#6d28d9;
+  --ui-purple-soft:#faf5ff;
+  --ui-shadow:0 18px 48px rgba(15,23,42,.09);
+  --ui-shadow-sm:0 8px 22px rgba(15,23,42,.07);
+  --ui-radius:18px;
+  --ui-radius-sm:10px;
+  --ui-radius-xs:7px;
+  --ui-code:#0b1020;
+}
+html{scroll-behavior:smooth;}
+body.ui-standalone{
+  margin:0;
+  color:var(--ui-text);
+  background:
+    radial-gradient(circle at 10% -10%, rgba(37,99,235,.13), transparent 32%),
+    radial-gradient(circle at 100% 0%, rgba(15,118,110,.10), transparent 30%),
+    linear-gradient(180deg,#fbfcff 0%,#f8fafc 100%);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",Arial,sans-serif;
+  line-height:1.78;
+}
+.ui-shell{
+  display:grid;
+  grid-template-columns:minmax(220px, 280px) minmax(0, 1fr);
+  max-width:1440px;
+  margin:0 auto;
+  gap:40px;
+  padding:28px 36px 80px;
+}
+.ui-side{
+  position:sticky;
+  top:24px;
+  height:calc(100vh - 48px);
+  overflow:auto;
+  align-self:start;
+  padding:18px 16px;
+  border:1px solid rgba(226,232,240,.9);
+  border-radius:22px;
+  background:rgba(255,255,255,.84);
+  box-shadow:0 12px 36px rgba(15,23,42,.06);
+  backdrop-filter:blur(14px);
+}
+.ui-side .brand{font-weight:850;font-size:15px;margin:0 0 10px;color:#0f172a;line-height:1.35;}
+.ui-side .side-meta{font-size:12px;color:var(--ui-muted);margin-bottom:16px;line-height:1.55;}
+.ui-side a{display:block;color:#475569;text-decoration:none;border-radius:10px;padding:7px 10px;font-size:13px;line-height:1.35;margin:2px 0;}
+.ui-side a:hover{background:#f1f5f9;color:#0f172a;}
+.ui-side .lvl2{padding-left:22px;font-size:12px;color:#64748b;}
+.ui-main{min-width:0;}
+.ui-guide{
+  color:var(--ui-text);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",Arial,sans-serif;
+  line-height:1.78;
+  max-width:1080px;
+}
+.ui-guide *{box-sizing:border-box;}
+.ui-guide a{color:var(--ui-blue);text-decoration:none;}
+.ui-guide a:hover{text-decoration:underline;}
+.ui-guide .hero{
+  position:relative;
+  overflow:hidden;
+  border:1px solid rgba(226,232,240,.9);
+  background:linear-gradient(135deg,rgba(255,255,255,.94),rgba(248,250,252,.94));
+  border-radius:28px;
+  box-shadow:var(--ui-shadow);
+  padding:42px;
+  margin-bottom:28px;
+}
+.ui-guide .hero:before{
+  content:"";position:absolute;right:-120px;top:-120px;width:330px;height:330px;border-radius:50%;
+  background:radial-gradient(circle,rgba(37,99,235,.16),transparent 70%);
+}
+.ui-guide .hero:after{
+  content:"";position:absolute;left:18px;bottom:18px;right:18px;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(37,99,235,.25),transparent);
+}
+.ui-guide .eyebrow{
+  display:inline-flex;align-items:center;gap:8px;
+  color:var(--ui-green);font-size:12px;font-weight:850;letter-spacing:.14em;text-transform:uppercase;margin-bottom:12px;
+}
+.ui-guide .eyebrow:before{content:"";width:8px;height:8px;border-radius:50%;background:var(--ui-green);box-shadow:0 0 0 6px rgba(15,118,110,.1);}
+.ui-guide h1{font-size:clamp(34px,5vw,62px);line-height:1.05;margin:0 0 18px;font-weight:900;letter-spacing:-.04em;max-width:900px;}
+.ui-guide .subtitle{font-size:18px;line-height:1.8;color:#334155;max-width:860px;margin:0;}
+.ui-guide .meta-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:24px;}
+.ui-guide .chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--ui-line);border-radius:999px;background:rgba(255,255,255,.88);padding:4px 10px;color:#64748b;font-size:12px;font-weight:700;}
+.ui-guide h2{margin:52px 0 18px;padding-top:24px;border-top:1px solid var(--ui-line);font-size:28px;line-height:1.28;letter-spacing:-.02em;}
+.ui-guide h2 .num{display:inline-grid;place-items:center;width:32px;height:32px;margin-right:10px;border-radius:10px;background:#f1f5f9;color:#64748b;border:1px solid var(--ui-line);font-size:14px;font-weight:850;vertical-align:3px;}
+.ui-guide h3{font-size:21px;line-height:1.35;margin:34px 0 12px;letter-spacing:-.015em;}
+.ui-guide h4{font-size:16px;margin:24px 0 8px;}
+.ui-guide p{margin:12px 0;color:#334155;}
+.ui-guide ul,.ui-guide ol{padding-left:1.35rem;color:#334155;}
+.ui-guide li{margin:6px 0;}
+.ui-guide strong{color:#0f172a;}
+.ui-guide .lead{font-size:17px;color:#334155;}
+.ui-guide .card{
+  border:1px solid var(--ui-line);border-radius:var(--ui-radius);background:rgba(255,255,255,.92);box-shadow:var(--ui-shadow-sm);padding:24px;margin:18px 0;
+}
+.ui-guide .soft{background:linear-gradient(180deg,#fff,#f8fafc);}
+.ui-guide .callout{border:1px solid #bfdbfe;border-left:5px solid var(--ui-blue);background:var(--ui-blue-soft);border-radius:16px;padding:16px 18px;margin:18px 0;}
+.ui-guide .callout.ok{border-color:#99f6e4;border-left-color:var(--ui-green);background:var(--ui-green-soft);}
+.ui-guide .callout.warn{border-color:#fed7aa;border-left-color:var(--ui-orange);background:var(--ui-orange-soft);}
+.ui-guide .callout.danger{border-color:#fecaca;border-left-color:var(--ui-red);background:var(--ui-red-soft);}
+.ui-guide .grid-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;}
+.ui-guide .grid-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;}
+.ui-guide .grid-4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;}
+.ui-guide .mini-title{font-size:13px;font-weight:850;color:#0f172a;margin:0 0 10px;display:flex;align-items:center;gap:8px;}
+.ui-guide .bad-label,.ui-guide .good-label{display:inline-flex;align-items:center;border-radius:999px;padding:2px 8px;font-size:12px;font-weight:850;margin-bottom:10px;}
+.ui-guide .bad-label{background:var(--ui-red-soft);color:var(--ui-red);border:1px solid #fecaca;}
+.ui-guide .good-label{background:var(--ui-green-soft);color:var(--ui-green);border:1px solid #99f6e4;}
+.ui-guide .demo{border:1px solid var(--ui-line);border-radius:18px;background:#fff;padding:18px;min-height:220px;overflow:hidden;}
+.ui-guide .demo.bad{background:#fff7f7;border-color:#fecaca;}
+.ui-guide .demo.good{background:#fbfdff;border-color:#bfdbfe;}
+.ui-guide .before-after{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin:18px 0;}
+.ui-guide .caption{font-size:12px;color:#64748b;line-height:1.55;margin-top:10px;}
+.ui-guide table{width:100%;border-collapse:separate;border-spacing:0;margin:18px 0;border:1px solid var(--ui-line);border-radius:16px;overflow:hidden;background:white;font-size:14px;}
+.ui-guide th,.ui-guide td{padding:12px 14px;border-bottom:1px solid var(--ui-line);vertical-align:top;text-align:left;}
+.ui-guide th{background:#f8fafc;color:#0f172a;font-weight:850;}
+.ui-guide tr:last-child td{border-bottom:0;}
+.ui-guide code{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono",monospace;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:6px;padding:1px 5px;font-size:.92em;color:#0f172a;}
+.ui-guide pre{background:var(--ui-code);color:#dbeafe;border:1px solid #1e293b;border-radius:18px;padding:18px 20px;overflow:auto;line-height:1.62;box-shadow:var(--ui-shadow-sm);}
+.ui-guide pre code{background:transparent;border:0;color:inherit;padding:0;font-size:13px;}
+.ui-guide details{border:1px solid var(--ui-line);border-radius:16px;background:#fff;margin:12px 0;overflow:hidden;}
+.ui-guide summary{cursor:pointer;padding:13px 16px;font-weight:850;color:#0f172a;background:#f8fafc;}
+.ui-guide details .details-body{padding:4px 18px 18px;}
+.ui-guide .pill-row{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0;}
+.ui-guide .pill{border:1px solid var(--ui-line);border-radius:999px;padding:4px 10px;background:#fff;color:#475569;font-size:12px;font-weight:750;}
+.ui-guide .rule{display:grid;grid-template-columns:160px minmax(0,1fr);gap:16px;border-top:1px solid var(--ui-line);padding:14px 0;}
+.ui-guide .rule:first-child{border-top:0;}
+.ui-guide .rule b{color:#0f172a;}
+.ui-guide .swatches{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;margin:14px 0;}
+.ui-guide .swatch{border:1px solid var(--ui-line);border-radius:14px;background:#fff;overflow:hidden;}
+.ui-guide .swatch .color{height:62px;}
+.ui-guide .swatch .desc{padding:9px 10px;font-size:12px;line-height:1.45;color:#334155;}
+.ui-guide .swatch b{display:block;color:#0f172a;margin-bottom:3px;}
+.ui-guide .tag-ok{background:#dcfce7;color:#166534;border:1px solid #bbf7d0;border-radius:999px;padding:2px 8px;font-size:12px;font-weight:800;}
+.ui-guide .tag-warn{background:#fef3c7;color:#92400e;border:1px solid #fde68a;border-radius:999px;padding:2px 8px;font-size:12px;font-weight:800;}
+.ui-guide .tag-danger{background:#fee2e2;color:#991b1b;border:1px solid #fecaca;border-radius:999px;padding:2px 8px;font-size:12px;font-weight:800;}
+.ui-guide .tag-info{background:#dbeafe;color:#1d4ed8;border:1px solid #bfdbfe;border-radius:999px;padding:2px 8px;font-size:12px;font-weight:800;}
+.ui-guide .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:38px;border-radius:10px;padding:0 14px;font-size:14px;font-weight:750;border:1px solid transparent;background:#fff;color:#0f172a;}
+.ui-guide .btn-primary{background:var(--ui-blue);color:#fff;border-color:var(--ui-blue);}
+.ui-guide .btn-secondary{border-color:#cbd5e1;background:#fff;color:#0f172a;}
+.ui-guide .btn-danger{background:#dc2626;color:#fff;border-color:#dc2626;}
+.ui-guide .btn-ghost{background:transparent;color:#334155;border-color:transparent;}
+.ui-guide .btn-disabled{background:#f1f5f9;color:#94a3b8;border-color:#e2e8f0;}
+.ui-guide .kbd{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;border-radius:6px;background:#fff;border:1px solid #cbd5e1;box-shadow:0 1px 0 #cbd5e1;color:#334155;font-size:12px;padding:0 6px;font-weight:800;}
+
+/* visual examples */
+.ui-guide .dash{border:1px solid #e2e8f0;border-radius:16px;background:#fff;overflow:hidden;box-shadow:0 8px 24px rgba(15,23,42,.08);}
+.ui-guide .dash-top{height:48px;background:#0f172a;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 14px;font-size:13px;font-weight:800;}
+.ui-guide .dash-body{display:grid;grid-template-columns:150px 1fr;min-height:230px;}
+.ui-guide .dash-side{background:#f8fafc;border-right:1px solid #e2e8f0;padding:12px;}
+.ui-guide .dash-side div{height:26px;border-radius:8px;margin-bottom:8px;background:#e2e8f0;}
+.ui-guide .dash-side .active{background:#dbeafe;}
+.ui-guide .dash-main{padding:16px;}
+.ui-guide .metric-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px;}
+.ui-guide .metric{border:1px solid #e2e8f0;border-radius:12px;padding:12px;background:#fff;}
+.ui-guide .metric .label{font-size:11px;color:#64748b;margin-bottom:6px;}
+.ui-guide .metric .value{font-size:22px;font-weight:850;color:#0f172a;line-height:1;}
+.ui-guide .fake-table{border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;}
+.ui-guide .fake-row{display:grid;grid-template-columns:1.4fr .8fr .8fr .8fr;gap:8px;align-items:center;padding:9px 10px;border-bottom:1px solid #e2e8f0;font-size:12px;color:#334155;}
+.ui-guide .fake-row:last-child{border-bottom:0;}
+.ui-guide .fake-row.header{background:#f8fafc;color:#64748b;font-weight:800;font-size:11px;}
+.ui-guide .bad .dash-top{height:38px;background:linear-gradient(90deg,#ec4899,#f97316,#22c55e);font-size:11px;}
+.ui-guide .bad .dash-body{grid-template-columns:112px 1fr;}
+.ui-guide .bad .dash-side{background:#fef08a;padding:6px;}
+.ui-guide .bad .dash-side div{height:20px;background:#60a5fa;border-radius:2px;margin-bottom:5px;}
+.ui-guide .bad .dash-main{padding:8px;background:#fff;}
+.ui-guide .bad .metric-row{gap:5px;}
+.ui-guide .bad .metric{border:2px solid #111827;border-radius:3px;background:#fef2f2;padding:6px;}
+.ui-guide .bad .metric .label{font-size:10px;color:#111827;font-weight:900;}
+.ui-guide .bad .metric .value{font-size:16px;color:#dc2626;}
+.ui-guide .bad .fake-row{grid-template-columns:1fr 1fr 1fr 1fr;border-bottom:2px solid #0f172a;padding:5px;font-size:10px;color:#111827;}
+.ui-guide .bad .fake-row.header{background:#86efac;color:#111827;font-size:10px;}
+
+.ui-guide .type-bad .line1{font-size:31px;font-weight:900;color:#f97316;letter-spacing:2px;line-height:1.1;}
+.ui-guide .type-bad .line2{font-size:19px;font-weight:900;color:#ef4444;line-height:1.15;}
+.ui-guide .type-bad .line3{font-size:13px;color:#a3a3a3;line-height:1.2;max-width:420px;}
+.ui-guide .type-bad .line4{font-size:17px;font-weight:900;color:#8b5cf6;text-decoration:underline;margin-top:12px;}
+.ui-guide .type-good .line1{font-size:30px;font-weight:800;color:#0f172a;letter-spacing:-.02em;line-height:1.2;}
+.ui-guide .type-good .line2{font-size:16px;font-weight:600;color:#334155;line-height:1.5;margin-top:8px;}
+.ui-guide .type-good .line3{font-size:14px;color:#64748b;line-height:1.7;max-width:420px;margin-top:8px;}
+.ui-guide .type-good .line4{font-size:14px;font-weight:700;color:#2563eb;margin-top:14px;}
+.ui-guide .space-canvas{position:relative;background:repeating-linear-gradient(90deg,#fff 0 31px,#eff6ff 31px 32px),#fff;border-radius:14px;border:1px solid #dbeafe;padding:18px;min-height:245px;}
+.ui-guide .space-block{height:34px;border-radius:10px;background:#dbeafe;border:1px solid #bfdbfe;margin-bottom:12px;display:flex;align-items:center;padding:0 10px;color:#1d4ed8;font-size:12px;font-weight:800;}
+.ui-guide .bad .space-canvas{background:#fff;border-color:#fecaca;padding:7px;}
+.ui-guide .bad .space-block{height:27px;border-radius:2px;background:#fbcfe8;border-color:#f472b6;margin-bottom:5px;color:#831843;}
+.ui-guide .bad .space-block:nth-child(2){margin-left:19px;width:83%;}
+.ui-guide .bad .space-block:nth-child(3){margin-left:4px;width:96%;}
+.ui-guide .bad .space-block:nth-child(4){margin-left:37px;width:66%;}
+.ui-guide .good .space-block:nth-child(1){width:74%;}
+.ui-guide .good .space-block:nth-child(2){width:92%;margin-bottom:18px;}
+.ui-guide .good .space-block:nth-child(3){width:80%;}
+.ui-guide .good .space-block:nth-child(4){width:58%;margin-top:24px;background:#2563eb;color:#fff;border-color:#2563eb;}
+.ui-guide .palette-bad{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;}
+.ui-guide .random-color{height:54px;border-radius:4px;border:2px solid #111;display:grid;place-items:center;color:white;font-size:10px;font-weight:900;text-shadow:0 1px 2px #000;}
+.ui-guide .palette-good{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;}
+.ui-guide .role-color{border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;background:#fff;}
+.ui-guide .role-color .box{height:56px;}
+.ui-guide .role-color .name{font-size:11px;color:#334155;font-weight:800;padding:8px;line-height:1.3;}
+.ui-guide .form-demo label{display:block;font-size:13px;font-weight:800;color:#334155;margin:0 0 6px;}
+.ui-guide .input{height:40px;border:1px solid #cbd5e1;border-radius:10px;background:#fff;padding:0 12px;display:flex;align-items:center;color:#0f172a;font-size:14px;}
+.ui-guide .input.focus{border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.14);}
+.ui-guide .input.error{border-color:#dc2626;background:#fff7f7;}
+.ui-guide .help{font-size:12px;color:#64748b;margin-top:5px;}
+.ui-guide .error-text{font-size:12px;color:#b91c1c;margin-top:5px;font-weight:700;}
+.ui-guide .bad .input{border:2px solid #111;border-radius:0;background:#fef08a;color:#9ca3af;margin-bottom:7px;height:30px;font-size:12px;}
+.ui-guide .bad .form-btns{display:flex;gap:5px;}
+.ui-guide .bad .btn{height:30px;border-radius:0;background:#ef4444;color:white;border:2px solid #111;font-size:11px;padding:0 8px;}
+.ui-guide .component-row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:12px 0;}
+.ui-guide .states-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;}
+.ui-guide .state-card{border:1px solid #e2e8f0;border-radius:14px;background:#fff;padding:14px;min-height:104px;}
+.ui-guide .state-card b{display:block;margin-bottom:5px;}
+.ui-guide .skeleton{height:12px;border-radius:999px;background:linear-gradient(90deg,#e2e8f0,#f8fafc,#e2e8f0);background-size:200% 100%;animation:sheen 1.6s infinite;margin:8px 0;}
+@keyframes sheen{0%{background-position:0 0;}100%{background-position:-200% 0;}}
+.ui-guide .empty-icon{width:44px;height:44px;border-radius:14px;background:#eff6ff;border:1px solid #bfdbfe;display:grid;place-items:center;color:#2563eb;font-weight:900;margin-bottom:10px;}
+.ui-guide .modal-stack{position:relative;min-height:230px;background:linear-gradient(180deg,#f8fafc,#f1f5f9);border:1px solid #e2e8f0;border-radius:16px;padding:20px;}
+.ui-guide .modal-backdrop{position:absolute;inset:0;background:rgba(15,23,42,.32);border-radius:16px;}
+.ui-guide .modal{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(320px,80%);background:#fff;border-radius:18px;border:1px solid #e2e8f0;box-shadow:0 24px 64px rgba(15,23,42,.2);padding:18px;}
+.ui-guide .toast{position:absolute;right:16px;bottom:16px;background:#0f172a;color:#fff;border-radius:12px;padding:10px 12px;font-size:12px;box-shadow:0 16px 44px rgba(15,23,42,.24);}
+.ui-guide .tooltip{position:absolute;left:28px;top:22px;background:#111827;color:#fff;border-radius:8px;padding:6px 8px;font-size:11px;}
+.ui-guide .tooltip:after{content:"";position:absolute;left:18px;bottom:-6px;border-left:6px solid transparent;border-right:6px solid transparent;border-top:6px solid #111827;}
+.ui-guide .phone{width:190px;min-height:360px;border:10px solid #0f172a;border-radius:32px;background:#fff;box-shadow:0 20px 48px rgba(15,23,42,.2);padding:12px;margin:auto;}
+.ui-guide .phone-top{height:22px;display:flex;justify-content:center;align-items:flex-start;}
+.ui-guide .notch{width:68px;height:8px;background:#0f172a;border-radius:999px;}
+.ui-guide .phone-card{border:1px solid #e2e8f0;border-radius:16px;padding:12px;margin-bottom:10px;background:#fff;}
+.ui-guide .chart{height:210px;display:flex;align-items:end;gap:12px;padding:18px;border:1px solid #e2e8f0;border-radius:16px;background:#fff;}
+.ui-guide .bar{flex:1;border-radius:8px 8px 0 0;background:#bfdbfe;position:relative;}
+.ui-guide .bar.primary{background:#2563eb;}
+.ui-guide .bar:after{content:attr(data-label);position:absolute;bottom:-22px;left:50%;transform:translateX(-50%);font-size:11px;color:#64748b;}
+.ui-guide .chart-bad .bar:nth-child(1){background:#ef4444}.ui-guide .chart-bad .bar:nth-child(2){background:#22c55e}.ui-guide .chart-bad .bar:nth-child(3){background:#a855f7}.ui-guide .chart-bad .bar:nth-child(4){background:#f97316}.ui-guide .chart-bad .bar:nth-child(5){background:#06b6d4}
+.ui-guide .target-demo{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:14px 0;}
+.ui-guide .target{display:grid;place-items:center;border:1px solid #cbd5e1;background:#fff;border-radius:8px;font-size:11px;font-weight:850;color:#334155;}
+.ui-guide .t16{width:16px;height:16px}.ui-guide .t24{width:24px;height:24px}.ui-guide .t32{width:32px;height:32px}.ui-guide .t44{width:44px;height:44px}.ui-guide .t48{width:48px;height:48px}
+.ui-guide .density{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:14px 0;}
+.ui-guide .density-card{border:1px solid #e2e8f0;border-radius:14px;background:#fff;padding:12px;}
+.ui-guide .density-row{height:16px;border-radius:6px;background:#e2e8f0;margin-bottom:6px;}
+.ui-guide .dense .density-row{height:10px;margin-bottom:3px;}.ui-guide .loose .density-row{height:22px;margin-bottom:10px;}
+.ui-guide .style-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+.ui-guide .style-card{border:1px solid #e2e8f0;border-radius:18px;padding:16px;background:#fff;min-height:140px;}
+.ui-guide .style-card.minimal{border-radius:8px;box-shadow:none;}
+.ui-guide .style-card.friendly{border-radius:28px;background:#f0fdfa;}
+.ui-guide .style-card.editorial{font-family:Georgia,"Times New Roman","Songti SC",SimSun,serif;background:#fff7ed;}
+.ui-guide .screen-flow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:12px 0;}
+.ui-guide .flow-node{border:1px solid #cbd5e1;border-radius:12px;background:#fff;padding:10px 12px;font-weight:850;font-size:13px;}
+.ui-guide .flow-arrow{color:#94a3b8;font-weight:900;}
+.ui-guide .print-note{display:none;}
+
+@media (max-width:1100px){
+  .ui-shell{grid-template-columns:1fr;padding:18px;}
+  .ui-side{position:relative;height:auto;top:auto;}
+  .ui-side nav{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px;}
+}
+@media (max-width:760px){
+  .ui-guide .hero{padding:28px 22px;border-radius:22px;}
+  .ui-guide .grid-2,.ui-guide .grid-3,.ui-guide .grid-4,.ui-guide .before-after,.ui-guide .metric-row,.ui-guide .states-grid,.ui-guide .swatches,.ui-guide .density,.ui-guide .style-strip{grid-template-columns:1fr;}
+  .ui-guide .dash-body{grid-template-columns:1fr;}
+  .ui-guide .dash-side{display:none;}
+  .ui-guide h2{font-size:24px;}
+  .ui-guide .rule{grid-template-columns:1fr;gap:4px;}
+  .ui-side nav{grid-template-columns:1fr;}
+}
+@media print{
+  body.ui-standalone{background:#fff;}
+  .ui-shell{display:block;padding:0;}
+  .ui-side{display:none;}
+  .ui-guide{max-width:100%;}
+  .ui-guide .hero,.ui-guide .card,.ui-guide .demo{box-shadow:none;}
+  .ui-guide .print-note{display:block;}
+}
+
+.ui-guide{max-width:100%;}
+.ui-guide .hero{margin-top:0;}
+/* 在 notebook 的 Eleventy layout 中使用时，外层已有 body 与目录；这里仅保留文章样式。 */
+</style>
+
+<article class="ui-guide" id="top">
+  <section class="hero">
+    <div class="eyebrow">UI Design / Programmer Edition</div>
+    <h1>UI 设计系统化完全指南：从“品味差”到“有规则地做出专业界面”</h1>
+    <p class="subtitle">这份报告不是教你“把界面装饰得好看”，而是把 UI 拆成可判断、可复用、可实现的系统：信息架构、视觉层级、字体、间距、颜色、组件、状态、可访问性、响应式、数据展示、设计评审与工程落地。</p>
+    <div class="meta-row">
+      <span class="chip">生成日期：2026-07-06</span>
+      <span class="chip">适合：程序员 / 独立开发者 / 产品工程师</span>
+      <span class="chip">形式：图文报告 + checklist + 代码 token</span>
+      <span class="chip">可放入 notebook 仓库</span>
+    </div>
+  </section>
+
+  <section class="card soft">
+    <h3 style="margin-top:0">先给你一个总判断</h3>
+    <p class="lead">UI 设计的专业感，主要不是来自“天生审美”，而是来自 <strong>约束系统</strong>。你写程序不会每个页面都随机起变量名、随机选架构；UI 也一样。字体、字号、颜色、间距、圆角、按钮、表格、表单、反馈状态，都应该来自一套规则。</p>
+    <div class="grid-3">
+      <div class="callout ok"><strong>清楚</strong><br>用户第一眼知道这是什么页面、最重要的信息在哪里、下一步能做什么。</div>
+      <div class="callout"><strong>一致</strong><br>相同的东西长得相同，相同的操作行为一致，相同的状态表达一致。</div>
+      <div class="callout warn"><strong>可用</strong><br>能读、能点、能撤销、能理解错误；弱网、空数据、权限不足时也不崩。</div>
+    </div>
+  </section>
+
+  <h2 id="map"><span class="num">01</span>UI 的全景地图：你到底需要学哪些角落</h2>
+  <p>UI 不是只有视觉。一个完整界面至少包含九层：目标、信息、布局、视觉、组件、交互、状态、内容、工程实现。你可以把它理解成前端架构，只不过这里的模块是视觉与行为。</p>
+  <table>
+    <thead><tr><th>层级</th><th>你要解决的问题</th><th>常见错误</th><th>专业做法</th></tr></thead>
+    <tbody>
+      <tr><td>产品目标</td><td>用户为什么来这个页面？</td><td>先画界面，后想目标</td><td>先定义主任务、主信息、主操作</td></tr>
+      <tr><td>信息架构</td><td>内容如何分组、排序、命名？</td><td>把所有功能平铺</td><td>按用户任务分组，减少认知负担</td></tr>
+      <tr><td>布局</td><td>元素放在哪里？</td><td>到处居中、对齐线混乱</td><td>网格、对齐线、容器、留白</td></tr>
+      <tr><td>视觉系统</td><td>字体、颜色、间距、圆角如何统一？</td><td>每个地方临时决定</td><td>设计 token：颜色角色、字号阶梯、间距刻度</td></tr>
+      <tr><td>组件</td><td>按钮、表单、表格、卡片如何复用？</td><td>同一组件多种样式</td><td>组件规范 + 状态规范 + 变体规范</td></tr>
+      <tr><td>交互</td><td>用户怎么操作？操作后发生什么？</td><td>没有 hover、loading、focus、反馈</td><td>默认、悬停、按下、聚焦、禁用、加载、成功、失败全覆盖</td></tr>
+      <tr><td>内容文案</td><td>界面文字是否可理解？</td><td>“Error”“提交失败”</td><td>写清原因、影响、下一步</td></tr>
+      <tr><td>可访问性</td><td>不同能力、设备、环境下是否能用？</td><td>浅灰小字、只靠颜色、点击区太小</td><td>对比度、键盘、焦点、语义、触控目标</td></tr>
+      <tr><td>工程实现</td><td>设计如何稳定落地？</td><td>CSS 到处硬编码</td><td>token、组件 API、响应式规则、视觉回归检查</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout">
+    <strong>程序员学习 UI 的最佳路线：</strong>不要先追潮流，不要先学 Figma 特效。先掌握可复用的基础规则：字号阶梯、8px 间距、颜色角色、按钮层级、表单状态、表格密度、空/错/加载状态。然后再学风格。
+  </div>
+
+  <h2 id="bad-good"><span class="num">02</span>先看整体：为什么同一个后台页面会显得业余或专业</h2>
+  <p>下面的对照图用纯 HTML/CSS 模拟。左边故意把常见问题放在一起：颜色过多、间距随机、表格边框太重、按钮都像主按钮。右边用统一的字号、间距、颜色角色和组件层级。</p>
+  <div class="before-after">
+    <div class="demo bad">
+      <span class="bad-label">坏例子：每个元素都抢重点</span>
+      <div class="dash">
+        <div class="dash-top"><span>订单后台!!!</span><span>新增 导出 删除 审核</span></div>
+        <div class="dash-body">
+          <div class="dash-side"><div></div><div class="active"></div><div></div><div></div><div></div></div>
+          <div class="dash-main">
+            <div class="metric-row"><div class="metric"><div class="label">销售额</div><div class="value">¥128K</div></div><div class="metric"><div class="label">订单</div><div class="value">923</div></div><div class="metric"><div class="label">失败</div><div class="value">17</div></div></div>
+            <div class="fake-table"><div class="fake-row header"><span>商品</span><span>价格</span><span>状态</span><span>操作</span></div><div class="fake-row"><span>MacBook</span><span>12999</span><span>成功</span><span>删 改 看</span></div><div class="fake-row"><span>键盘</span><span>499</span><span>失败</span><span>删 改 看</span></div><div class="fake-row"><span>耳机</span><span>999</span><span>等待</span><span>删 改 看</span></div></div>
+          </div>
+        </div>
+      </div>
+      <p class="caption">问题：所有颜色都很响、线条太重、卡片太挤、层级无序、操作优先级不明确。</p>
+    </div>
+    <div class="demo good">
+      <span class="good-label">好例子：有清楚的信息层级</span>
+      <div class="dash">
+        <div class="dash-top"><span>订单管理</span><span>导出　筛选　新增订单</span></div>
+        <div class="dash-body">
+          <div class="dash-side"><div class="active"></div><div></div><div></div><div></div><div></div></div>
+          <div class="dash-main">
+            <div class="metric-row"><div class="metric"><div class="label">今日销售额</div><div class="value">¥128K</div></div><div class="metric"><div class="label">新增订单</div><div class="value">923</div></div><div class="metric"><div class="label">异常订单</div><div class="value">17</div></div></div>
+            <div class="fake-table"><div class="fake-row header"><span>商品</span><span>金额</span><span>状态</span><span>操作</span></div><div class="fake-row"><span>MacBook Pro</span><span>¥12,999</span><span><em class="tag-ok">已支付</em></span><span>查看</span></div><div class="fake-row"><span>机械键盘</span><span>¥499</span><span><em class="tag-danger">失败</em></span><span>重试</span></div><div class="fake-row"><span>降噪耳机</span><span>¥999</span><span><em class="tag-warn">待确认</em></span><span>查看</span></div></div>
+          </div>
+        </div>
+      </div>
+      <p class="caption">改进：主操作少、状态用语义色、表格轻边框、卡片内外间距统一、文字主次清楚。</p>
+    </div>
+  </div>
+
+  <h2 id="principles"><span class="num">03</span>七条底层原则：所有 UI 决策都从这里出发</h2>
+  <div class="grid-2">
+    <div class="card"><h3 style="margin-top:0">1. 清晰性优先</h3><p>用户不应该猜页面是什么、按钮会做什么、错误意味着什么。清楚永远比炫酷重要。</p></div>
+    <div class="card"><h3 style="margin-top:0">2. 层级明确</h3><p>一个页面必须有第一重点、第二重点、第三重点。没有层级就没有阅读路径。</p></div>
+    <div class="card"><h3 style="margin-top:0">3. 一致性降低成本</h3><p>同样的动作、状态、组件，在不同页面应该长得一样。每一次例外都会增加用户学习成本。</p></div>
+    <div class="card"><h3 style="margin-top:0">4. 反馈必须及时</h3><p>点击、提交、加载、失败、保存成功都要有反馈。无反馈会让用户重复点击或不信任系统。</p></div>
+    <div class="card"><h3 style="margin-top:0">5. 容错比美观更重要</h3><p>撤销、确认、错误提示、禁用状态、校验规则、失败恢复，是专业产品和玩具 Demo 的分界线。</p></div>
+    <div class="card"><h3 style="margin-top:0">6. 视觉为任务服务</h3><p>颜色、阴影、动效不是装饰，而是告诉用户：什么重要、什么可点、什么危险、什么已完成。</p></div>
+    <div class="card"><h3 style="margin-top:0">7. 系统胜过灵感</h3><p>专业 UI 不是每次灵光一闪，而是把字体、颜色、间距、组件状态都放进一个系统。</p></div>
+    <div class="card"><h3 style="margin-top:0">8. 默认状态之外才见功力</h3><p>空状态、加载态、错误态、无权限、弱网、长文本、极端数据，才是真实产品最容易露怯的地方。</p></div>
+  </div>
+
+  <h2 id="typography"><span class="num">04</span>字体与排版：UI 的阅读系统</h2>
+  <p>字体不是“选一个好看的字体”这么简单。UI 排版要解决的是阅读速度、层级、密度、平台一致性和中英文混排。</p>
+  <div class="before-after">
+    <div class="demo bad type-bad">
+      <span class="bad-label">坏例子：字号、颜色、字重都在打架</span>
+      <div class="line1">订单数据看板</div>
+      <div class="line2">今日销售额增长明显，请立即查看！</div>
+      <div class="line3">这里是辅助说明文字，但是颜色太浅、行高太紧、字号太小，长一点就会很难读。</div>
+      <div class="line4">查看详细报告</div>
+      <p class="caption">问题：标题字距过大，副标题和链接都在抢注意力，正文可读性差。</p>
+    </div>
+    <div class="demo good type-good">
+      <span class="good-label">好例子：固定文字阶梯</span>
+      <div class="line1">订单数据看板</div>
+      <div class="line2">今日销售额较昨日增长 12.4%</div>
+      <div class="line3">系统已汇总订单、退款、异常支付与渠道转化数据。你可以先查看异常订单，再导出完整报表。</div>
+      <div class="line4">查看详细报告 →</div>
+      <p class="caption">改进：标题、摘要、正文、链接各司其职；强调不超过两种手段。</p>
+    </div>
+  </div>
+
+  <h3>4.1 字体选择</h3>
+  <table>
+    <thead><tr><th>字体类型</th><th>适合场景</th><th>不适合场景</th><th>建议</th></tr></thead>
+    <tbody>
+      <tr><td>无衬线</td><td>App、后台、表单、按钮、Dashboard、移动端</td><td>需要强烈文学感或传统品牌感的标题</td><td>默认优先使用系统无衬线字体</td></tr>
+      <tr><td>衬线</td><td>长文、杂志、品牌官网、仪式感标题</td><td>密集表格、小按钮、后台工具</td><td>只在标题或内容型页面局部使用</td></tr>
+      <tr><td>等宽</td><td>代码、日志、数字对齐、技术指标</td><td>大段普通正文</td><td>用于代码块、金额、版本号、ID</td></tr>
+      <tr><td>装饰字体</td><td>海报、品牌活动、封面视觉</td><td>工具型产品、表单、导航</td><td>新手先少用，最多用于大标题</td></tr>
+    </tbody>
+  </table>
+
+  <h3>4.2 程序员可直接使用的字号系统</h3>
+  <div class="card">
+    <div class="rule"><b>12px</b><span>辅助信息、表格说明、时间戳、标签。不要用于大量正文。</span></div>
+    <div class="rule"><b>14px</b><span>后台正文、表格内容、按钮、表单 label。Web 工具型产品常用。</span></div>
+    <div class="rule"><b>16px</b><span>正文、移动端输入、阅读型页面基础字号。移动端正文尽量从 16px 起。</span></div>
+    <div class="rule"><b>18/20px</b><span>区块标题、卡片标题、弹窗标题。</span></div>
+    <div class="rule"><b>24/28px</b><span>页面标题、重要模块标题。</span></div>
+    <div class="rule"><b>32/40/48px</b><span>营销页 Hero、重要数字、数据大屏，不要滥用。</span></div>
+  </div>
+
+  <h3>4.3 字重、行高、字间距</h3>
+  <table>
+    <thead><tr><th>属性</th><th>错误做法</th><th>专业做法</th></tr></thead>
+    <tbody>
+      <tr><td>字重</td><td>标题、按钮、标签、金额、表头全加粗</td><td>正文 400，按钮/导航 500，标题 600/700，重要数字 700/800</td></tr>
+      <tr><td>行高</td><td>正文 line-height 1.2，看起来挤</td><td>中文正文 1.5～1.8；标题 1.1～1.35；表格 1.35～1.55</td></tr>
+      <tr><td>字间距</td><td>中文按钮写成“保 存 修 改”</td><td>中文默认 0；英文大写标签可用 0.04em～0.08em</td></tr>
+      <tr><td>中英文混排</td><td>中文、英文、数字挤在一起</td><td>数字可用 tabular-nums；金额、百分比要统一格式</td></tr>
+      <tr><td>文本长度</td><td>一行过长，读起来疲劳</td><td>阅读正文宽度控制在 640～760px 左右；后台按内容需要扩展</td></tr>
+    </tbody>
+  </table>
+
+  <pre><code>/* 推荐的基础字体栈 */
+:root {
+  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --text-xs: 12px;
+  --text-sm: 14px;
+  --text-md: 16px;
+  --text-lg: 18px;
+  --text-xl: 24px;
+  --text-2xl: 32px;
+}</code></pre>
+
+  <h2 id="spacing"><span class="num">05</span>间距、网格与对齐：专业感的骨架</h2>
+  <p>很多页面看起来“不高级”，真正原因不是配色，而是没有对齐线、没有分组逻辑、没有间距系统。UI 的留白不是空白，而是关系。</p>
+  <div class="before-after">
+    <div class="demo bad">
+      <span class="bad-label">坏例子：随机间距，没有对齐线</span>
+      <div class="space-canvas">
+        <div class="space-block">标题</div><div class="space-block">输入框</div><div class="space-block">说明文字</div><div class="space-block">按钮</div>
+      </div>
+      <p class="caption">问题：元素左右边缘不一致，组内组外距离差不多，按钮位置飘。</p>
+    </div>
+    <div class="demo good">
+      <span class="good-label">好例子：8px 系统 + 共同对齐线</span>
+      <div class="space-canvas">
+        <div class="space-block">页面标题 / 24px</div><div class="space-block">描述文字 / 与标题同组，距离 8px</div><div class="space-block">表单字段 / 区块间距 24px</div><div class="space-block">主按钮 / 与表单间距 24px</div>
+      </div>
+      <p class="caption">改进：所有元素共享左边界，组内近、组间远，页面有稳定骨架。</p>
+    </div>
+  </div>
+
+  <h3>5.1 4/8px 间距系统</h3>
+  <div class="card">
+    <div class="pill-row"><span class="pill">4</span><span class="pill">8</span><span class="pill">12</span><span class="pill">16</span><span class="pill">24</span><span class="pill">32</span><span class="pill">40</span><span class="pill">48</span><span class="pill">64</span><span class="pill">80</span></div>
+    <p>新手先不要写 <code>margin: 7px</code>、<code>padding: 19px</code>。除非你有明确原因，否则所有空间都从这组数字里取。</p>
+  </div>
+  <table>
+    <thead><tr><th>关系</th><th>推荐间距</th><th>解释</th></tr></thead>
+    <tbody>
+      <tr><td>图标与文字</td><td>6 / 8px</td><td>属于同一按钮或同一标签，距离小</td></tr>
+      <tr><td>Label 与输入框</td><td>6 / 8px</td><td>同一字段内部关系</td></tr>
+      <tr><td>表单字段之间</td><td>16 / 20 / 24px</td><td>同类字段之间，需清楚分隔</td></tr>
+      <tr><td>卡片内边距</td><td>16 / 24 / 32px</td><td>内容密度越低，padding 越大</td></tr>
+      <tr><td>区块之间</td><td>32 / 48 / 64px</td><td>大信息组之间需要明显留白</td></tr>
+      <tr><td>页面边距</td><td>移动端 16/20px；桌面 24/32/48px</td><td>不同设备要有不同安全边距</td></tr>
+    </tbody>
+  </table>
+
+  <h3>5.2 栅格、容器、密度</h3>
+  <p>后台、管理系统、Dashboard 常用 12 栅格或 CSS Grid。你不必每次显式画 12 列，但要知道：内容不应该随意漂浮，应该落在一套列宽与间距上。</p>
+  <div class="density">
+    <div class="density-card dense"><b>紧凑密度</b><div class="density-row"></div><div class="density-row"></div><div class="density-row"></div><p class="caption">适合表格、日志、运维工具。效率高，但对新手用户不友好。</p></div>
+    <div class="density-card"><b>标准密度</b><div class="density-row"></div><div class="density-row"></div><div class="density-row"></div><p class="caption">适合大多数 Web 产品，是默认选择。</p></div>
+    <div class="density-card loose"><b>宽松密度</b><div class="density-row"></div><div class="density-row"></div><div class="density-row"></div><p class="caption">适合营销页、移动端、复杂表单、首次使用场景。</p></div>
+  </div>
+
+  <h2 id="color"><span class="num">06</span>配色：不要选颜色，要定义颜色角色</h2>
+  <p>专业 UI 的颜色不是“我喜欢蓝色/紫色”，而是角色：背景、表面、文字、边框、主操作、危险、成功、警告、信息、选中、悬停、禁用。</p>
+  <div class="before-after">
+    <div class="demo bad">
+      <span class="bad-label">坏例子：颜色像随机数</span>
+      <div class="palette-bad">
+        <div class="random-color" style="background:#ef4444">保存</div><div class="random-color" style="background:#22c55e">删除</div><div class="random-color" style="background:#a855f7">导出</div><div class="random-color" style="background:#f97316">返回</div><div class="random-color" style="background:#06b6d4">审核</div>
+      </div>
+      <p class="caption">问题：用户无法知道哪一个是主操作，红绿橙紫都在争夺注意力。</p>
+    </div>
+    <div class="demo good">
+      <span class="good-label">好例子：颜色有职责</span>
+      <div class="palette-good">
+        <div class="role-color"><div class="box" style="background:#2563eb"></div><div class="name">Primary<br>主操作</div></div>
+        <div class="role-color"><div class="box" style="background:#f8fafc"></div><div class="name">Surface<br>容器</div></div>
+        <div class="role-color"><div class="box" style="background:#dc2626"></div><div class="name">Danger<br>危险</div></div>
+        <div class="role-color"><div class="box" style="background:#16a34a"></div><div class="name">Success<br>成功</div></div>
+        <div class="role-color"><div class="box" style="background:#d97706"></div><div class="name">Warning<br>警告</div></div>
+      </div>
+      <p class="caption">改进：主色只给主操作；语义色只表达状态，不随便拿来装饰。</p>
+    </div>
+  </div>
+
+  <h3>6.1 推荐的颜色 token</h3>
+  <div class="swatches">
+    <div class="swatch"><div class="color" style="background:#ffffff"></div><div class="desc"><b>bg</b>#ffffff</div></div>
+    <div class="swatch"><div class="color" style="background:#f8fafc"></div><div class="desc"><b>surface</b>#f8fafc</div></div>
+    <div class="swatch"><div class="color" style="background:#111827"></div><div class="desc"><b>text</b>#111827</div></div>
+    <div class="swatch"><div class="color" style="background:#64748b"></div><div class="desc"><b>muted</b>#64748b</div></div>
+    <div class="swatch"><div class="color" style="background:#e5e7eb"></div><div class="desc"><b>border</b>#e5e7eb</div></div>
+    <div class="swatch"><div class="color" style="background:#2563eb"></div><div class="desc"><b>primary</b>#2563eb</div></div>
+  </div>
+  <pre><code>:root {
+  --color-bg: #ffffff;
+  --color-surface: #f8fafc;
+  --color-border: #e5e7eb;
+  --color-text: #111827;
+  --color-text-secondary: #475569;
+  --color-text-muted: #64748b;
+  --color-primary: #2563eb;
+  --color-primary-hover: #1d4ed8;
+  --color-danger: #dc2626;
+  --color-success: #16a34a;
+  --color-warning: #d97706;
+}</code></pre>
+
+  <h3>6.2 对比度与色弱友好</h3>
+  <div class="callout warn">
+    WCAG 2.2 的 AA 标准要求普通文本和背景至少达到 4.5:1 对比度，大字号文本至少 3:1。实际做产品时，不要用“看着高级”的浅灰小字牺牲可读性。
+  </div>
+  <table>
+    <thead><tr><th>错误</th><th>为什么错</th><th>修正</th></tr></thead>
+    <tbody>
+      <tr><td>浅灰正文 <code>#aaa</code> 放白底</td><td>看起来轻，但读不清</td><td>正文用深灰；辅助文字也要可读</td></tr>
+      <tr><td>只用红色表示错误</td><td>色弱用户可能分辨困难</td><td>红色 + 图标 + 错误文案</td></tr>
+      <tr><td>按钮背景浅、文字也浅</td><td>点击前就看不清</td><td>主按钮文字与背景高对比</td></tr>
+      <tr><td>图表用十几种随机颜色</td><td>难比较，也不适合色弱</td><td>少色、同色系、必要时用线型/图案/标签</td></tr>
+    </tbody>
+  </table>
+
+  <h2 id="shape"><span class="num">07</span>圆角、边框、阴影、层级：让界面有空间秩序</h2>
+  <p>圆角、边框、阴影不是为了“更漂亮”，而是表达层级与可交互性。普通内容容器不一定需要阴影；浮层、菜单、弹窗更适合使用阴影。</p>
+  <div class="grid-3">
+    <div class="card"><h3 style="margin-top:0">圆角</h3><p><code>6px</code> 小标签，<code>8px</code> 按钮/输入框，<code>12px</code> 卡片，<code>16px</code> 弹窗，<code>999px</code> 胶囊/头像。</p></div>
+    <div class="card"><h3 style="margin-top:0">边框</h3><p>普通卡片优先用 <code>1px #e5e7eb</code>。边框太黑会让界面像 Excel。</p></div>
+    <div class="card"><h3 style="margin-top:0">阴影</h3><p>用来表达浮层：Dropdown、Popover、Modal、Toast。不要每个按钮都加大阴影。</p></div>
+  </div>
+  <table>
+    <thead><tr><th>层级</th><th>典型元素</th><th>视觉表达</th></tr></thead>
+    <tbody>
+      <tr><td>Base</td><td>页面背景</td><td>白色或浅灰，无阴影</td></tr>
+      <tr><td>Surface</td><td>卡片、列表区域</td><td>白底 + 轻边框</td></tr>
+      <tr><td>Raised</td><td>Dropdown、Popover</td><td>白底 + 中等阴影</td></tr>
+      <tr><td>Overlay</td><td>Modal、Drawer</td><td>遮罩 + 强阴影 + 更大圆角</td></tr>
+      <tr><td>System</td><td>Toast、全局提示</td><td>固定位置，短时出现，层级最高</td></tr>
+    </tbody>
+  </table>
+
+  <h2 id="buttons"><span class="num">08</span>按钮：操作优先级的视觉语言</h2>
+  <p>按钮设计的核心不是颜色，而是优先级。一个区域通常只有一个 Primary。危险操作不应该和主操作并列抢眼，除非当前任务本身就是危险操作确认。</p>
+  <div class="card">
+    <div class="component-row">
+      <button class="btn btn-primary">保存修改</button>
+      <button class="btn btn-secondary">取消</button>
+      <button class="btn btn-ghost">查看日志</button>
+      <button class="btn btn-danger">删除</button>
+      <button class="btn btn-disabled">加载中</button>
+    </div>
+    <p class="caption">从左到右：主操作、次操作、弱操作、危险操作、禁用/加载态。不要把所有按钮都做成高饱和色块。</p>
+  </div>
+  <table>
+    <thead><tr><th>按钮类型</th><th>用途</th><th>视觉建议</th><th>注意事项</th></tr></thead>
+    <tbody>
+      <tr><td>Primary</td><td>页面主任务</td><td>主色背景 + 白字</td><td>同一操作区只放一个</td></tr>
+      <tr><td>Secondary</td><td>次要但常用</td><td>白底 + 边框</td><td>不要抢主按钮</td></tr>
+      <tr><td>Tertiary/Ghost</td><td>弱操作</td><td>透明或文字按钮</td><td>适合“更多、查看日志、展开”</td></tr>
+      <tr><td>Danger</td><td>删除、撤销授权、清空</td><td>红色或红色文字</td><td>危险操作应远离主操作，并有确认</td></tr>
+      <tr><td>Icon Button</td><td>工具栏、表格操作</td><td>24/32/40px 点击区</td><td>重要动作需要 tooltip 或文字</td></tr>
+    </tbody>
+  </table>
+
+  <h3>按钮必须覆盖的状态</h3>
+  <div class="states-grid">
+    <div class="state-card"><b>Default</b><span class="btn btn-primary">保存</span></div>
+    <div class="state-card"><b>Hover</b><span class="btn btn-primary" style="background:#1d4ed8">保存</span></div>
+    <div class="state-card"><b>Focus</b><span class="btn btn-secondary" style="box-shadow:0 0 0 3px rgba(37,99,235,.2);border-color:#2563eb">保存</span></div>
+    <div class="state-card"><b>Loading</b><span class="btn btn-disabled">处理中...</span></div>
+    <div class="state-card"><b>Disabled</b><span class="btn btn-disabled">不可提交</span></div>
+    <div class="state-card"><b>Danger</b><span class="btn btn-danger">删除项目</span></div>
+  </div>
+
+  <h2 id="forms"><span class="num">09</span>表单：减少用户犯错，而不是只摆输入框</h2>
+  <p>表单是最容易体现专业度的组件。好的表单必须考虑 label、帮助文本、placeholder、校验、错误提示、禁用、只读、自动填充、提交后反馈。</p>
+  <div class="before-after">
+    <div class="demo bad form-demo">
+      <span class="bad-label">坏例子：只靠 placeholder，错误不明确</span>
+      <div class="input">请输入邮箱</div>
+      <div class="input">密码</div>
+      <div class="input">验证码</div>
+      <div class="form-btns"><span class="btn">确定</span><span class="btn">重置</span><span class="btn">返回</span></div>
+      <p class="caption">问题：用户输入后提示消失；错误出现时不知道哪个字段错；按钮没有优先级。</p>
+    </div>
+    <div class="demo good form-demo">
+      <span class="good-label">好例子：字段结构完整</span>
+      <label>邮箱地址</label><div class="input focus">name@example.com</div><div class="help">用于接收登录验证码。</div>
+      <div style="height:16px"></div>
+      <label>登录密码</label><div class="input error">••••</div><div class="error-text">密码至少需要 8 位，并包含数字。</div>
+      <div class="component-row"><span class="btn btn-primary">登录</span><span class="btn btn-secondary">忘记密码</span></div>
+      <p class="caption">改进：label 永久可见；帮助文本和错误文本靠近字段；主按钮唯一。</p>
+    </div>
+  </div>
+  <table>
+    <thead><tr><th>字段部分</th><th>该怎么做</th><th>常见坑</th></tr></thead>
+    <tbody>
+      <tr><td>Label</td><td>字段名永远可见</td><td>只用 placeholder 代替 label</td></tr>
+      <tr><td>Placeholder</td><td>只放示例，不放关键说明</td><td>输入后消失，用户忘记规则</td></tr>
+      <tr><td>Help Text</td><td>解释格式、用途、限制</td><td>把重要规则藏到提交后才提示</td></tr>
+      <tr><td>Error</td><td>说明哪里错、为什么错、怎么改</td><td>只写“输入错误”</td></tr>
+      <tr><td>Required</td><td>统一说明必填或标记 *</td><td>只用红色，没有文字说明</td></tr>
+      <tr><td>Submit</td><td>提交中禁用 + loading + 防重复提交</td><td>用户连续点，产生重复请求</td></tr>
+    </tbody>
+  </table>
+
+  <h2 id="navigation"><span class="num">10</span>导航：帮助用户知道“我在哪、能去哪”</h2>
+  <p>导航不是把链接放一排。它要回答三个问题：当前位置、可去位置、信息结构。后台产品通常需要侧边栏；内容站需要目录和面包屑；移动端需要底部导航或抽屉。</p>
+  <div class="grid-3">
+    <div class="card"><h3 style="margin-top:0">顶部导航</h3><p>适合营销站、轻量 SaaS、少量一级页面。注意不要塞太多入口。</p></div>
+    <div class="card"><h3 style="margin-top:0">侧边导航</h3><p>适合后台、开发者工具、多模块系统。需要分组、当前项、折叠策略。</p></div>
+    <div class="card"><h3 style="margin-top:0">面包屑</h3><p>适合层级深的内容、管理系统详情页。让用户知道路径和返回方式。</p></div>
+  </div>
+  <div class="callout ok"><strong>导航 checklist：</strong>当前页面高亮了吗？一级/二级层级清楚吗？命名是用户语言还是技术语言？移动端怎么收起？权限不足的菜单是隐藏、禁用还是提示？</div>
+
+  <h2 id="tables"><span class="num">11</span>表格、列表、卡片：数据界面的基本功</h2>
+  <p>程序员经常做管理系统，表格尤其重要。表格不是把所有格子加边框，而是让用户快速扫描、比较和操作。</p>
+  <table>
+    <thead><tr><th>对象</th><th>对齐</th><th>样式</th><th>注意事项</th></tr></thead>
+    <tbody>
+      <tr><td>文本</td><td>左对齐</td><td>主文本深色，辅助文本浅一些</td><td>长文本省略但提供查看方式</td></tr>
+      <tr><td>数字/金额</td><td>右对齐</td><td>使用千分位，必要时等宽数字</td><td>单位统一，不要一会 ¥ 一会 元</td></tr>
+      <tr><td>状态</td><td>居中或左对齐</td><td>浅底色标签 + 深色文字</td><td>不要用纯色大块刺激用户</td></tr>
+      <tr><td>操作</td><td>右侧或最后列</td><td>常用操作显示，低频操作进更多菜单</td><td>危险操作不要离普通操作太近</td></tr>
+      <tr><td>表头</td><td>与内容一致</td><td>12/13px，500/600，浅灰底</td><td>可排序字段要有明确图标</td></tr>
+    </tbody>
+  </table>
+  <div class="card">
+    <div class="fake-table">
+      <div class="fake-row header"><span>客户</span><span>金额</span><span>状态</span><span>操作</span></div>
+      <div class="fake-row"><span>Acme Inc.</span><span>¥24,800</span><span><em class="tag-ok">已付款</em></span><span>查看</span></div>
+      <div class="fake-row"><span>Nova Studio</span><span>¥8,200</span><span><em class="tag-warn">待确认</em></span><span>提醒</span></div>
+      <div class="fake-row"><span>Blue Labs</span><span>¥0</span><span><em class="tag-danger">失败</em></span><span>重试</span></div>
+    </div>
+    <p class="caption">表格要“轻”：少边框、足够行高、数字右对齐、状态标签清楚、操作列稳定。</p>
+  </div>
+
+  <h2 id="feedback"><span class="num">12</span>反馈组件：Modal、Toast、Tooltip、Alert、Progress</h2>
+  <p>用户操作后必须知道结果。反馈的层级越高，对用户打断越强。不要把所有反馈都做成弹窗。</p>
+  <div class="before-after">
+    <div class="demo good">
+      <span class="good-label">反馈层级示意</span>
+      <div class="modal-stack">
+        <div class="tooltip">说明：仅管理员可编辑</div>
+        <div class="modal-backdrop"></div>
+        <div class="modal"><h3 style="margin-top:0">删除这个项目？</h3><p>删除后无法恢复。你可以先导出备份。</p><div class="component-row"><span class="btn btn-danger">确认删除</span><span class="btn btn-secondary">取消</span></div></div>
+        <div class="toast">已保存草稿</div>
+      </div>
+    </div>
+    <div class="card">
+      <h3 style="margin-top:0">选择规则</h3>
+      <div class="rule"><b>Tooltip</b><span>解释一个小控件，不承载关键流程。</span></div>
+      <div class="rule"><b>Toast</b><span>轻量成功/失败反馈，自动消失，不要求用户决策。</span></div>
+      <div class="rule"><b>Alert</b><span>页面内重要信息，可持续存在。</span></div>
+      <div class="rule"><b>Modal</b><span>需要用户做决定，或阻止继续操作。</span></div>
+      <div class="rule"><b>Progress</b><span>耗时任务必须给进度或至少给 loading。</span></div>
+    </div>
+  </div>
+
+  <h2 id="states"><span class="num">13</span>状态设计：默认态之外才见产品功力</h2>
+  <p>真实产品不是永远有数据、永远请求成功。你必须设计空、载入、错误、无权限、禁用、离线、部分成功、长数据、极端值。</p>
+  <div class="states-grid">
+    <div class="state-card"><div class="empty-icon">∅</div><b>空状态</b><p class="caption">解释为什么空、下一步做什么。例：暂无订单，创建第一笔订单。</p></div>
+    <div class="state-card"><b>加载态</b><div class="skeleton" style="width:86%"></div><div class="skeleton" style="width:64%"></div><div class="skeleton" style="width:74%"></div><p class="caption">加载超过 300～500ms 就应该有反馈。</p></div>
+    <div class="state-card"><b>错误态</b><p class="caption"><span class="tag-danger">加载失败</span><br>网络可能不稳定，请稍后重试。</p><span class="btn btn-secondary">重新加载</span></div>
+    <div class="state-card"><b>无权限</b><p class="caption">说明缺少什么权限、向谁申请、是否可切换账号。</p></div>
+    <div class="state-card"><b>禁用态</b><p class="caption">禁用不等于沉默。最好说明为什么不能点。</p></div>
+    <div class="state-card"><b>部分成功</b><p class="caption">批量操作常见：成功 18 项，失败 2 项，提供失败详情。</p></div>
+  </div>
+
+  <h2 id="responsive"><span class="num">14</span>响应式与移动端：不是把桌面等比例缩小</h2>
+  <p>响应式设计不是简单 <code>width: 100%</code>。移动端有手指、拇指热区、较短阅读宽度、较慢输入、较弱网络、系统键盘遮挡等问题。</p>
+  <div class="grid-2">
+    <div class="card"><h3 style="margin-top:0">桌面端</h3><ul><li>可以多列布局</li><li>表格密度可更高</li><li>鼠标 hover 可辅助说明</li><li>快捷键和批量操作更常见</li></ul></div>
+    <div class="card"><h3 style="margin-top:0">移动端</h3><ul><li>单列优先</li><li>按钮高度 44/48px 更稳</li><li>表格转卡片或横向滚动</li><li>关键操作放在拇指容易触达区域</li></ul></div>
+  </div>
+  <div class="card">
+    <div class="phone">
+      <div class="phone-top"><div class="notch"></div></div>
+      <h4 style="margin:4px 0 10px">订单详情</h4>
+      <div class="phone-card"><b>客户</b><p class="caption">Acme Inc.</p></div>
+      <div class="phone-card"><b>金额</b><p class="caption">¥24,800</p></div>
+      <div class="phone-card"><b>状态</b><p><span class="tag-ok">已付款</span></p></div>
+      <span class="btn btn-primary" style="width:100%">联系客户</span>
+    </div>
+    <p class="caption">移动端详情页常把桌面表格的一行转换成卡片式字段，而不是硬塞成四列表格。</p>
+  </div>
+
+  <h2 id="accessibility"><span class="num">15</span>可访问性：专业 UI 的底线</h2>
+  <p>可访问性不是“照顾少数人”，而是让更多人在更多场景下能用：弱光、强光、手抖、色弱、键盘操作、屏幕阅读器、临时受伤、移动设备。</p>
+  <div class="card">
+    <h3 style="margin-top:0">点击目标尺寸示意</h3>
+    <div class="target-demo"><div class="target t16">16</div><div class="target t24">24</div><div class="target t32">32</div><div class="target t44">44</div><div class="target t48">48</div></div>
+    <p class="caption">WCAG 2.2 的 Target Size Minimum 要求指针目标至少 24×24 CSS px 或有足够间距。移动端实践里，常用 44/48px 作为更舒适的触控目标。</p>
+  </div>
+  <table>
+    <thead><tr><th>维度</th><th>检查项</th><th>实现建议</th></tr></thead>
+    <tbody>
+      <tr><td>颜色</td><td>文本对比度足够，不只靠颜色传达状态</td><td>红色错误 + 图标 + 文案；图表加标签</td></tr>
+      <tr><td>键盘</td><td>Tab 顺序合理，焦点可见，无键盘陷阱</td><td>保留 <code>:focus-visible</code>，Modal 内焦点管理</td></tr>
+      <tr><td>语义</td><td>按钮就是 button，链接就是 a</td><td>不要用 div 模拟所有交互控件</td></tr>
+      <tr><td>表单</td><td>label 与 input 关联，错误可被读到</td><td><code>for</code>/<code>id</code>、<code>aria-describedby</code>、错误区域</td></tr>
+      <tr><td>动效</td><td>避免强闪烁，尊重减少动态偏好</td><td><code>@media (prefers-reduced-motion: reduce)</code></td></tr>
+      <tr><td>图片</td><td>有意义图片有 alt，装饰图可空 alt</td><td>不要把关键文字做成图片</td></tr>
+    </tbody>
+  </table>
+
+  <h2 id="icons-images"><span class="num">16</span>图标、图片、插画：统一风格，不要混搭</h2>
+  <p>图标和图片最容易破坏界面一致性。常见问题是：线性图标和实心图标混用、不同粗细、不同尺寸、照片和 3D 插画混搭、图片裁切不一致。</p>
+  <div class="grid-2">
+    <div class="card"><h3 style="margin-top:0">图标规范</h3><ul><li>统一图标库</li><li>统一尺寸：16/20/24</li><li>统一 stroke 宽度</li><li>重要操作不要只有图标</li><li>图标和文字 gap 6/8px</li></ul></div>
+    <div class="card"><h3 style="margin-top:0">图片规范</h3><ul><li>统一比例：1:1、4:3、16:9</li><li>统一圆角</li><li><code>object-fit: cover</code></li><li>头像、封面、商品图职责不同</li><li>注意暗色/亮色图片上的文字可读性</li></ul></div>
+  </div>
+
+  <h2 id="motion"><span class="num">17</span>动效：反馈，不是表演</h2>
+  <p>动效应该帮助用户理解状态变化，而不是展示技术。大多数 UI 动效都应该短、轻、可打断。</p>
+  <table>
+    <thead><tr><th>场景</th><th>建议时长</th><th>用途</th></tr></thead>
+    <tbody>
+      <tr><td>Hover</td><td>100～150ms</td><td>提示可交互</td></tr>
+      <tr><td>展开/收起</td><td>150～250ms</td><td>表达空间变化</td></tr>
+      <tr><td>弹窗出现</td><td>180～240ms</td><td>引导注意力</td></tr>
+      <tr><td>页面切换</td><td>200～350ms</td><td>建立方向感</td></tr>
+      <tr><td>骨架屏</td><td>循环但低干扰</td><td>降低等待焦虑</td></tr>
+    </tbody>
+  </table>
+  <div class="callout warn"><strong>不要：</strong>按钮点击后先播放 800ms 动画再执行；列表每一项都乱飞；删除成功后没有任何反馈；不尊重用户的减少动态偏好。</div>
+
+  <h2 id="data-viz"><span class="num">18</span>数据可视化：图表也属于 UI</h2>
+  <p>图表的目标不是“画得炫”，而是帮助比较、发现异常、解释趋势。颜色、坐标、标签、单位、排序都很重要。</p>
+  <div class="before-after">
+    <div class="demo bad">
+      <span class="bad-label">坏例子：颜色太多，信息噪音大</span>
+      <div class="chart chart-bad"><div class="bar" data-label="一" style="height:50%"></div><div class="bar" data-label="二" style="height:80%"></div><div class="bar" data-label="三" style="height:35%"></div><div class="bar" data-label="四" style="height:66%"></div><div class="bar" data-label="五" style="height:42%"></div></div>
+    </div>
+    <div class="demo good">
+      <span class="good-label">好例子：用少量颜色突出重点</span>
+      <div class="chart"><div class="bar" data-label="一" style="height:50%"></div><div class="bar primary" data-label="二" style="height:80%"></div><div class="bar" data-label="三" style="height:35%"></div><div class="bar" data-label="四" style="height:66%"></div><div class="bar" data-label="五" style="height:42%"></div></div>
+    </div>
+  </div>
+  <table>
+    <thead><tr><th>图表类型</th><th>适合回答</th><th>避免</th></tr></thead>
+    <tbody>
+      <tr><td>折线图</td><td>趋势如何变化？</td><td>太多线、无图例、无单位</td></tr>
+      <tr><td>柱状图</td><td>类别之间谁大谁小？</td><td>3D 柱、随机颜色、排序混乱</td></tr>
+      <tr><td>饼图</td><td>少量类别占比</td><td>超过 5 类、差异很小时使用</td></tr>
+      <tr><td>表格</td><td>精确读取数据</td><td>把所有数据都强行图表化</td></tr>
+      <tr><td>热力图</td><td>密集矩阵模式</td><td>色阶无说明、色弱不可读</td></tr>
+    </tbody>
+  </table>
+
+  <h2 id="content"><span class="num">19</span>文案与微文案：让用户知道发生了什么</h2>
+  <p>很多 UI 丑，不是视觉丑，而是文字不清楚。按钮文案、错误提示、确认弹窗、空状态说明，都需要明确。</p>
+  <table>
+    <thead><tr><th>场景</th><th>差文案</th><th>好文案</th></tr></thead>
+    <tbody>
+      <tr><td>错误</td><td>Error</td><td>订单加载失败，请检查网络后重试。</td></tr>
+      <tr><td>删除确认</td><td>确定？</td><td>删除这个项目？删除后无法恢复。</td></tr>
+      <tr><td>空状态</td><td>暂无数据</td><td>还没有订单。创建第一笔订单后，数据会显示在这里。</td></tr>
+      <tr><td>按钮</td><td>提交</td><td>保存修改 / 创建订单 / 发送邀请</td></tr>
+      <tr><td>禁用说明</td><td>按钮灰掉</td><td>请先填写邮箱地址，才能发送邀请。</td></tr>
+    </tbody>
+  </table>
+
+  <h2 id="page-patterns"><span class="num">20</span>常见页面模式：不同页面有不同设计重点</h2>
+  <div class="grid-2">
+    <div class="card"><h3 style="margin-top:0">登录页</h3><p>核心是信任与低摩擦：清晰标题、少字段、错误靠近字段、找回密码、第三方登录、移动端键盘适配。</p></div>
+    <div class="card"><h3 style="margin-top:0">Dashboard</h3><p>核心是概览：关键指标、趋势、异常、下一步行动。不要把所有图表平铺。</p></div>
+    <div class="card"><h3 style="margin-top:0">列表页</h3><p>核心是查找与批量操作：筛选、排序、搜索、分页、状态、空结果、批量选择。</p></div>
+    <div class="card"><h3 style="margin-top:0">详情页</h3><p>核心是上下文：主信息、关联信息、操作区、历史记录、危险操作分离。</p></div>
+    <div class="card"><h3 style="margin-top:0">设置页</h3><p>核心是分组与安全：账户、通知、隐私、权限、账单；危险设置要确认。</p></div>
+    <div class="card"><h3 style="margin-top:0">编辑器/工作台</h3><p>核心是效率：快捷键、侧栏、工具栏、焦点模式、撤销、自动保存、版本历史。</p></div>
+  </div>
+
+  <h2 id="style"><span class="num">21</span>风格不是随便选：产品气质如何影响视觉</h2>
+  <p>同样的功能，可以有不同风格。但风格必须服务产品定位。B2B 后台通常需要稳定、可信、克制；消费类 App 可以更柔和、更情绪化；内容站可以更重视阅读节奏。</p>
+  <div class="style-strip">
+    <div class="style-card minimal"><h3 style="margin-top:0">工具型 / B2B</h3><p class="caption">小圆角、轻边框、低饱和、信息密度中高、强调效率。</p><span class="btn btn-primary">处理任务</span></div>
+    <div class="style-card friendly"><h3 style="margin-top:0">消费型 / 社区</h3><p class="caption">大圆角、柔和背景、更多情绪化插画、强调亲和。</p><span class="btn btn-primary" style="border-radius:999px;background:#0f766e">开始体验</span></div>
+    <div class="style-card editorial"><h3 style="margin-top:0">内容型 / 品牌</h3><p class="caption">可使用衬线标题、更大留白、更强排版节奏。</p><span class="btn btn-secondary">阅读文章</span></div>
+  </div>
+
+  <h2 id="implementation"><span class="num">22</span>工程落地：把 UI 变成可维护系统</h2>
+  <p>程序员做 UI 最大优势是能把规则固化成代码。不要在每个页面手写样式，而要做 token、组件、布局模板。</p>
+  <pre><code>/* 一个够用的设计 token 起点 */
+:root {
+  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    "PingFang SC", "Microsoft YaHei", sans-serif;
+
+  --text-xs: 12px;
+  --text-sm: 14px;
+  --text-md: 16px;
+  --text-lg: 18px;
+  --text-xl: 24px;
+  --text-2xl: 32px;
+
+  --font-regular: 400;
+  --font-medium: 500;
+  --font-semibold: 600;
+  --font-bold: 700;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+
+  --color-bg: #ffffff;
+  --color-surface: #f8fafc;
+  --color-border: #e5e7eb;
+  --color-text: #111827;
+  --color-muted: #64748b;
+  --color-primary: #2563eb;
+  --color-danger: #dc2626;
+  --color-success: #16a34a;
+  --color-warning: #d97706;
+}</code></pre>
+
+  <h3>22.1 组件 API 应该表达语义，而不是表达颜色</h3>
+  <pre><code>// 不推荐：颜色参数到处传，视觉系统会失控
+&lt;Button color="blue" shadow="large" radius="13" /&gt;
+
+// 推荐：用意图表达
+&lt;Button variant="primary" size="md" loading&gt;保存修改&lt;/Button&gt;
+&lt;Button variant="secondary" size="md"&gt;取消&lt;/Button&gt;
+&lt;Button variant="danger" size="md"&gt;删除&lt;/Button&gt;</code></pre>
+
+  <h3>22.2 页面实现顺序</h3>
+  <div class="screen-flow"><span class="flow-node">信息结构</span><span class="flow-arrow">→</span><span class="flow-node">黑白灰布局</span><span class="flow-arrow">→</span><span class="flow-node">组件套用</span><span class="flow-arrow">→</span><span class="flow-node">主色与状态色</span><span class="flow-arrow">→</span><span class="flow-node">边界状态</span><span class="flow-arrow">→</span><span class="flow-node">响应式检查</span></div>
+  <p>不要从颜色开始。一个黑白灰状态都不清楚的页面，加任何颜色都救不回来。</p>
+
+  <h2 id="review"><span class="num">23</span>设计评审 checklist：每次提交前逐项检查</h2>
+  <details open><summary>基础视觉 checklist</summary><div class="details-body"><ul><li>页面第一眼能看出主标题和主操作吗？</li><li>字号是否来自固定阶梯，而不是随机值？</li><li>字重是否克制？是不是所有东西都加粗了？</li><li>同组更近、异组更远了吗？</li><li>元素是否有共同对齐线？</li><li>一个区域是否只有一个主按钮？</li><li>颜色是否都有角色？有没有随便出现的颜色？</li><li>边框和阴影是否过重？</li><li>圆角是否统一？</li></ul></div></details>
+  <details><summary>组件与状态 checklist</summary><div class="details-body"><ul><li>按钮是否有 hover / active / focus / disabled / loading？</li><li>输入框是否有 default / focus / error / disabled / readonly？</li><li>表单错误是否靠近字段，并说明如何修正？</li><li>表格是否有空数据、加载中、加载失败、长文本、批量操作？</li><li>弹窗是否有明确标题、影响说明、主/次操作？</li><li>危险操作是否二次确认或可撤销？</li><li>Toast 是否不会遮挡关键操作？</li></ul></div></details>
+  <details><summary>可访问性 checklist</summary><div class="details-body"><ul><li>普通文本对比度是否满足至少 4.5:1？</li><li>大文本是否至少 3:1？</li><li>可点击目标是否至少 24×24 CSS px，移动端是否接近 44/48px？</li><li>是否可以只用键盘完成主要流程？</li><li>焦点状态是否明显？</li><li>是否只靠颜色表达错误/成功/选中？</li><li>图片是否有合理 alt？</li><li>动效是否尊重 prefers-reduced-motion？</li></ul></div></details>
+  <details><summary>产品边界 checklist</summary><div class="details-body"><ul><li>空状态是否告诉用户下一步？</li><li>加载慢时是否有进度或骨架屏？</li><li>失败后是否能重试？</li><li>无权限时是否告诉用户如何申请权限？</li><li>长名称、超大数字、多语言、窄屏是否会破版？</li><li>弱网、重复点击、提交中刷新页面是否处理？</li></ul></div></details>
+
+  <h2 id="common-mistakes"><span class="num">24</span>新手最常见问题：症状、原因、修法</h2>
+  <table>
+    <thead><tr><th>症状</th><th>根因</th><th>修法</th></tr></thead>
+    <tbody>
+      <tr><td>页面看起来散</td><td>没有对齐线、没有容器</td><td>先用一个主容器和统一左右 padding</td></tr>
+      <tr><td>页面很吵</td><td>颜色、字号、字重都太多</td><td>减少到一个主色、5 个字号、3 个字重</td></tr>
+      <tr><td>看不出重点</td><td>所有元素都被强调</td><td>只保留一个主行动，其他降级</td></tr>
+      <tr><td>表格像 Excel</td><td>边框太重、行高太低</td><td>轻边框、浅表头、状态标签、增加行高</td></tr>
+      <tr><td>表单很难用</td><td>缺少 label、帮助、错误提示</td><td>字段结构：label + input + help/error</td></tr>
+      <tr><td>移动端很挤</td><td>桌面布局硬缩小</td><td>单列、放大点击区、表格转卡片</td></tr>
+      <tr><td>看起来廉价</td><td>渐变、阴影、圆角、颜色全都过度</td><td>先用黑白灰做好层级，再少量加主色</td></tr>
+      <tr><td>用户不敢点</td><td>按钮不像按钮，反馈缺失</td><td>明确可点击样式，提供 hover/focus/loading</td></tr>
+    </tbody>
+  </table>
+
+  <h2 id="practice"><span class="num">25</span>训练路线：如何真正提高 UI 品味</h2>
+  <p>“品味”不是空想出来的，是通过拆解、临摹、复盘建立模式库。程序员可以用逆向工程的方法练 UI。</p>
+  <div class="grid-3">
+    <div class="card"><h3 style="margin-top:0">第 1 阶段：临摹组件</h3><p>按钮、输入框、卡片、表格、弹窗、Toast。目标是做到和成熟产品相似。</p></div>
+    <div class="card"><h3 style="margin-top:0">第 2 阶段：临摹页面</h3><p>登录页、设置页、列表页、详情页、Dashboard。重点拆解间距、层级、状态。</p></div>
+    <div class="card"><h3 style="margin-top:0">第 3 阶段：建立系统</h3><p>把临摹出的规律变成 token 和组件库，之后所有页面都复用。</p></div>
+  </div>
+  <table>
+    <thead><tr><th>练习</th><th>做法</th><th>检查重点</th></tr></thead>
+    <tbody>
+      <tr><td>截图测量</td><td>找一个好页面，测字号、间距、按钮高度、卡片 padding</td><td>不是评价好看，而是提取规则</td></tr>
+      <tr><td>黑白灰重做</td><td>不用主色，只用文字、线、留白做页面</td><td>没有颜色还能看出层级吗？</td></tr>
+      <tr><td>一页三密度</td><td>同一页面做紧凑、标准、宽松三个版本</td><td>理解密度对体验的影响</td></tr>
+      <tr><td>状态补全</td><td>给一个表格补齐 empty/loading/error/permission</td><td>从 Demo 变成真实产品</td></tr>
+      <tr><td>组件抽象</td><td>把页面里的按钮、输入、卡片抽成统一组件</td><td>避免样式分叉</td></tr>
+    </tbody>
+  </table>
+
+
+  <h2 id="advanced-components"><span class="num">26</span>复杂组件与高级交互：越复杂越要克制</h2>
+  <p>当产品变复杂，UI 问题通常不再是“按钮好不好看”，而是用户能不能在复杂流程里保持方向感。复杂组件要优先解决：范围、反馈、撤销、错误恢复、可发现性。</p>
+  <table>
+    <thead><tr><th>组件/交互</th><th>关键设计点</th><th>常见坑</th></tr></thead>
+    <tbody>
+      <tr><td>Dropdown / Select</td><td>选项数量少时使用；支持搜索时明确输入行为；选中项可见</td><td>几十上百个选项还用普通下拉</td></tr>
+      <tr><td>Combobox</td><td>输入 + 选择混合；需要键盘上下选择、回车确认、Esc 关闭</td><td>看起来像输入框，实际行为像选择器，用户困惑</td></tr>
+      <tr><td>Tabs</td><td>同级内容切换，不改变大任务；当前项明显</td><td>把流程步骤做成 tabs，用户误以为可随意跳转</td></tr>
+      <tr><td>Accordion</td><td>用于渐进披露；标题要能概括隐藏内容</td><td>把关键内容默认折叠，导致用户找不到</td></tr>
+      <tr><td>Drawer</td><td>适合编辑详情、筛选、上下文面板</td><td>和 Modal 混用，没有关闭/保存规则</td></tr>
+      <tr><td>Wizard / Stepper</td><td>适合线性流程；显示进度、可返回、可保存草稿</td><td>步骤太多且无法中途退出</td></tr>
+      <tr><td>Command Palette</td><td>适合高级用户；支持搜索命令、快捷键、最近使用</td><td>把基础功能只藏在命令面板里</td></tr>
+      <tr><td>Drag & Drop</td><td>提供拖动手柄、目标区域、释放反馈、键盘替代方案</td><td>只能拖，不能用按钮移动，触屏和键盘不可用</td></tr>
+      <tr><td>File Upload</td><td>文件类型、大小、进度、失败原因、重试、取消</td><td>上传失败只显示“失败”</td></tr>
+    </tbody>
+  </table>
+  <div class="callout warn"><strong>复杂组件原则：</strong>越复杂，越不能只设计默认态。必须考虑 keyboard、loading、empty、error、overflow、mobile、权限、撤销、确认。</div>
+
+  <h2 id="search-filter"><span class="num">27</span>搜索、筛选、排序、分页：列表页的灵魂</h2>
+  <p>列表页最重要的不是表格本身，而是用户如何缩小范围、找到目标、批量处理。搜索、筛选、排序、分页如果设计不好，数据越多越难用。</p>
+  <table>
+    <thead><tr><th>功能</th><th>设计规则</th><th>工程注意</th></tr></thead>
+    <tbody>
+      <tr><td>搜索</td><td>说明搜索范围；支持清空；无结果要给建议</td><td>防抖、请求取消、历史关键词、输入法合成事件</td></tr>
+      <tr><td>筛选</td><td>筛选条件可见；已选条件可移除；支持一键清空</td><td>URL query 同步，便于分享和刷新恢复</td></tr>
+      <tr><td>排序</td><td>当前排序字段和方向明显；默认排序符合用户任务</td><td>后端排序字段与 UI 文案解耦</td></tr>
+      <tr><td>分页</td><td>总数、当前页、每页数量、跳转明确</td><td>注意删除最后一条后的页码回退</td></tr>
+      <tr><td>无限滚动</td><td>适合信息流，不适合强任务表格</td><td>返回位置恢复、加载失败重试、页脚不可达问题</td></tr>
+      <tr><td>批量选择</td><td>选中数量可见；全选当前页/全选全部要区分</td><td>跨页选择状态、权限差异、部分失败结果</td></tr>
+    </tbody>
+  </table>
+  <div class="card">
+    <div class="component-row"><span class="input" style="min-width:220px">搜索订单号 / 客户名</span><span class="btn btn-secondary">状态：已支付 ×</span><span class="btn btn-secondary">时间：近 7 天 ×</span><span class="btn btn-ghost">清空筛选</span><span class="btn btn-primary">导出结果</span></div>
+    <p class="caption">好的筛选区要让用户知道：当前查了什么、还可以改什么、如何撤销筛选。</p>
+  </div>
+
+  <h2 id="dark-mode"><span class="num">28</span>暗色模式、主题与品牌：不是把颜色反转</h2>
+  <p>暗色模式不是简单把白变黑、黑变白。你要重新定义背景层级、文字强度、边框、阴影、状态色和图表色。深色背景上的高饱和颜色会显得刺眼。</p>
+  <div class="grid-2">
+    <div class="card"><h3 style="margin-top:0">浅色模式</h3><div style="border:1px solid #e5e7eb;border-radius:16px;background:#fff;padding:16px"><b>系统状态</b><p class="caption">背景 #fff，表面 #f8fafc，文字 #111827，边框 #e5e7eb。</p><span class="btn btn-primary">主操作</span></div></div>
+    <div class="card"><h3 style="margin-top:0">暗色模式</h3><div style="border:1px solid #334155;border-radius:16px;background:#0f172a;color:#e5e7eb;padding:16px"><b style="color:#f8fafc">系统状态</b><p class="caption" style="color:#cbd5e1">背景 #020617，表面 #0f172a，文字 #e5e7eb，边框 #334155。</p><span class="btn btn-primary">主操作</span></div></div>
+  </div>
+  <table>
+    <thead><tr><th>主题维度</th><th>要做什么</th><th>不要做什么</th></tr></thead>
+    <tbody>
+      <tr><td>暗色背景</td><td>使用多层深色，不要纯黑到处铺</td><td>纯黑 + 纯白文字，长时间阅读刺眼</td></tr>
+      <tr><td>文字</td><td>暗色下文字用 #e5e7eb / #cbd5e1 分层</td><td>所有文字纯白</td></tr>
+      <tr><td>边框</td><td>用深灰边框表达分割</td><td>使用亮白边框</td></tr>
+      <tr><td>阴影</td><td>暗色下阴影效果弱，可用描边/亮边</td><td>照搬浅色阴影</td></tr>
+      <tr><td>品牌色</td><td>暗色下可降低饱和或提高明度</td><td>高饱和霓虹色大面积使用</td></tr>
+    </tbody>
+  </table>
+
+  <h2 id="localization"><span class="num">29</span>国际化、本地化、数字与时间：细节决定可信度</h2>
+  <p>很多工程师忽略格式问题，但格式直接影响专业感。日期、时间、金额、单位、姓名、地址、多语言长度都会改变 UI。</p>
+  <table>
+    <thead><tr><th>类型</th><th>设计注意</th><th>例子</th></tr></thead>
+    <tbody>
+      <tr><td>日期</td><td>明确时区；相对时间和绝对时间不要混淆</td><td>2026-07-06 17:00 JST / 3 分钟前</td></tr>
+      <tr><td>金额</td><td>币种、千分位、小数位统一</td><td>¥12,999.00 / USD 1,299.00</td></tr>
+      <tr><td>百分比</td><td>保留位数统一；正负变化用符号和颜色</td><td>+12.4% / -3.1%</td></tr>
+      <tr><td>长文本</td><td>按钮和标签要能承受更长语言</td><td>英文、德文可能比中文长很多</td></tr>
+      <tr><td>姓名</td><td>不要假设所有人都有名/姓结构</td><td>使用 display name 更稳</td></tr>
+      <tr><td>地址</td><td>不同国家字段顺序不同</td><td>不要把中国地址表单硬套全球</td></tr>
+      <tr><td>RTL</td><td>阿拉伯语、希伯来语需要反向布局</td><td>图标方向、抽屉方向、进度方向都要检查</td></tr>
+    </tbody>
+  </table>
+
+  <h2 id="performance"><span class="num">30</span>性能感知：UI 要管理等待感</h2>
+  <p>真实速度重要，感知速度也重要。用户不只关心是否加载完成，还关心系统是否“还活着”、是否可取消、是否知道进度。</p>
+  <table>
+    <thead><tr><th>等待类型</th><th>推荐反馈</th><th>注意事项</th></tr></thead>
+    <tbody>
+      <tr><td>瞬时操作</td><td>按钮 active/hover 即可</td><td>不要过度打扰</td></tr>
+      <tr><td>短请求</td><td>按钮 loading、局部 spinner</td><td>防止重复提交</td></tr>
+      <tr><td>列表加载</td><td>骨架屏或保留旧数据 + 更新提示</td><td>避免整页白屏</td></tr>
+      <tr><td>长任务</td><td>进度条、阶段说明、可取消、完成通知</td><td>后台任务要允许离开页面</td></tr>
+      <tr><td>失败</td><td>说明原因、影响、重试方式</td><td>不要只写“系统错误”</td></tr>
+    </tbody>
+  </table>
+  <div class="callout ok"><strong>工程实践：</strong>优先做局部加载，少做全屏 loading；保留用户已输入内容；失败后提供重试；耗时任务给进度或阶段文案。</div>
+
+  <h2 id="governance"><span class="num">31</span>设计系统治理：防止 UI 债务越滚越大</h2>
+  <p>当项目变大，UI 会像代码一样产生债务：重复组件、颜色分叉、样式覆盖、例外越来越多。治理的核心是：规则可查、组件可复用、变更可追踪。</p>
+  <table>
+    <thead><tr><th>治理对象</th><th>要维护什么</th><th>程序员做法</th></tr></thead>
+    <tbody>
+      <tr><td>Token</td><td>颜色、字号、间距、圆角、阴影</td><td>集中在 CSS variables / theme.ts</td></tr>
+      <tr><td>组件</td><td>Button、Input、Table、Modal、Toast 等</td><td>Storybook / 文档页 / 示例状态</td></tr>
+      <tr><td>模式</td><td>登录、搜索筛选、删除确认、批量操作</td><td>写成 pattern 文档，不只写组件文档</td></tr>
+      <tr><td>版本</td><td>破坏性变更、废弃样式、迁移说明</td><td>Changelog + codemod 或 lint 规则</td></tr>
+      <tr><td>质量</td><td>可访问性、视觉回归、响应式</td><td>axe、Playwright screenshot、lint token</td></tr>
+    </tbody>
+  </table>
+
+  <h2 id="handoff"><span class="num">32</span>设计与开发协作：从视觉稿到真实产品</h2>
+  <p>真实项目里，UI 不会只停留在设计稿。你要关心设计如何被实现、如何适配数据、如何覆盖边界状态、如何在版本迭代中保持一致。</p>
+  <div class="grid-2">
+    <div class="card"><h3 style="margin-top:0">开发接设计稿时要问</h3><ul><li>组件是否已有？没有是否要新增？</li><li>所有状态是否齐全？</li><li>长文本、空数据、错误态如何展示？</li><li>移动端/窄屏如何适配？</li><li>权限差异如何处理？</li><li>哪些样式是 token，哪些是一次性？</li></ul></div>
+    <div class="card"><h3 style="margin-top:0">提交 UI PR 时要附</h3><ul><li>截图：桌面 + 移动端</li><li>状态：default/loading/error/empty</li><li>交互：hover/focus/disabled</li><li>可访问性：键盘与对比度</li><li>数据：长文本、大数字、无数据</li><li>说明：是否新增 token/组件</li></ul></div>
+  </div>
+  <div class="callout"><strong>最终目标：</strong>让 UI 像代码一样可 review。不要用“我觉得好看/不好看”讨论，而用“层级、对齐、间距、对比、状态、可访问性、任务效率”讨论。</div>
+
+  <h2 id="notebook"><span class="num">33</span>如何放入你的 notebook 仓库</h2>
+  <p>你的仓库结构适合把这份报告作为一篇知识库文章维护。建议路径：</p>
+  <pre><code>content/UI设计/index.html</code></pre>
+  <p>推荐 front matter：</p>
+  <pre><code>---
+title: "UI 设计系统化完全指南"
+date: "2026-07-06T00:00:00+09:00"
+category: "UI设计"
+tags:
+  - "UI设计"
+  - "设计系统"
+  - "前端"
+  - "可访问性"
+breadcrumbs:
+  - title: "Notebook"
+    url: "/index.html"
+  - title: "UI设计"
+    url: "/UI设计/index.html"
+layout: layouts/article.njk
+type: article
+comments: true
+permalink: "/UI设计/index.html"
+---</code></pre>
+  <div class="callout ok"><strong>维护建议：</strong>不要把它当一次性文章。后续你每做一个页面，就把“踩坑截图 + 修改前后 + token/组件改动”追加到这篇报告或拆成子文章。</div>
+
+  <h2 id="references"><span class="num">34</span>参考与延伸</h2>
+  <ul>
+    <li>W3C / WAI：WCAG 2.2 Contrast Minimum，普通文本 4.5:1、大文本 3:1。</li>
+    <li>W3C / WAI：WCAG 2.2 Target Size Minimum，指针目标至少 24×24 CSS px 或满足间距例外。</li>
+    <li>Material Design、Apple Human Interface Guidelines、Microsoft Fluent、Ant Design：用于学习成熟设计系统如何定义 token、组件、模式与可访问性。</li>
+    <li>你的 notebook 仓库：适合把本文沉淀为主题入口文章，并持续增补案例。</li>
+  </ul>
+
+  <section class="card soft">
+    <h2 id="final" style="margin-top:0;border-top:0;padding-top:0"><span class="num">35</span>最后的最短原则</h2>
+    <p class="lead">当你觉得页面丑，不要马上换颜色。按这个顺序修：<strong>内容 → 层级 → 对齐 → 间距 → 字号 → 字重 → 颜色 → 状态 → 可访问性 → 风格</strong>。前八项没做好，任何“高级配色”都会变成装饰噪音。</p>
+  </section>
+</article>
+
