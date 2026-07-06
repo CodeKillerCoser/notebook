@@ -7,14 +7,22 @@ permalink: "{{ directory.permalink }}"
 layout: layouts/base.njk
 eleventyExcludeFromCollections: true
 ---
+{% if directory.description %}
+  <section class="directory-intro" id="overview">
+    <h2 class="plain-heading">主题概览</h2>
+    <p class="lead">{{ directory.description }}</p>
+  </section>
+{% endif %}
+
 {% if directory.children.length %}
   <section id="children">
-    <h2><span class="section-index">1</span><span class="section-title">子目录</span></h2>
+    <h2><span class="section-index">1</span><span class="section-title">主题入口</span></h2>
     <div class="directory-grid">
       {% for child in directory.children %}
         <a class="directory-card" href="{{ child.permalink | relativeUrl(page.url) }}">
           <strong>{{ child.title }}</strong>
-          <span>{{ child.articles.length }} 篇直属文章</span>
+          <span>{{ child.description }}</span>
+          <small>{{ child.totalArticles }} 篇文章</small>
         </a>
       {% endfor %}
     </div>
@@ -22,8 +30,23 @@ eleventyExcludeFromCollections: true
 {% endif %}
 
 {% if directory.articles.length %}
+  <section id="recommended">
+    <h2><span class="section-index">{% if directory.children.length %}2{% else %}1{% endif %}</span><span class="section-title">推荐阅读</span></h2>
+    <ol class="article-list featured-list">
+      {% for article in directory.articles | limit(5) %}
+        <li>
+          <a href="{{ article.url | relativeUrl(page.url) }}">{{ article.title }}</a>
+          <span>{{ article.date | readableDate }}</span>
+          {% if article.excerpt %}
+            <p>{{ article.excerpt }}</p>
+          {% endif %}
+        </li>
+      {% endfor %}
+    </ol>
+  </section>
+
   <section id="articles">
-    <h2><span class="section-index">{% if directory.children.length %}2{% else %}1{% endif %}</span><span class="section-title">文章</span></h2>
+    <h2><span class="section-index">{% if directory.children.length %}3{% else %}2{% endif %}</span><span class="section-title">全部文章</span></h2>
     <ol class="article-list">
       {% for article in directory.articles %}
         <li>

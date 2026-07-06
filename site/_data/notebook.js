@@ -13,7 +13,25 @@ loadLanguages(["rust", "bash", "json", "yaml", "toml", "javascript", "typescript
 const SEGMENT_TITLES = {
   rust: "Rust",
   "AI工程": "AI 工程",
-  "Git部署": "Git 部署"
+  "Git部署": "Git 部署",
+  "UI设计": "UI 设计"
+};
+
+const DIRECTORY_DESCRIPTIONS = {
+  rust: "用示例和源码视角梳理 Rust 基础、语法进阶、工具链与综合练习。",
+  "AI工程": "记录 Agent Runtime、沙箱、工具调用和工程化智能系统的学习路线与实践笔记。",
+  Agent: "沉淀 Agent 控制循环、多智能体协作、浏览器自动化和运行时设计。",
+  "Git部署": "整理 Git、GitHub Pages、自动化发布与静态站点部署流程。",
+  "UI设计": "围绕设计系统、可访问性、布局和组件规范建立可复用的界面判断框架。",
+  "代码大全阅读笔记": "按章节记录《代码大全》的软件工程原则、开发前提和编程理解。",
+  "rust/01-基础入门": "从 Hello World、Cargo、所有权和借用开始建立 Rust 基础心智模型。",
+  "rust/02-语法进阶": "集中整理模式匹配、Option、String、智能指针、线程安全标记等语法重点。",
+  "rust/03-工具链与生态": "记录 Cargo Workspace、crate 版本、VS Code 配置等工具链实践。",
+  "rust/04-综合案例": "通过 LeetCode、小游戏和进程管理器等案例串联 Rust 编程知识。",
+  "AI工程/01-学习路线": "把 AI 工程能力拆成可执行的学习路线和实践顺序。",
+  "AI工程/02-Agent-Runtime": "聚焦 Agent Runtime、沙箱隔离、长程 SOP 和可控执行系统。",
+  "Git部署/01-基础入门": "覆盖本地仓库、远端推送和 GitHub Pages 入门部署。",
+  "Git部署/02-自动化": "记录自动生成页面、构建脚本和发布自动化的实现方式。"
 };
 
 const LANGUAGE_ALIASES = {
@@ -62,6 +80,12 @@ function stripTags(value = "") {
 
 function cleanHeading(value = "") {
   return String(value).replace(TITLE_PREFIX_RE, "").replace(/\s+/g, " ").trim();
+}
+
+function excerptText(value = "", maxLength = 140) {
+  const text = String(value).replace(/\s+/g, " ").trim();
+  if (text.length <= maxLength) return text;
+  return `${text.slice(0, maxLength).replace(/[，,。；;：:、\s]+$/u, "")}...`;
 }
 
 function titleFromSegment(segment) {
@@ -192,6 +216,7 @@ function readArticleHtml(content, fallbackTitle) {
   if (firstHeading.length && stripTags(firstHeading.text()) === title) {
     firstHeading.remove();
   }
+  const firstParagraph = stripTags(source.find("p").first().text());
 
   const usedIds = new Set();
   const toc = [];
@@ -217,7 +242,11 @@ function readArticleHtml(content, fallbackTitle) {
   const tagName = source.get(0)?.tagName?.toLowerCase();
   const shouldKeepSourceWrapper = tagName === "article" && Object.keys(source.attr() || {}).length > 0;
   const html = (shouldKeepSourceWrapper ? $.html(source) : source.html())?.trim() || "";
-  return { title, subtitle, eyebrow, chips, html, text: stripTags(html), toc };
+  return { title, subtitle, eyebrow, chips, html, text: stripTags(html), excerpt: excerptText(firstParagraph), toc };
+}
+
+function directoryDescription(dirPath, title) {
+  return DIRECTORY_DESCRIPTIONS[dirPath] || `${title} 相关笔记、实践记录和问题复盘。`;
 }
 
 function loadArticles() {
@@ -245,7 +274,7 @@ function loadArticles() {
         category,
         tags,
         date,
-        excerpt: parsed.data.description || extracted.subtitle || extracted.text.slice(0, 180),
+        excerpt: parsed.data.description || extracted.subtitle || extracted.excerpt || excerptText(extracted.text),
         eyebrow: parsed.data.eyebrow || extracted.eyebrow,
         chips: Array.isArray(parsed.data.chips) ? parsed.data.chips : extracted.chips,
         html: extracted.html,
@@ -270,11 +299,13 @@ function buildDirectories(articles) {
     directories.set(dirPath, {
       path: dirPath,
       title,
+      description: directoryDescription(dirPath, title),
       permalink: `/${dirPath}/index.html`,
       breadcrumbs: makeCrumbs(parts, false, title),
       parent: parentDir(dirPath),
       children: [],
-      articles: []
+      articles: [],
+      totalArticles: 0
     });
     ensure(parentDir(dirPath));
   }
@@ -293,6 +324,15 @@ function buildDirectories(articles) {
   for (const dir of list) {
     dir.children.sort((a, b) => a.title.localeCompare(b.title, "zh-CN"));
     dir.articles.sort((a, b) => b.date.localeCompare(a.date) || a.title.localeCompare(b.title, "zh-CN"));
+  }
+
+  function countArticles(dir) {
+    dir.totalArticles = dir.articles.length + dir.children.reduce((total, child) => total + countArticles(child), 0);
+    return dir.totalArticles;
+  }
+
+  for (const dir of list) {
+    if (!dir.parent) countArticles(dir);
   }
 
   return list.sort((a, b) => a.path.localeCompare(b.path, "zh-CN"));

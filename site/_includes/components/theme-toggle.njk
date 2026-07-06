@@ -1,0 +1,27 @@
+{# site/_includes/components/theme-toggle.njk #}
+<div class="theme-switch" role="group" aria-label="主题切换">
+  <button type="button" data-set-theme="atlas-light">浅色</button>
+  <button type="button" data-set-theme="nebula-dark">星夜</button>
+  <button type="button" data-set-theme="paper-warm">纸感</button>
+</div>
+<script>
+(() => {
+  const KEY = "engineering-star-map-theme";
+  const root = document.documentElement;
+  const buttons = [...document.querySelectorAll("[data-set-theme]")];
+
+  const apply = (theme) => {
+    root.dataset.theme = theme;
+    localStorage.setItem(KEY, theme);
+    buttons.forEach((button) => {
+      button.setAttribute("aria-pressed", String(button.dataset.setTheme === theme));
+    });
+  };
+
+  const saved = localStorage.getItem(KEY);
+  if (saved) apply(saved);
+  buttons.forEach((button) => {
+    button.addEventListener("click", () => apply(button.dataset.setTheme));
+  });
+})();
+</script>

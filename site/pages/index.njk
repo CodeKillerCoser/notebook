@@ -3,18 +3,23 @@ layout: layouts/base.njk
 permalink: /index.html
 home: true
 toc:
+  - id: star-map
+    text: 关键词星图
   - id: directories
     text: 主题目录
   - id: recent
     text: 最近更新
 ---
+{% include "components/star-map.njk" %}
+
 <section id="directories">
   <h2><span class="section-index">1</span><span class="section-title">主题目录</span></h2>
   <div class="directory-grid">
     {% for directory in notebook.topDirectories %}
       <a class="directory-card" href="{{ directory.permalink | relativeUrl(page.url) }}">
         <strong>{{ directory.title }}</strong>
-        <span>{{ directory.children.length }} 个子目录 · {{ directory.articles.length }} 篇直属文章</span>
+        <span>{{ directory.description }}</span>
+        <small>{{ directory.children.length }} 个子目录 · {{ directory.totalArticles }} 篇文章</small>
       </a>
     {% endfor %}
   </div>
@@ -27,6 +32,9 @@ toc:
       <li>
         <a href="{{ article.url | relativeUrl(page.url) }}">{{ article.title }}</a>
         <span>{{ article.category }} · {{ article.date | readableDate }}</span>
+        {% if article.excerpt %}
+          <p>{{ article.excerpt }}</p>
+        {% endif %}
       </li>
     {% endfor %}
   </ol>

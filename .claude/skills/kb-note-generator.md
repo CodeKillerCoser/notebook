@@ -1,6 +1,6 @@
 ---
 name: kb-note-generator
-description: Generate structured HTML knowledge notes from chat history and commit to GitHub notebook repo.
+description: Generate Eleventy-compatible HTML knowledge notes in content/**/*.html, following notebook UI rules, search metadata, and GitHub workflow.
 ---
 
 # kb-note-generator (Claude)
@@ -19,6 +19,8 @@ Reference files (read as needed):
 ## Quick Reference
 
 - Extract knowledge points from conversation history and generate structured HTML notes
-- Organize by topic into `01-基础入门/` … `04-综合案例/` directories
+- Write only embeddable article fragments under `content/**/*.html`; do not include page shell, hero, TOC, inline CSS, or article `<h1>`
+- Organize by topic into existing notebook directories and include `description` for homepage/directory summaries
+- Run `npm run build` so keywordCloud, Eleventy pages, RSS, and Pagefind stay current
 - Target repo: `https://github.com/CodeKillerCoser/notebook` (branch: `main`)
 - Commit format: `docs(<topic>): <brief description>`

@@ -1,0 +1,152 @@
+/* site/assets/star-map.css */
+.star-map-section {
+  margin: 0 0 2.4rem;
+}
+
+.star-map {
+  position: relative;
+  min-height: clamp(360px, 48vw, 520px);
+  border: 1px solid var(--color-line);
+  border-radius: 28px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 45%, color-mix(in srgb, var(--color-accent) 18%, transparent), transparent 26%),
+    radial-gradient(circle at 58% 54%, color-mix(in srgb, var(--color-accent-2) 16%, transparent), transparent 30%),
+    var(--color-surface);
+  box-shadow: var(--shadow-md);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.star-map::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--color-text-4) 16%, transparent) 1px, transparent 1px),
+    linear-gradient(0deg, color-mix(in srgb, var(--color-text-4) 14%, transparent) 1px, transparent 1px);
+  background-size: 52px 52px;
+  mask-image: radial-gradient(circle at center, #000 0 42%, transparent 76%);
+  -webkit-mask-image: radial-gradient(circle at center, #000 0 42%, transparent 76%);
+  opacity: .52;
+}
+
+.star-map__orbit {
+  position: absolute;
+  inset: 24px;
+  border: 1px solid color-mix(in srgb, var(--color-accent) 16%, transparent);
+  border-radius: 50%;
+  transform: rotate(-12deg) scaleX(1.12);
+  opacity: .48;
+  animation: star-orbit 58s linear infinite;
+}
+
+.star-map__orbit:nth-child(2) {
+  inset: 82px;
+  border-color: color-mix(in srgb, var(--color-accent-2) 18%, transparent);
+  animation-duration: 46s;
+  animation-direction: reverse;
+}
+
+.star-map__orbit:nth-child(3) {
+  inset: 140px;
+  border-color: color-mix(in srgb, var(--color-accent-3) 18%, transparent);
+  animation-duration: 68s;
+}
+
+.star-map__core {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: grid;
+  place-items: center;
+  width: 118px;
+  height: 118px;
+  border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--color-accent) 24%, var(--color-line));
+  background: radial-gradient(circle at 35% 24%, #fff, color-mix(in srgb, var(--color-accent) 12%, var(--color-surface-solid)));
+  color: var(--color-text-1);
+  font: 680 20px/1.2 var(--font-display);
+  letter-spacing: .12em;
+  box-shadow: 0 0 42px color-mix(in srgb, var(--color-accent) 20%, transparent);
+}
+
+[data-theme="nebula-dark"] .star-map__core {
+  background: radial-gradient(circle at 35% 24%, #1e293b, #0f172a);
+}
+
+.star-keyword {
+  --x: 50%;
+  --y: 50%;
+  --s: 1;
+  --delay: 0s;
+  --duration: 8s;
+  --tone: var(--color-accent);
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  z-index: 2;
+  transform: translate(-50%, -50%);
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+  max-width: 42vw;
+  padding: 4px 8px;
+  border: 1px solid color-mix(in srgb, var(--tone) 26%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-surface-raised) 78%, transparent);
+  color: color-mix(in srgb, var(--tone) 76%, var(--color-text-1));
+  font-family: var(--font-display);
+  font-size: calc(12px + var(--s) * 9px);
+  font-weight: calc(520 + var(--s) * 120);
+  line-height: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-shadow: 0 8px 20px color-mix(in srgb, var(--tone) 10%, transparent);
+  animation: star-drift var(--duration) ease-in-out infinite alternate;
+  animation-delay: var(--delay);
+}
+
+.star-keyword[data-tone="secondary"] { --tone: var(--color-accent-2); }
+.star-keyword[data-tone="tertiary"] { --tone: var(--color-accent-3); }
+.star-keyword[data-weight="strong"] {
+  background: color-mix(in srgb, var(--tone) 14%, var(--color-surface-raised));
+}
+
+.star-keyword:hover,
+.star-keyword:focus-visible {
+  z-index: 6;
+  text-decoration: none;
+  transform: translate(-50%, -50%) scale(1.08);
+}
+
+@keyframes star-drift {
+  0% { translate: -4px -3px; }
+  50% { translate: 3px 5px; }
+  100% { translate: 5px -2px; }
+}
+
+@keyframes star-orbit {
+  to { transform: rotate(360deg) scaleX(1.12); }
+}
+
+@media (max-width: 760px) {
+  .star-map {
+    min-height: 360px;
+    border-radius: 20px;
+  }
+  .star-keyword {
+    max-width: 56vw;
+  }
+  .star-keyword:nth-of-type(n + 43) {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .star-map__orbit,
+  .star-keyword {
+    animation: none;
+  }
+}

@@ -1,0 +1,246 @@
+/* notebook-redesign-overrides.css
+   这一份是“先让站点稳定”的 P0/P1 覆盖样式。
+   建议在 site.css 和 tokens.css 之后加载。
+*/
+
+:root {
+  --toc-width: 220px;
+  --content-width: 920px;
+  --article-width: 760px;
+  --layout-gap: 44px;
+}
+
+/* 页面类型：文章页更安静 */
+.page-article .ion-field,
+.page-directory .ion-field,
+.page-tag .ion-field {
+  display: none;
+}
+
+.page-article .ambient-flow,
+.page-directory .ambient-flow,
+.page-tag .ambient-flow {
+  animation: none;
+  opacity: .38;
+}
+
+/* 首页标题：不用宋体作为主标题，改用轻量 display sans */
+.home-hero h1 {
+  font-family: var(--font-display, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif);
+  font-size: clamp(3.2rem, 7vw, 5.6rem);
+  line-height: .98;
+  letter-spacing: .08em;
+  font-weight: 640;
+}
+
+/* 文章阅读宽度：段落窄，代码/表格宽 */
+.article-content > p,
+.article-content > ul,
+.article-content > ol,
+.article-content > blockquote,
+.article-content > h2,
+.article-content > h3,
+.article-content > h4,
+.article-content > .callout,
+.article-content > .note {
+  max-width: var(--article-width);
+}
+
+.article-content > pre,
+.article-content > table,
+.article-content > figure,
+.article-content > .figure,
+.article-content > .grid-2,
+.article-content > .grid-3,
+.article-content > .wide {
+  max-width: var(--content-width);
+}
+
+/* 正文链接：可识别，不只靠颜色 */
+.article-content p a,
+.article-content li a {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+}
+
+/* 标签默认中性，不再按顺序随机彩色 */
+.tag-chip,
+.meta .tag-chip,
+.tag-list .tag-chip,
+.tag-cloud .tag-chip,
+.article-meta .tag-chip,
+.article-meta .tag-chip:nth-of-type(n),
+.meta .tag-chip:nth-of-type(n),
+.tag-list .tag-chip:nth-child(n),
+.tag-cloud .tag-chip:nth-child(n) {
+  --tag-bg: var(--color-surface-soft, #f8fafc);
+  --tag-border: var(--color-line, #e2e8f0);
+  --tag-text: var(--color-text-3, #64748b);
+  background: var(--tag-bg) !important;
+  border-color: var(--tag-border) !important;
+  color: var(--tag-text) !important;
+}
+
+/* 如果 UI 报告正文里仍有自带编号，可先隐藏，避免 4 / 04 重复 */
+.article-content h2 .num {
+  display: none;
+}
+
+/* 统一焦点态 */
+a:focus-visible,
+button:focus-visible,
+label:focus-visible,
+.directory-card:focus-visible,
+.chip:focus-visible,
+.star-keyword:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--color-accent, #2563eb) 35%, transparent);
+  outline-offset: 3px;
+  border-radius: 8px;
+}
+
+/* 顶部导航：用于拆分站点操作和文章 meta */
+.site-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 70;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  max-width: var(--page-max, 1320px);
+  margin: 0 auto;
+  padding: .68rem var(--page-pad, 36px);
+  border-bottom: 1px solid color-mix(in srgb, var(--color-line, #e5e7eb) 90%, transparent);
+  background: color-mix(in srgb, var(--color-surface-solid, #fff) 86%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.site-brand {
+  color: var(--color-text-1, #111827);
+  font-family: var(--font-display, inherit);
+  font-weight: 720;
+  letter-spacing: .06em;
+  text-decoration: none;
+}
+
+.site-nav {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.site-nav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 9px;
+  border-radius: 999px;
+  color: var(--color-text-3, #64748b);
+  font-size: .88rem;
+  font-weight: 650;
+  text-decoration: none;
+}
+
+.site-nav a:hover {
+  background: var(--color-surface-soft, #f8fafc);
+  color: var(--color-text-1, #111827);
+}
+
+.breadcrumb-bar {
+  position: relative;
+  top: auto;
+  z-index: 10;
+  border-bottom-color: color-mix(in srgb, var(--color-line, #e5e7eb) 76%, transparent);
+  background: color-mix(in srgb, var(--color-surface-solid, #fff) 68%, transparent);
+}
+
+.page-home .article-meta:empty,
+.page-directory .article-meta:empty,
+.page-tag .article-meta:empty,
+.page-plain .article-meta:empty {
+  display: none;
+}
+
+.directory-card {
+  min-height: 132px;
+  gap: .65rem;
+}
+
+.directory-card span {
+  color: var(--color-text-2, #334155);
+  line-height: 1.62;
+}
+
+.directory-card small {
+  color: var(--color-text-3, #64748b);
+  font-size: .82rem;
+  font-weight: 700;
+}
+
+.directory-intro {
+  max-width: var(--article-width);
+}
+
+.article-list li {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.article-list li p {
+  grid-column: 1 / -1;
+  margin: -.35rem 0 .1rem;
+  max-width: var(--article-width);
+  color: var(--color-text-3, #64748b);
+  font-size: .92rem;
+  line-height: 1.68;
+}
+
+.featured-list li:first-child {
+  padding-top: 0;
+}
+
+[data-theme="nebula-dark"] .chip,
+[data-theme="nebula-dark"] .directory-card,
+[data-theme="nebula-dark"] .card,
+[data-theme="nebula-dark"] figure,
+[data-theme="nebula-dark"] .figure {
+  background: var(--color-surface);
+}
+
+[data-theme="nebula-dark"] tr:nth-child(even) td,
+[data-theme="nebula-dark"] th {
+  background: var(--color-surface-soft);
+}
+
+/* 平板开始就用移动目录，避免超长目录插在正文首屏 */
+@media (max-width: 1100px) {
+  .hero-grid,
+  .content-grid {
+    display: block;
+  }
+}
+
+@media (max-width: 760px) {
+  .home-hero h1 {
+    letter-spacing: .04em;
+  }
+
+  .site-topbar {
+    gap: 10px;
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+
+  .site-nav {
+    gap: 2px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ambient-flow,
+  .star-map__orbit,
+  .star-keyword {
+    animation: none !important;
+  }
+}

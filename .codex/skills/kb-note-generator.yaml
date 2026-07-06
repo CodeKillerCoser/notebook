@@ -5,11 +5,12 @@
 # 当 Codex 触发此 skill 时，应读取 .skills/kb-note-generator/SKILL.md 获取完整指令。
 
 display_name: Knowledge Base Note Generator
-short_description: Generate structured HTML knowledge notes from chat history and commit to GitHub notebook repo
+short_description: Generate Eleventy-compatible notebook articles with metadata, UI-safe fragments, and build validation
 default_prompt: |
   Based on the conversation history, extract key topics and learnings,
-  organize them into structured HTML notes, and commit them to the
-  GitHub notebook repository at https://github.com/CodeKillerCoser/notebook.
+  organize them into Eleventy-compatible HTML article fragments under
+  content/**/*.html, and prepare them for the GitHub notebook repository
+  at https://github.com/CodeKillerCoser/notebook.
 
   The canonical skill instructions are at `.skills/kb-note-generator/SKILL.md`.
   Reference files are in `.skills/kb-note-generator/references/`:
@@ -18,3 +19,7 @@ default_prompt: |
   - github_workflow.md — Git commit workflow
 
   When triggered, read the canonical SKILL.md for the full workflow.
+  Do not generate page shells, article h1 elements, inline CSS, custom
+  hero blocks, or hand-written TOCs; the notebook layout owns those.
+  Include description metadata and run the site build so keywordCloud,
+  RSS, pages, and Pagefind stay current.

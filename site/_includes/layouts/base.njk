@@ -20,9 +20,13 @@
   <meta name="description" content="{{ pageDescription }}">
   <link rel="alternate" type="application/rss+xml" title="{{ site.title }} RSS" href="{{ '/feed.xml' | relativeUrl(page.url) }}">
   <link rel="stylesheet" href="{{ '/assets/site.css' | relativeUrl(page.url) }}">
+  <link rel="stylesheet" href="{{ '/assets/tokens.css' | relativeUrl(page.url) }}">
+  <link rel="stylesheet" href="{{ '/assets/star-map.css' | relativeUrl(page.url) }}">
+  <link rel="stylesheet" href="{{ '/assets/theme-toggle.css' | relativeUrl(page.url) }}">
+  <link rel="stylesheet" href="{{ '/assets/notebook-redesign-overrides.css' | relativeUrl(page.url) }}">
   {% block head %}{% endblock %}
 </head>
-<body>
+<body class="{% if home or page.url == '/' or page.url == '/index.html' %}page-home{% elif article %}page-article{% elif directory %}page-directory{% elif tagPage %}page-tag{% else %}page-plain{% endif %}">
   <div class="ambient-flow" aria-hidden="true"></div>
   <canvas class="ion-field" aria-hidden="true"></canvas>
   {% if article %}
@@ -35,7 +39,7 @@
   {% elif directory %}
     {% set heroTitle = directory.title %}
     {% set heroEyebrow = "Directory" %}
-    {% set heroSubtitle = "当前目录：" ~ directory.path %}
+    {% set heroSubtitle = directory.description %}
     {% set activeBreadcrumbs = directory.breadcrumbs %}
     {% set heroChips = [] %}
     {% set tocItems = toc %}
@@ -54,6 +58,16 @@
     {% set heroChips = chips or [] %}
     {% set tocItems = toc %}
   {% endif %}
+
+  <header class="site-topbar">
+    <a class="site-brand" href="{{ '/index.html' | relativeUrl(page.url) }}">{{ site.title }}</a>
+    <nav class="site-nav" aria-label="站点导航">
+      <a href="{{ '/search.html' | relativeUrl(page.url) }}">搜索</a>
+      <a href="{{ '/tags/index.html' | relativeUrl(page.url) }}">标签</a>
+      <a href="{{ '/feed.xml' | relativeUrl(page.url) }}">RSS</a>
+    </nav>
+    {% include "components/theme-toggle.njk" %}
+  </header>
 
   <nav class="breadcrumb-bar" aria-label="博客路径">
     <a href="{{ '/index.html' | relativeUrl(page.url) }}">{{ site.title }}</a>
@@ -76,16 +90,13 @@
         {% if heroSubtitle %}
           <p class="subtitle">{{ heroSubtitle }}</p>
         {% endif %}
-        <div class="meta">
+        <div class="meta article-meta">
           {% if article and article.date %}
-            <time class="chip" datetime="{{ article.date | isoDate }}">{{ article.date | readableDate }}</time>
+            <time class="chip meta-chip" datetime="{{ article.date | isoDate }}">{{ article.date | readableDate }}</time>
           {% endif %}
           {% for chip in heroChips %}
             <span class="chip tag-chip">{{ chip }}</span>
           {% endfor %}
-          <a class="chip" href="{{ '/search.html' | relativeUrl(page.url) }}">搜索</a>
-          <a class="chip" href="{{ '/tags/index.html' | relativeUrl(page.url) }}">标签</a>
-          <a class="chip" href="{{ '/feed.xml' | relativeUrl(page.url) }}">RSS</a>
         </div>
         <hr class="article-divider">
       </div>
@@ -109,6 +120,17 @@
           {% for item in tocItems %}
             <li><a href="#{{ item.id }}">{{ item.text }}</a></li>
           {% endfor %}
+        </ol>
+      {% elif directory %}
+        <ol>
+          <li><a href="#overview">主题概览</a></li>
+          {% if directory.children.length %}
+            <li><a href="#children">主题入口</a></li>
+          {% endif %}
+          {% if directory.articles.length %}
+            <li><a href="#recommended">推荐阅读</a></li>
+            <li><a href="#articles">全部文章</a></li>
+          {% endif %}
         </ol>
       {% else %}
         <ol>

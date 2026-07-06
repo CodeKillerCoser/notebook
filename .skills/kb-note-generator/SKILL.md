@@ -51,21 +51,10 @@ content/Git部署/01-基础入门/GitHub-Pages-部署.html
 title: "文章标题"
 date: "2026-06-23T00:00:00-07:00"
 category: "AI 工程"
+description: "一句话说明这篇文章解决什么问题。"
 tags:
   - "AI 工程"
   - "Agent Runtime"
-breadcrumbs:
-  - title: "Notebook"
-    url: "/index.html"
-  - title: "AI 工程"
-    url: "/AI工程/index.html"
-  - title: "Agent Runtime"
-    url: "/AI工程/02-Agent-Runtime/index.html"
-  - title: "文章标题"
-    url: "/AI工程/02-Agent-Runtime/文章标题.html"
-layout: layouts/article.njk
-type: article
-comments: true
 permalink: "/AI工程/02-Agent-Runtime/文章标题.html"
 ---
 <article>
@@ -118,6 +107,19 @@ permalink: "/AI工程/02-Agent-Runtime/文章标题.html"
 - `<` 写成 `&lt;`
 - `>` 写成 `&gt;`
 - `&` 写成 `&amp;`
+
+## 新版 UI 写作约束
+
+当前站点已经接入工程星图改版，layout 会统一生成 hero、breadcrumb、目录、主题切换、关键词星图和文章页阅读版心。写文章时遵守：
+
+- 不要在文章中写 `<h1>`，标题只放在 front matter 的 `title`
+- 不要写内联 `<style>`、全局 CSS、页面级 hero、目录或顶部导航
+- 不要为了视觉效果添加大面积装饰 DOM；内容应服务阅读和搜索
+- `h2` 不要手写重复序号，例如不要写 `04 4. 标题`；可以写自然标题，数据层会自动加章节编号
+- 段落、列表、blockquote 保持正文宽度；代码、表格、figure 可自然撑到宽内容区
+- 标签使用主题词和技术词，避免把“搜索”“RSS”“标签”等站点导航词写进文章 chip
+- 摘要优先写 `description`，首页和目录页会展示它
+- 主题命名遵循站点规范：`AI 工程`、`Git 部署`、`UI 设计`、`Rust`
 
 ## 内容组织原则
 
@@ -181,11 +183,10 @@ content/AI工程/02-Agent-Runtime/
 - `date`
 - `category`
 - `tags`
-- `breadcrumbs`
-- `layout: layouts/article.njk`
-- `type: article`
-- `comments: true`
+- `description`
 - `permalink`
+
+不要再要求 `layout`、`type`、`comments` 或 `breadcrumbs`。当前 `site/_data/notebook.js` 会按文件路径自动生成目录、面包屑、标签页、RSS、搜索索引和文章页面。
 
 ### 4. 编写正文 fragment
 
@@ -200,10 +201,12 @@ content/AI工程/02-Agent-Runtime/
 - 是否没有完整 `<!doctype html>` / `<html>` / `<head>` / `<body>` 外壳
 - 是否没有手写 `nav.toc`
 - 是否没有内联 `<style>`
+- 是否没有文章内 `<h1>`、页面级 hero、手写目录或站点导航
+- `description` 是否能作为首页/目录页摘要直接展示
 - 代码块中的 `<`、`>`、`&` 是否已转义
 - 文章中是否有未闭合标签
 - `permalink` 是否与文件路径对应
-- breadcrumbs 是否可用
+- 新增或修改文章后是否运行 `npm run build`，让 `tools/build-keywords.mjs` 更新 `site/_data/keywordCloud.json`
 
 ### 6. 提交方式
 

@@ -1,0 +1,183 @@
+/* site/assets/tokens.css
+   工程星图：字体与主题 token。可先引入在 site.css 之前，或逐步迁移到 site.css 顶部。
+*/
+:root,
+[data-theme="atlas-light"] {
+  color-scheme: light;
+
+  /* Typography */
+  --font-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    "HarmonyOS Sans SC", "MiSans", "PingFang SC", "Hiragino Sans GB",
+    "Microsoft YaHei UI", "Microsoft YaHei", "Noto Sans CJK SC", "Source Han Sans SC",
+    Arial, sans-serif;
+  --font-display: "Avenir Next", "SF Pro Display", Inter, ui-sans-serif, system-ui,
+    -apple-system, BlinkMacSystemFont, "Segoe UI", "HarmonyOS Sans SC", "MiSans",
+    "PingFang SC", "Microsoft YaHei UI", sans-serif;
+  --font-serif: ui-serif, "Noto Serif SC", "Source Han Serif SC", "Songti SC", STSong,
+    SimSun, serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Cascadia Code", "JetBrains Mono", monospace;
+
+  /* Semantic colors */
+  --color-bg: #fbfcff;
+  --color-bg-soft: #f5f8fd;
+  --color-surface: rgba(255, 255, 255, .88);
+  --color-surface-solid: #ffffff;
+  --color-surface-soft: #f8fafc;
+  --color-surface-raised: rgba(255, 255, 255, .96);
+  --color-text-1: #0f172a;
+  --color-text-2: #334155;
+  --color-text-3: #64748b;
+  --color-text-4: #94a3b8;
+  --color-line: #e2e8f0;
+  --color-line-strong: #cbd5e1;
+  --color-accent: #2563eb;
+  --color-accent-hover: #1d4ed8;
+  --color-accent-soft: #eff6ff;
+  --color-accent-2: #0f766e;
+  --color-accent-2-soft: #f0fdfa;
+  --color-accent-3: #7c3aed;
+  --color-accent-3-soft: #f5f3ff;
+  --color-success: #0f766e;
+  --color-success-soft: #f0fdfa;
+  --color-warning: #b45309;
+  --color-warning-soft: #fff7ed;
+  --color-danger: #b91c1c;
+  --color-danger-soft: #fef2f2;
+  --color-code-bg: #0b1020;
+  --color-code-text: #d6deeb;
+  --shadow-sm: 0 8px 24px rgba(15, 23, 42, .06);
+  --shadow-md: 0 18px 48px rgba(15, 23, 42, .10);
+  --aura-1: rgba(37, 99, 235, .12);
+  --aura-2: rgba(15, 118, 110, .12);
+  --aura-3: rgba(124, 58, 237, .08);
+
+  /* Backward-compatible aliases for current site.css */
+  --text: var(--color-text-1);
+  --muted: var(--color-text-3);
+  --muted-2: var(--color-text-4);
+  --line: var(--color-line);
+  --soft: var(--color-surface-soft);
+  --code: var(--color-code-bg);
+  --code-text: var(--color-code-text);
+  --blue: var(--color-accent);
+  --blue-soft: var(--color-accent-soft);
+  --green: var(--color-accent-2);
+  --green-soft: var(--color-accent-2-soft);
+  --orange: var(--color-warning);
+  --orange-soft: var(--color-warning-soft);
+  --red: var(--color-danger);
+  --red-soft: var(--color-danger-soft);
+  --purple: var(--color-accent-3);
+  --purple-soft: var(--color-accent-3-soft);
+}
+
+[data-theme="nebula-dark"] {
+  color-scheme: dark;
+  --color-bg: #080c16;
+  --color-bg-soft: #0b1020;
+  --color-surface: rgba(15, 23, 42, .78);
+  --color-surface-solid: #111827;
+  --color-surface-soft: #111827;
+  --color-surface-raised: rgba(17, 24, 39, .92);
+  --color-text-1: #f8fafc;
+  --color-text-2: #e2e8f0;
+  --color-text-3: #94a3b8;
+  --color-text-4: #64748b;
+  --color-line: #1e293b;
+  --color-line-strong: #334155;
+  --color-accent: #60a5fa;
+  --color-accent-hover: #93c5fd;
+  --color-accent-soft: rgba(96, 165, 250, .14);
+  --color-accent-2: #2dd4bf;
+  --color-accent-2-soft: rgba(45, 212, 191, .13);
+  --color-accent-3: #a78bfa;
+  --color-accent-3-soft: rgba(167, 139, 250, .13);
+  --color-success: #34d399;
+  --color-success-soft: rgba(52, 211, 153, .13);
+  --color-warning: #fbbf24;
+  --color-warning-soft: rgba(251, 191, 36, .14);
+  --color-danger: #fb7185;
+  --color-danger-soft: rgba(251, 113, 133, .14);
+  --color-code-bg: #020617;
+  --color-code-text: #dbeafe;
+  --shadow-sm: 0 10px 28px rgba(0, 0, 0, .26);
+  --shadow-md: 0 22px 64px rgba(0, 0, 0, .34);
+  --aura-1: rgba(96, 165, 250, .20);
+  --aura-2: rgba(45, 212, 191, .18);
+  --aura-3: rgba(167, 139, 250, .15);
+}
+
+[data-theme="paper-warm"] {
+  color-scheme: light;
+  --color-bg: #fffaf0;
+  --color-bg-soft: #f8f0df;
+  --color-surface: rgba(255, 252, 245, .90);
+  --color-surface-solid: #fffdf7;
+  --color-surface-soft: #f7efe1;
+  --color-surface-raised: rgba(255, 253, 247, .96);
+  --color-text-1: #1f2933;
+  --color-text-2: #47505d;
+  --color-text-3: #736b60;
+  --color-text-4: #a3988b;
+  --color-line: #eadfce;
+  --color-line-strong: #d8c6ad;
+  --color-accent: #1d4ed8;
+  --color-accent-hover: #1e40af;
+  --color-accent-soft: #eff6ff;
+  --color-accent-2: #0f766e;
+  --color-accent-2-soft: #f0fdfa;
+  --color-accent-3: #92400e;
+  --color-accent-3-soft: #fffbeb;
+  --color-success: #0f766e;
+  --color-success-soft: #f0fdfa;
+  --color-warning: #b45309;
+  --color-warning-soft: #fff7ed;
+  --color-danger: #b91c1c;
+  --color-danger-soft: #fef2f2;
+  --color-code-bg: #111827;
+  --color-code-text: #f8fafc;
+  --shadow-sm: 0 8px 24px rgba(96, 61, 28, .07);
+  --shadow-md: 0 18px 48px rgba(96, 61, 28, .11);
+  --aura-1: rgba(29, 78, 216, .10);
+  --aura-2: rgba(15, 118, 110, .10);
+  --aura-3: rgba(146, 64, 14, .10);
+}
+
+body {
+  font-family: var(--font-sans);
+  color: var(--color-text-1);
+  background:
+    radial-gradient(circle at 12% -10%, var(--aura-1), transparent 36%),
+    radial-gradient(circle at 88% 12%, var(--aura-2), transparent 34%),
+    radial-gradient(circle at 50% 100%, var(--aura-3), transparent 42%),
+    linear-gradient(180deg, var(--color-bg), var(--color-bg-soft));
+}
+
+.home-hero h1 {
+  font-family: var(--font-display);
+  font-weight: 640;
+  letter-spacing: .08em;
+  line-height: .98;
+}
+
+.article-content h1,
+.article-content h2,
+.article-content h3,
+.breadcrumb-bar,
+.toc,
+.chip {
+  font-family: var(--font-sans);
+}
+
+blockquote .quote-text,
+.epigraph {
+  font-family: var(--font-serif);
+}
+
+code,
+pre,
+kbd,
+samp {
+  font-family: var(--font-mono);
+}

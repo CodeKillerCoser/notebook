@@ -1,0 +1,23 @@
+/* site/assets/theme-toggle.css */
+.theme-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+}
+
+.theme-switch button {
+  min-height: 32px;
+  padding: 0 .72rem;
+  border: 1px solid var(--color-line);
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: var(--color-text-3);
+  font: 700 .82rem/1 var(--font-sans);
+  cursor: pointer;
+}
+
+.theme-switch button[aria-pressed="true"] {
+  border-color: color-mix(in srgb, var(--color-accent) 58%, var(--color-line));
+  color: var(--color-accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent) 14%, transparent);
+}
