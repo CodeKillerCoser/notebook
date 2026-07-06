@@ -214,7 +214,9 @@ function readArticleHtml(content, fallbackTitle) {
 
   highlightCodeBlocks($, source);
 
-  const html = source.html()?.trim() || "";
+  const tagName = source.get(0)?.tagName?.toLowerCase();
+  const shouldKeepSourceWrapper = tagName === "article" && Object.keys(source.attr() || {}).length > 0;
+  const html = (shouldKeepSourceWrapper ? $.html(source) : source.html())?.trim() || "";
   return { title, subtitle, eyebrow, chips, html, text: stripTags(html), toc };
 }
 
