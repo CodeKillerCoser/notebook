@@ -21,7 +21,7 @@
 
 ## 这个仓库是什么
 
-这个仓库既保存原始笔记内容，也保存静态站点构建配置。内容源文件主要放在 `content/`，站点由 Eleventy 生成，并使用 Pagefind 提供全文搜索。
+这个仓库既保存原始笔记内容，也保存静态站点构建配置。笔记内容源文件统一放在 `content/`，站点由 Eleventy 生成，并使用 Pagefind 提供全文搜索。
 
 它的目标不是临时文件堆，而是长期维护的学习材料与实践笔记：
 
@@ -64,11 +64,12 @@ npm run dev
 
 ## 内容维护
 
-- 新文章优先放入 `content/` 下对应主题目录。
+- 新文章必须放入 `content/` 下对应主题目录。
 - 每个主题目录应有自己的 `index.html`，作为体系化入口。
-- 临时草稿不要长期放在根目录；成熟后归入对应主题。
+- 临时草稿不要放在仓库根目录；成熟后归入 `content/` 下对应主题。
 - 综合案例放在主题内的案例目录中，不和基础语法笔记混在一起。
-- 根目录的 `README.md` 用于 GitHub 仓库首页；站点内的 `README.html` 页面继续由现有 HTML 内容维护。
+- 根目录的 `README.md` 用于 GitHub 仓库首页；站点内的 `README.html` 页面由 `content/README.html` 生成。
+- `_site/`、`pagefind/`、根目录 HTML、根目录主题目录都是构建产物，不提交到仓库。
 
 ## 项目结构
 
@@ -77,11 +78,8 @@ npm run dev
 ├── content/             # 笔记内容源文件
 ├── site/                # Eleventy 模板、布局、数据与站点资源
 ├── tools/               # 发布、清理、链接检查等辅助脚本
-├── pagefind/            # 已生成的搜索索引资源
-├── assets/              # 发布后的站点静态资源
 ├── _site/               # Eleventy 构建输出
-├── README.md            # GitHub 仓库 README
-└── README.html          # GitHub Pages 站点页面
+└── README.md            # GitHub 仓库 README
 ```
 
 ## 帮助与反馈

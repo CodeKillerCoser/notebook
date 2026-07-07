@@ -4,3 +4,17 @@ _site/
 .cache/
 .pagefind/
 npm-debug.log*
+
+# Generated site artifacts. Source notes live under content/.
+/assets/
+/pagefind/
+/*.html
+/feed.xml
+/AI工程/
+/Agent/
+/Git部署/
+/UI设计/
+/rust/
+/tags/
+/代码大全阅读笔记/
+/_config.yml
