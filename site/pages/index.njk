@@ -3,30 +3,15 @@ layout: layouts/base.njk
 permalink: /index.html
 home: true
 toc:
-  - id: star-map
-    text: 关键词星图
-  - id: directories
-    text: 主题目录
   - id: recent
-    text: 最近更新
+    text: 最近笔记
+  - id: star-map
+    text: 主题坐标
+  - id: directories
+    text: 笔记目录
 ---
-{% include "components/star-map.njk" %}
-
-<section id="directories">
-  <h2><span class="section-index">1</span><span class="section-title">主题目录</span></h2>
-  <div class="directory-grid">
-    {% for directory in notebook.topDirectories %}
-      <a class="directory-card" href="{{ directory.permalink | relativeUrl(page.url) }}">
-        <strong>{{ directory.title }}</strong>
-        <span>{{ directory.description }}</span>
-        <small>{{ directory.children.length }} 个子目录 · {{ directory.totalArticles }} 篇文章</small>
-      </a>
-    {% endfor %}
-  </div>
-</section>
-
 <section id="recent">
-  <h2><span class="section-index">2</span><span class="section-title">最近更新</span></h2>
+  <h2><span class="section-index">1</span><span class="section-title">最近笔记</span></h2>
   <ol class="article-list">
     {% for article in notebook.articles | limit(14) %}
       <li>
@@ -38,4 +23,19 @@ toc:
       </li>
     {% endfor %}
   </ol>
+</section>
+
+{% include "components/star-map.njk" %}
+
+<section id="directories">
+  <h2><span class="section-index">3</span><span class="section-title">笔记目录</span></h2>
+  <div class="directory-grid">
+    {% for directory in notebook.topDirectories %}
+      <a class="directory-card" href="{{ directory.permalink | relativeUrl(page.url) }}">
+        <strong>{{ directory.title }}</strong>
+        <span>{{ directory.description }}</span>
+        <small>{{ directory.children.length }} 个子目录 · {{ directory.totalArticles }} 篇文章</small>
+      </a>
+    {% endfor %}
+  </div>
 </section>

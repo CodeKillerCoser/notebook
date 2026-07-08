@@ -1,12 +1,12 @@
 {# site/_includes/components/star-map.njk #}
 {% if keywordCloud and keywordCloud.length %}
 <section id="star-map" class="star-map-section" aria-labelledby="star-map-title">
-  <h2 id="star-map-title" class="plain-heading">关键词星图</h2>
-  <div class="star-map" role="list" aria-label="站点关键词星图">
+  <h2 id="star-map-title"><span class="section-index">2</span><span class="section-title">主题坐标</span></h2>
+  <div class="star-map" role="list" aria-label="站点主题坐标">
     <span class="star-map__orbit" aria-hidden="true"></span>
     <span class="star-map__orbit" aria-hidden="true"></span>
     <span class="star-map__orbit" aria-hidden="true"></span>
-    <span class="star-map__core" aria-hidden="true">星图</span>
+    <span class="star-map__core" aria-hidden="true">航线</span>
     {% for item in keywordCloud | limit(48) %}
       <a
         class="star-keyword"

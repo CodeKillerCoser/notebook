@@ -26,7 +26,8 @@
   <link rel="stylesheet" href="{{ '/assets/notebook-redesign-overrides.css' | relativeUrl(page.url) }}">
   {% block head %}{% endblock %}
 </head>
-<body class="{% if home or page.url == '/' or page.url == '/index.html' %}page-home{% elif article %}page-article{% elif directory %}page-directory{% elif tagPage %}page-tag{% else %}page-plain{% endif %}">
+{% set isHomePage = home or page.url == '/' or page.url == '/index.html' %}
+<body class="{% if isHomePage %}page-home{% elif article %}page-article{% elif directory %}page-directory{% elif tagPage %}page-tag{% else %}page-plain{% endif %}">
   <div class="ambient-flow" aria-hidden="true"></div>
   <canvas class="ion-field" aria-hidden="true"></canvas>
   {% if article %}
@@ -51,22 +52,37 @@
     {% set heroChips = [tagPage.name] %}
     {% set tocItems = toc %}
   {% else %}
-    {% set heroTitle = site.title if home else title or site.title %}
-    {% set heroEyebrow = site.eyebrow if home else eyebrow or site.eyebrow or site.title %}
-    {% set heroSubtitle = site.tagline if home else description or site.tagline or site.description %}
+    {% set heroTitle = site.title if isHomePage else title or site.title %}
+    {% set heroEyebrow = site.eyebrow if isHomePage else eyebrow or site.eyebrow or site.title %}
+    {% set heroSubtitle = site.tagline if isHomePage else description or site.tagline or site.description %}
     {% set activeBreadcrumbs = breadcrumbs %}
     {% set heroChips = chips or [] %}
     {% set tocItems = toc %}
   {% endif %}
 
   <header class="site-topbar">
-    <a class="site-brand" href="{{ '/index.html' | relativeUrl(page.url) }}">{{ site.title }}</a>
-    <nav class="site-nav" aria-label="站点导航">
-      <a href="{{ '/search.html' | relativeUrl(page.url) }}">搜索</a>
-      <a href="{{ '/tags/index.html' | relativeUrl(page.url) }}">标签</a>
-      <a href="{{ '/feed.xml' | relativeUrl(page.url) }}">RSS</a>
-    </nav>
-    {% include "components/theme-toggle.njk" %}
+    <a class="site-brand" href="{{ '/index.html' | relativeUrl(page.url) }}">
+      <img class="site-brand-mark" src="{{ '/assets/brand/low-entropy-route-mark.svg' | relativeUrl(page.url) }}" alt="" width="30" height="30">
+      <span class="site-brand-copy">
+        <strong>{{ site.title }}</strong>
+        <small>{{ site.englishName }}</small>
+      </span>
+    </a>
+    <a class="site-mobile-search" href="{{ '/search.html' | relativeUrl(page.url) }}">搜索</a>
+    <button class="site-menu-toggle" type="button" aria-expanded="false" aria-controls="site-menu-panel">菜单</button>
+    <div class="site-menu-panel" id="site-menu-panel">
+      <nav class="site-nav site-primary-nav" aria-label="主要内容">
+        <a class="{% if isHomePage %}is-active{% endif %}" {% if isHomePage %}aria-current="page"{% endif %} href="{{ '/index.html' | relativeUrl(page.url) }}">首页</a>
+        <a class="{% if article or directory %}is-active{% endif %}" {% if article or directory %}aria-current="page"{% endif %} href="{{ '/index.html#recent' | relativeUrl(page.url) }}">笔记</a>
+        <a class="{% if tagPage or page.url == '/tags/index.html' %}is-active{% endif %}" {% if tagPage or page.url == '/tags/index.html' %}aria-current="page"{% endif %} href="{{ '/tags/index.html' | relativeUrl(page.url) }}">标签</a>
+        <a class="{% if about %}is-active{% endif %}" {% if about %}aria-current="page"{% endif %} href="{{ '/about.html' | relativeUrl(page.url) }}">关于</a>
+      </nav>
+      <nav class="site-nav site-tool-nav" aria-label="站点工具">
+        <a class="site-search-link{% if page.url == '/search.html' %} is-active{% endif %}" {% if page.url == '/search.html' %}aria-current="page"{% endif %} href="{{ '/search.html' | relativeUrl(page.url) }}">搜索</a>
+        <a href="{{ '/feed.xml' | relativeUrl(page.url) }}">RSS</a>
+      </nav>
+      {% include "components/theme-toggle.njk" %}
+    </div>
   </header>
 
   <nav class="breadcrumb-bar" aria-label="博客路径">
@@ -84,11 +100,14 @@
   <div class="page-shell">
     <header id="title-block-header" class="hero-grid">
       <div class="hero-spacer" aria-hidden="true"></div>
-      <div class="hero-content{% if home or page.url == '/' or page.url == '/index.html' %} home-hero{% endif %}">
+      <div class="hero-content{% if isHomePage %} home-hero{% endif %}">
         <div class="eyebrow">{{ heroEyebrow }}</div>
         <h1>{{ heroTitle }}</h1>
         {% if heroSubtitle %}
           <p class="subtitle">{{ heroSubtitle }}</p>
+        {% endif %}
+        {% if isHomePage and site.description %}
+          <p class="home-hero-note">{{ site.description }}</p>
         {% endif %}
         <div class="meta article-meta">
           {% if article and article.date %}
@@ -149,6 +168,29 @@
     </main>
   </div>
   <script>
+    (() => {
+      const topbar = document.querySelector(".site-topbar");
+      const toggle = document.querySelector(".site-menu-toggle");
+      const panel = document.getElementById("site-menu-panel");
+      if (!topbar || !toggle || !panel) return;
+
+      const setOpen = (open) => {
+        panel.classList.toggle("is-open", open);
+        toggle.setAttribute("aria-expanded", String(open));
+      };
+
+      toggle.addEventListener("click", () => setOpen(!panel.classList.contains("is-open")));
+      panel.addEventListener("click", (event) => {
+        if (event.target.closest("a")) setOpen(false);
+      });
+      document.addEventListener("click", (event) => {
+        if (!topbar.contains(event.target)) setOpen(false);
+      });
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") setOpen(false);
+      });
+    })();
+
     (() => {
       const state = document.getElementById("mobile-toc-state");
       const toc = document.getElementById("page-toc");

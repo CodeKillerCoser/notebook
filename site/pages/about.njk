@@ -1,0 +1,53 @@
+---
+layout: layouts/base.njk
+title: 关于低熵航线
+description: 低熵航线是什么，以及这里记录什么。
+permalink: /about.html
+about: true
+breadcrumbs:
+  - title: 关于
+    url: /about.html
+toc:
+  - id: about
+    text: 低熵航线
+  - id: notes
+    text: 这里记录什么
+  - id: principles
+    text: 写作原则
+  - id: subscribe
+    text: 订阅
+---
+<section id="about">
+  <h2><span class="section-index">1</span><span class="section-title">低熵航线</span></h2>
+  <p class="lead">低熵航线是我的个人笔记博客，用来记录技术实践、阅读思考与长期观察。</p>
+  <p>“低熵”代表一种持续整理复杂性的写作方式：从问题、实践、资料和经验中提炼结构，让混乱输入逐渐变成可复用的理解。</p>
+  <p>“航线”代表探索路径。这里的每篇笔记都不是终点，而是一次穿过复杂系统后留下的坐标。</p>
+</section>
+
+<section id="notes">
+  <h2><span class="section-index">2</span><span class="section-title">这里记录什么</span></h2>
+  <div class="tag-cloud about-topic-cloud">
+    <span class="tag-chip">工程实践</span>
+    <span class="tag-chip">AI 工程</span>
+    <span class="tag-chip">Agent Runtime</span>
+    <span class="tag-chip">Rust 学习</span>
+    <span class="tag-chip">Git 与部署</span>
+    <span class="tag-chip">UI 设计</span>
+    <span class="tag-chip">阅读笔记</span>
+    <span class="tag-chip">工具链与效率</span>
+  </div>
+</section>
+
+<section id="principles">
+  <h2><span class="section-index">3</span><span class="section-title">写作原则</span></h2>
+  <ul class="checklist">
+    <li>记录实践后的复盘，而不是资料搬运。</li>
+    <li>关注可复用的心智模型，而不是零散技巧。</li>
+    <li>尽量把复杂问题讲清楚，整理成之后还能回看的结构。</li>
+  </ul>
+</section>
+
+<section id="subscribe">
+  <h2><span class="section-index">4</span><span class="section-title">订阅</span></h2>
+  <p>可以通过 <a href="{{ '/feed.xml' | relativeUrl(page.url) }}">RSS</a> 订阅更新，也可以从首页进入最近笔记。</p>
+</section>
