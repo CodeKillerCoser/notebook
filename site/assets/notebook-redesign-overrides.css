@@ -101,15 +101,38 @@ body {
   z-index: 70;
   display: flex;
   align-items: center;
-  gap: 18px;
+  isolation: isolate;
+  gap: 22px;
   min-height: 68px;
   max-width: var(--page-max, 1320px);
   margin: 0 auto;
   padding: .66rem var(--page-pad, 36px);
   border-bottom: 1px solid color-mix(in srgb, var(--color-line, #e5e7eb) 90%, transparent);
-  background: color-mix(in srgb, var(--color-surface-solid, #fff) 86%, transparent);
+  background:
+    linear-gradient(90deg,
+      color-mix(in srgb, var(--color-accent-2, #0f766e) 11%, transparent) 0%,
+      transparent 32%),
+    linear-gradient(110deg,
+      color-mix(in srgb, var(--color-accent, #2563eb) 12%, transparent) 0%,
+      transparent 42%),
+    color-mix(in srgb, var(--color-surface-solid, #fff) 88%, transparent);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+}
+
+.site-topbar::before {
+  content: "";
+  position: absolute;
+  inset: -34px 42% -36px 0;
+  z-index: -1;
+  background:
+    linear-gradient(100deg,
+      color-mix(in srgb, var(--color-accent-2, #0f766e) 28%, transparent),
+      color-mix(in srgb, var(--color-accent, #2563eb) 18%, transparent) 46%,
+      transparent 78%);
+  filter: blur(22px);
+  opacity: .72;
+  pointer-events: none;
 }
 
 .site-brand {
@@ -159,7 +182,7 @@ body {
 .site-menu-panel {
   display: flex;
   align-items: center;
-  gap: 18px;
+  gap: 14px;
   flex: 1 1 auto;
   min-width: 0;
 }
@@ -172,12 +195,13 @@ body {
 }
 
 .site-primary-nav {
-  margin-left: auto;
+  margin-left: 0;
   margin-right: auto;
 }
 
 .site-tool-nav {
   flex: 0 0 auto;
+  margin-left: auto;
 }
 
 .site-nav a {
@@ -243,6 +267,52 @@ body {
 .home-hero .eyebrow {
   color: var(--color-accent-2, #0f766e);
   letter-spacing: 0;
+}
+
+.page-home .page-shell {
+  margin-top: 28px;
+}
+
+.home-hero {
+  position: relative;
+  overflow: hidden;
+  padding: 18px 0 8px;
+}
+
+.home-hero::before {
+  content: "";
+  position: absolute;
+  inset: -42px 0 -24px -16px;
+  z-index: -1;
+  background:
+    linear-gradient(105deg,
+      color-mix(in srgb, var(--color-accent-2, #0f766e) 14%, transparent),
+      color-mix(in srgb, var(--color-accent, #2563eb) 10%, transparent) 44%,
+      transparent 76%);
+  filter: blur(16px);
+  opacity: .72;
+}
+
+.home-hero-lockup {
+  display: flex;
+  align-items: center;
+  gap: clamp(18px, 3vw, 34px);
+  max-width: 900px;
+}
+
+.home-hero-mark {
+  display: block;
+  flex: 0 0 auto;
+  width: clamp(92px, 12vw, 148px);
+  height: clamp(92px, 12vw, 148px);
+  border-radius: 28%;
+  box-shadow:
+    0 20px 55px color-mix(in srgb, var(--color-accent, #2563eb) 18%, transparent),
+    0 10px 26px color-mix(in srgb, var(--color-accent-2, #0f766e) 14%, transparent);
+}
+
+.home-hero-copy {
+  min-width: 0;
 }
 
 .home-hero h1 {
@@ -335,6 +405,21 @@ body {
   background: var(--color-surface-soft);
 }
 
+[data-theme="nebula-dark"] .site-topbar::before,
+[data-theme="nebula-dark"] .home-hero::before {
+  opacity: .42;
+}
+
+[data-theme="paper-warm"] .site-topbar::before,
+[data-theme="paper-warm"] .home-hero::before {
+  background:
+    linear-gradient(100deg,
+      color-mix(in srgb, var(--color-accent-3, #92400e) 18%, transparent),
+      color-mix(in srgb, var(--color-accent-2, #0f766e) 12%, transparent) 48%,
+      transparent 78%);
+  opacity: .5;
+}
+
 /* 平板开始就用移动目录，避免超长目录插在正文首屏 */
 @media (max-width: 1100px) {
   .hero-grid,
@@ -353,6 +438,12 @@ body {
 
   .site-brand {
     min-width: 0;
+  }
+
+  .site-brand-mark {
+    width: 30px;
+    height: 30px;
+    border-radius: 9px;
   }
 
   .site-brand-copy small {
@@ -452,11 +543,29 @@ body {
     bottom: 7px;
     width: 28px;
   }
+
+  .home-hero {
+    padding-top: 6px;
+  }
+
+  .home-hero-lockup {
+    gap: 14px;
+  }
+
+  .home-hero-mark {
+    width: 76px;
+    height: 76px;
+    border-radius: 22px;
+  }
 }
 
 @media (max-width: 760px) {
+  .page-home .page-shell {
+    margin-top: 20px;
+  }
+
   .home-hero h1 {
-    font-size: 3.1rem;
+    font-size: 2.92rem;
     letter-spacing: 0;
   }
 
@@ -466,6 +575,36 @@ body {
 
   .home-hero-note {
     font-size: .98rem;
+  }
+}
+
+@media (max-width: 430px) {
+  .site-brand-copy strong {
+    font-size: .94rem;
+  }
+
+  .site-mobile-search {
+    padding: 0 .28rem;
+  }
+
+  .site-menu-toggle {
+    min-width: 50px;
+    padding: 0 .5rem;
+  }
+
+  .home-hero-lockup {
+    align-items: flex-start;
+  }
+
+  .home-hero-mark {
+    width: 62px;
+    height: 62px;
+    border-radius: 18px;
+    margin-top: 2px;
+  }
+
+  .home-hero h1 {
+    font-size: 2.55rem;
   }
 }
 

@@ -101,8 +101,18 @@
     <header id="title-block-header" class="hero-grid">
       <div class="hero-spacer" aria-hidden="true"></div>
       <div class="hero-content{% if isHomePage %} home-hero{% endif %}">
-        <div class="eyebrow">{{ heroEyebrow }}</div>
-        <h1>{{ heroTitle }}</h1>
+        {% if isHomePage %}
+          <div class="home-hero-lockup">
+            <img class="home-hero-mark" src="{{ '/assets/brand/low-entropy-route-mark.svg' | relativeUrl(page.url) }}" alt="" width="148" height="148">
+            <div class="home-hero-copy">
+              <div class="eyebrow">{{ heroEyebrow }}</div>
+              <h1>{{ heroTitle }}</h1>
+            </div>
+          </div>
+        {% else %}
+          <div class="eyebrow">{{ heroEyebrow }}</div>
+          <h1>{{ heroTitle }}</h1>
+        {% endif %}
         {% if heroSubtitle %}
           <p class="subtitle">{{ heroSubtitle }}</p>
         {% endif %}
