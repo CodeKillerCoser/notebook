@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">低熵航线图形标识</title>
+  <desc id="desc">星球、轨道与航线箭头组成的低熵航线品牌标识。</desc>
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="46%" r="63%"><stop offset="0" stop-color="#13223d"/><stop offset="1" stop-color="#050814"/></radialGradient>
+    <linearGradient id="planet" x1="156" y1="126" x2="296" y2="294"><stop offset="0" stop-color="#f8fafc"/><stop offset=".48" stop-color="#64748b"/><stop offset="1" stop-color="#0f172a"/></linearGradient>
+    <linearGradient id="route" x1="82" y1="304" x2="400" y2="142"><stop offset="0" stop-color="#2dd4bf"/><stop offset=".5" stop-color="#ffffff"/><stop offset="1" stop-color="#60a5fa"/></linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <g fill="#fff" opacity=".76"><circle cx="92" cy="136" r="2"/><circle cx="386" cy="101" r="2.4"/><circle cx="430" cy="333" r="1.8"/><circle cx="143" cy="395" r="1.6"/><circle cx="322" cy="404" r="1.4"/></g>
+  <circle cx="208" cy="242" r="76" fill="url(#planet)"/>
+  <path d="M143 218 C174 188 238 166 292 180" fill="none" stroke="#fff" stroke-width="2" opacity=".48"/>
+  <ellipse cx="244" cy="262" rx="178" ry="43" transform="rotate(-18 244 262)" fill="none" stroke="#ffffff" stroke-width="9"/>
+  <ellipse cx="244" cy="262" rx="218" ry="57" transform="rotate(-18 244 262)" fill="none" stroke="#94a3b8" stroke-width="3" opacity=".48"/>
+  <path d="M72 325 C162 236 284 180 409 160" fill="none" stroke="url(#route)" stroke-width="10" stroke-linecap="round"/>
+  <path d="M384 143 L458 153 L405 203 Z" fill="#fff"/>
+  <path d="M372 181 C363 207 338 231 311 240" fill="none" stroke="#fff" stroke-width="8" stroke-linecap="round"/>
+  <path d="M109 354 C190 391 318 355 384 271" fill="none" stroke="#ffffff" stroke-width="7" stroke-linecap="round" stroke-dasharray="13 18" opacity=".9"/>
+  <path d="M94 168 L101 187 L121 194 L101 201 L94 221 L87 201 L67 194 L87 187 Z" fill="#fff"/>
+</svg>

@@ -1,0 +1,35 @@
+{
+  "name": "低熵航线",
+  "englishName": "Low Entropy Course",
+  "slogan": "在复杂系统中，持续构建秩序",
+  "concept": "以星球、航线、轨道与星尘表现个人笔记博客在复杂系统中持续整理、归纳、建立秩序的品牌隐喻。",
+  "assets": {
+    "mark": "low-entropy-route-mark.svg",
+    "light": "low-entropy-route-lockup-light.svg",
+    "dark": "low-entropy-route-lockup-dark.svg",
+    "paper": "low-entropy-route-lockup-paper.svg"
+  },
+  "themes": {
+    "light": {
+      "background": "#f8fbff",
+      "ink": "#0f172a",
+      "muted": "#475569",
+      "accent": "#2563eb",
+      "accent2": "#0f766e"
+    },
+    "dark": {
+      "background": "#050814",
+      "ink": "#f8fafc",
+      "muted": "#b6c3d1",
+      "accent": "#60a5fa",
+      "accent2": "#2dd4bf"
+    },
+    "paper": {
+      "background": "#fff8ea",
+      "ink": "#241b12",
+      "muted": "#756653",
+      "accent": "#9a5b17",
+      "accent2": "#0f766e"
+    }
+  }
+}
