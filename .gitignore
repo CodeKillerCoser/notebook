@@ -1,9 +1,11 @@
 .deepseek/
+.codex/
 node_modules/
 _site/
 .cache/
 .pagefind/
 npm-debug.log*
+design-qa.md
 
 # Generated site artifacts. Source notes live under content/.
 /assets/

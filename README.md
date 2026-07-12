@@ -16,6 +16,7 @@
 - [主题标签](#主题标签)
 - [本地运行](#本地运行)
 - [内容维护](#内容维护)
+- [仓库技能](#仓库技能)
 - [项目结构](#项目结构)
 - [帮助与反馈](#帮助与反馈)
 
@@ -71,11 +72,25 @@ npm run dev
 - 根目录的 `README.md` 用于 GitHub 仓库首页；站点内的 `README.html` 页面由 `content/README.html` 生成。
 - `_site/`、`pagefind/`、根目录 HTML、根目录主题目录都是构建产物，不提交到仓库。
 
+文章只提供 front matter 与语义正文，不定义标题区、目录、主题、字体或页面样式。完整规则见 [`docs/import-guidelines.md`](docs/import-guidelines.md)。
+
+## 仓库技能
+
+仓库维护两份职责分离的技能：
+
+| 技能 | 适用场景 |
+| --- | --- |
+| `.skills/kb-note-generator/` | 从对话、Markdown 或旧 HTML 生成、导入和发布笔记 |
+| `.skills/notebook-site-maintainer/` | 修改首页、文章模板、主题、字体、关键词、搜索和部署系统 |
+
+关键词计算、旧 HTML 清洗和主题/字体切换是确定性脚本或模板能力，不单独拆成技能。技能负责指导何时调用这些实现以及如何验收。
+
 ## 项目结构
 
 ```text
 .
 ├── content/             # 笔记内容源文件
+├── .skills/             # 内容生成与站点维护技能
 ├── site/                # Eleventy 模板、布局、数据与站点资源
 ├── tools/               # 发布、清理、链接检查等辅助脚本
 ├── _site/               # Eleventy 构建输出

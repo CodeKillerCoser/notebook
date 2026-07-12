@@ -1,119 +1,60 @@
-# 笔记输出模板
+# 正文模板与导入
 
-每个知识笔记为独立的 `.html` 文件，包含内联样式。
-
-## 文件命名
-
-- 使用中文文件名，清晰表达话题
-- 示例：`Hello-World.html`、`控制台IO.html`、`match-模式匹配陷阱.html`
-- 文件名不含序号，序号仅用于目录分类
-- 索引文件命名为 `index.html`
-
-## HTML 模板
+## 新文章模板
 
 ```html
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>话题标题</title>
-<style>
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    max-width: 900px;
-    margin: 40px auto;
-    padding: 0 20px;
-    line-height: 1.7;
-    color: #333;
-    background: #fff;
-  }
-  h1 { border-bottom: 2px solid #e36209; padding-bottom: 8px; }
-  h2 { margin-top: 32px; color: #24292e; }
-  pre {
-    background: #f6f8fa;
-    border-radius: 6px;
-    padding: 16px;
-    overflow-x: auto;
-  }
-  code {
-    font-family: "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
-    font-size: 14px;
-  }
-  pre code { background: none; padding: 0; }
-  table {
-    border-collapse: collapse;
-    width: 100%;
-    margin: 16px 0;
-  }
-  th, td {
-    border: 1px solid #dfe2e5;
-    padding: 8px 12px;
-    text-align: left;
-  }
-  th { background: #f6f8fa; font-weight: 600; }
-  .bad { color: #cb2431; }
-  .good { color: #22863a; }
-  blockquote {
-    border-left: 4px solid #e36209;
-    margin: 16px 0;
-    padding: 4px 16px;
-    background: #fff8f2;
-  }
-  a { color: #0366d6; }
-  .back { margin-top: 40px; font-size: 14px; }
-</style>
-</head>
-<body>
+---
+title: "文章标题"
+date: "2026-07-13T00:00:00+08:00"
+category: "Rust"
+description: "一句话说明本文解决什么问题。"
+tags:
+  - "Rust"
+  - "所有权"
+---
 
-<h1>话题标题</h1>
+<p>用一段开场说明问题背景、结论和阅读收益。</p>
 
-<!-- 简短概述（可选） -->
-<p>一句话说明这个文档讲什么。</p>
+<h2>核心心智模型</h2>
+<p>正文内容。</p>
 
-<!-- 核心概念/代码 -->
-<h2>核心概念</h2>
-
-<pre><code class="language-rust">
-// 最关键的代码片段
-</code></pre>
-
-<h3>逐行解析</h3>
-
+<h3>关键边界</h3>
 <ul>
-  <li>要点 1</li>
-  <li>要点 2</li>
+  <li>边界一</li>
+  <li>边界二</li>
 </ul>
 
-<!-- 关键陷阱 -->
-<h2>关键陷阱/易错点</h2>
-
-<p>明确标注容易出错的地方：</p>
-
-<pre><code class="language-rust">
-<span class="bad">// ❌ 错误写法</span>
-<span class="good">// ✅ 正确写法</span>
-</code></pre>
-
-<!-- 扩展参考（可选） -->
-<h2>扩展参考</h2>
-
-<ul>
-  <li>相关文档链接</li>
-  <li>官方文档引用</li>
-</ul>
-
-<p class="back"><a href="../index.html">← 返回索引</a></p>
-
-</body>
-</html>
+<h2>代码与验证</h2>
+<pre><code class="language-rust">fn main() {
+    println!(&quot;hello&quot;);
+}</code></pre>
 ```
 
-## 注意事项
+不要额外包裹 `<article>`、`<main>` 或页面容器。模板会生成标题、标签、目录和正文外壳。
 
-- 代码块 `<pre><code class="language-XXX">` 标注语言：rust, bash, toml, json
-- 错误示例包裹在 `<span class="bad">` 中，正确示例用 `<span class="good">`
-- 文档之间用相对路径 `<a>` 链接交叉引用
-- 优先展示代码和表格，减少纯文字叙述
-- 每个文档聚焦一个话题，避免内容分散
-- 底部添加 `<p class="back">` 返回索引的链接
+## 禁止内容
+
+- `<!doctype html>`、`html`、`head`、`body`
+- 文章内 `h1`
+- `style`、页面级 `script`、外部样式表或内联布局样式
+- Header、Hero、面包屑、站点导航、标签栏、自定义 TOC
+- 为排版创建的 `.card`、`.container`、`.layout`、`.page`
+- 重复章节序号，如 `04 4. 标题`
+
+## 允许内容
+
+- `p`、`h2`、`h3`、列表、表格、引用、图片、figure
+- `pre > code` 代码块和行内 `code`
+- 服务于语义的轻量 class；不要用 class 控制页面布局
+
+代码中的 `<`、`>` 和 `&` 分别写成 `&lt;`、`&gt;` 和 `&amp;`。
+
+## 旧 HTML 导入
+
+可使用：
+
+```bash
+npm run publish -- <source.md|source.html> <主题/分类/文章名.html> --no-commit
+```
+
+发布工具和数据层会移除旧页面外壳、样式、重复标题和自定义目录，并把其他 `h1` 转为 `h2`。导入后仍要检查生成源文件，保证后续维护不依赖兼容清洗。

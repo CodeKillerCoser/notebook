@@ -25,6 +25,13 @@ function relativeUrl(target, fromUrl = "/index.html") {
 
 export default function (eleventyConfig) {
   eleventyConfig.addPassthroughCopy({ "site/assets": "assets" });
+  eleventyConfig.addPassthroughCopy({
+    "node_modules/lxgw-wenkai-screen-webfont/lxgwwenkaigbscreen.css": "assets/fonts/lxgw-wenkai/lxgwwenkaigbscreen.css",
+    "node_modules/lxgw-wenkai-screen-webfont/lxgwwenkaigbscreenr.css": "assets/fonts/lxgw-wenkai/lxgwwenkaigbscreenr.css",
+    "node_modules/lxgw-wenkai-screen-webfont/OFL.txt": "assets/fonts/lxgw-wenkai/OFL.txt",
+    "node_modules/lxgw-wenkai-screen-webfont/files/lxgwwenkaigbscreen-subset-*.woff2": "assets/fonts/lxgw-wenkai/files",
+    "node_modules/lxgw-wenkai-screen-webfont/files/lxgwwenkaigbscreenr-subset-*.woff2": "assets/fonts/lxgw-wenkai/files"
+  });
 
   eleventyConfig.addFilter("relativeUrl", relativeUrl);
   eleventyConfig.addFilter("tagUrl", (tag) => `/tags/${tagSlug(tag)}.html`);

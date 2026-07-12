@@ -1,0 +1,4 @@
+interface:
+  display_name: "KB Note Generator"
+  short_description: "Turn conversations and source files into notebook articles"
+  default_prompt: "Create or update a notebook article using the repository content contract."

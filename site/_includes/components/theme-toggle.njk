@@ -1,5 +1,5 @@
 {# site/_includes/components/theme-toggle.njk #}
-<div class="theme-menu" data-theme-menu>
+<div class="theme-menu" data-preference-menu>
   <button class="theme-menu__button" type="button" aria-haspopup="true" aria-expanded="false">
     <span>外观</span>
     <span class="theme-menu__chevron" aria-hidden="true">▾</span>
@@ -19,13 +19,41 @@
     </button>
   </div>
 </div>
+
+<div class="theme-menu font-menu" data-preference-menu data-font-menu>
+  <button class="theme-menu__button" type="button" aria-haspopup="true" aria-expanded="false">
+    <span>字体</span>
+    <span class="theme-menu__chevron" aria-hidden="true">▾</span>
+  </button>
+  <div class="theme-menu__panel" role="menu" aria-label="字体">
+    <button type="button" role="menuitemradio" aria-checked="false" data-set-font="wenkai">
+      <span class="theme-menu__check" aria-hidden="true">✓</span>
+      <span>文楷</span>
+    </button>
+    <button type="button" role="menuitemradio" aria-checked="false" data-set-font="system-sans">
+      <span class="theme-menu__check" aria-hidden="true">✓</span>
+      <span>清爽黑体</span>
+    </button>
+    <button type="button" role="menuitemradio" aria-checked="false" data-set-font="song-serif">
+      <span class="theme-menu__check" aria-hidden="true">✓</span>
+      <span>宋体</span>
+    </button>
+    <button type="button" role="menuitemradio" aria-checked="false" data-set-font="fangsong">
+      <span class="theme-menu__check" aria-hidden="true">✓</span>
+      <span>仿宋</span>
+    </button>
+  </div>
+</div>
 <script>
 (() => {
-  const KEY = "engineering-star-map-theme";
+  const THEME_KEY = "engineering-star-map-theme";
+  const FONT_KEY = "low-entropy-font-family";
   const root = document.documentElement;
-  const menus = [...document.querySelectorAll("[data-theme-menu]")];
-  const buttons = [...document.querySelectorAll("[data-set-theme]")];
-  const themes = new Set(buttons.map((button) => button.dataset.setTheme));
+  const menus = [...document.querySelectorAll("[data-preference-menu]")];
+  const themeButtons = [...document.querySelectorAll("[data-set-theme]")];
+  const fontButtons = [...document.querySelectorAll("[data-set-font]")];
+  const themes = new Set(themeButtons.map((button) => button.dataset.setTheme));
+  const fonts = new Set(fontButtons.map((button) => button.dataset.setFont));
 
   const closeMenus = (except = null) => {
     menus.forEach((menu) => {
@@ -35,19 +63,30 @@
     });
   };
 
-  const apply = (theme) => {
+  const applyTheme = (theme) => {
     const nextTheme = themes.has(theme) ? theme : "atlas-light";
     root.dataset.theme = nextTheme;
-    localStorage.setItem(KEY, nextTheme);
-    buttons.forEach((button) => {
+    localStorage.setItem(THEME_KEY, nextTheme);
+    themeButtons.forEach((button) => {
       const active = button.dataset.setTheme === nextTheme;
       button.setAttribute("aria-checked", String(active));
       button.classList.toggle("is-active", active);
     });
   };
 
-  const saved = localStorage.getItem(KEY);
-  apply(saved || root.dataset.theme || "atlas-light");
+  const applyFont = (font) => {
+    const nextFont = fonts.has(font) ? font : "wenkai";
+    root.dataset.font = nextFont;
+    localStorage.setItem(FONT_KEY, nextFont);
+    fontButtons.forEach((button) => {
+      const active = button.dataset.setFont === nextFont;
+      button.setAttribute("aria-checked", String(active));
+      button.classList.toggle("is-active", active);
+    });
+  };
+
+  applyTheme(localStorage.getItem(THEME_KEY) || root.dataset.theme || "atlas-light");
+  applyFont(localStorage.getItem(FONT_KEY) || root.dataset.font || "wenkai");
 
   menus.forEach((menu) => {
     const trigger = menu.querySelector(".theme-menu__button");
@@ -59,15 +98,22 @@
     });
   });
 
-  buttons.forEach((button) => {
+  themeButtons.forEach((button) => {
     button.addEventListener("click", () => {
-      apply(button.dataset.setTheme);
+      applyTheme(button.dataset.setTheme);
+      closeMenus();
+    });
+  });
+
+  fontButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      applyFont(button.dataset.setFont);
       closeMenus();
     });
   });
 
   document.addEventListener("click", (event) => {
-    if (!event.target.closest("[data-theme-menu]")) closeMenus();
+    if (!event.target.closest("[data-preference-menu]")) closeMenus();
   });
 
   document.addEventListener("keydown", (event) => {

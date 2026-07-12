@@ -1,22 +1,39 @@
 {# site/_includes/components/star-map.njk #}
 {% if keywordCloud and keywordCloud.length %}
-<section id="star-map" class="star-map-section" aria-labelledby="star-map-title">
-  <h2 id="star-map-title"><span class="section-index">2</span><span class="section-title">主题坐标</span></h2>
-  <div class="star-map" role="list" aria-label="站点主题坐标">
-    <span class="star-map__orbit" aria-hidden="true"></span>
-    <span class="star-map__orbit" aria-hidden="true"></span>
-    <span class="star-map__orbit" aria-hidden="true"></span>
-    <span class="star-map__core" aria-hidden="true">航线</span>
-    {% for item in keywordCloud | limit(48) %}
-      <a
-        class="star-keyword"
-        role="listitem"
-        href="{{ item.url | relativeUrl(page.url) }}"
-        data-tone="{{ item.tone }}"
-        data-weight="{{ item.weight }}"
-        style="--x: {{ item.x }}%; --y: {{ item.y }}%; --s: {{ item.size }}; --delay: {{ item.delay }}s; --duration: {{ item.duration }}s;"
-      >{{ item.text }}</a>
-    {% endfor %}
+<section id="star-map" class="star-map-section" aria-label="文章关键词星图">
+  <div class="corpus-map">
+    <div class="corpus-map__rings" aria-hidden="true">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+    <img
+      class="corpus-map__planet"
+      src="{{ '/assets/brand/low-entropy-planet.svg' | relativeUrl(page.url) }}"
+      alt=""
+      width="180"
+      height="180"
+      decoding="async"
+    >
+    <div class="corpus-map__words" role="list" aria-label="文章正文关键词分布">
+      {% for item in keywordCloud %}
+        <span
+          class="corpus-keyword-anchor"
+          role="listitem"
+          data-orbit="{{ item.orbit }}"
+          data-tier="{{ item.tier }}"
+          data-rank="{{ item.rank }}"
+          style="--importance: {{ item.importance }}; --distance: {{ item.distance }}%; --delay: {{ item.delay }}s;"
+        >
+          <a
+            class="corpus-keyword"
+            href="{{ item.url | relativeUrl(page.url) }}"
+            data-related="{{ item.related | join(',') }}"
+            aria-label="搜索包含“{{ item.text }}”的文章"
+          >{{ item.text }}</a>
+        </span>
+      {% endfor %}
+    </div>
   </div>
 </section>
 {% endif %}

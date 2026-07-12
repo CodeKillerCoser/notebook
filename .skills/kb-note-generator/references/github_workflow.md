@@ -1,56 +1,43 @@
-# GitHub 工作流
+# 构建与 Git 工作流
 
-将生成的笔记提交到 notebook 仓库的标准流程。
+## 本地验证
 
-## 前置条件
-
-- 本地已配置 GitHub 认证（SSH key 或 Personal Access Token）
-- 仓库 `https://github.com/CodeKillerCoser/notebook` 可访问
-
-## 流程
-
-### 1. 克隆仓库
+在仓库根目录运行：
 
 ```bash
-git clone https://github.com/CodeKillerCoser/notebook.git .kb-notebook-tmp
+npm ci
+npm run build
+npm run check:links
 ```
 
-如果临时目录已存在，先进入目录执行 `git pull` 获取最新版本。
+`npm run build` 会重新计算正文关键词、生成 Eleventy 页面并更新 Pagefind。需要提交源文章和发生变化的 `site/_data/keywordCloud.json`；不要提交 `_site/`。
 
-### 2. 放置文件
+依赖由 `package-lock.json` 管理，GitHub Pages 使用 `npm ci`。修改 `package.json` 时必须同步更新并提交 `package-lock.json`。
 
-将生成的 HTML 笔记复制到仓库中对应主题的目录下。
+## 发布工具
 
 ```bash
-cp -r .kb-tmp/<主题>/* .kb-notebook-tmp/<主题>/
+npm run publish -- <source> <target> --no-commit
 ```
 
-目录结构应与知识库现有结构保持一致。
+常用选项：
 
-### 3. 提交
+- `--title`
+- `--date`
+- `--category`
+- `--description`
+- `--tags a,b,c`
+- `--no-build`
+- `--no-commit`
+- `--push`
 
-```bash
-cd .kb-notebook-tmp
-git add <主题>/
-git commit -m "docs(<主题>): add study notes"
-```
+先用 `--no-commit` 审查输出更稳妥。发布工具默认写入 `content/<target>`，运行构建和链接检查，并暂存文章及生成的关键词数据。
 
-提交信息格式：`docs(<主题>): <简短描述>`
+## 提交
 
-### 4. 推送
-
-```bash
-git push origin main
-```
-
-### 5. 清理
-
-```bash
-rm -rf .kb-notebook-tmp .kb-tmp
-```
-
-## 注意事项
-
-- 推送前确认工作区干净，没有误修改其他文件
-- 如果推送失败（如远程有更新），先 `git pull --rebase` 再推送
-- 所有操作限于 notebook 仓库，不修改用户其他仓库
+1. 先运行 `git status --short`，保留用户已有改动。
+2. 用明确路径暂存，不使用会混入无关文件的宽泛命令。
+3. 运行 `git diff --cached --check` 和 `git diff --cached --stat`。
+4. 笔记提交使用 `docs(<主题>): <说明>`；站点代码使用 `feat(site):` 或 `fix(site):`。
+5. 只有用户明确要求时才提交或推送。默认在功能分支工作；用户明确要求直接提交仓库时才推送当前分支。
+6. 推送前 `git fetch origin`，确认当前分支没有落后；有远端更新时先安全整合，不覆盖远端历史。

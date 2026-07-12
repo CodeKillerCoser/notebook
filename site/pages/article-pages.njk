@@ -7,15 +7,29 @@ permalink: "{{ article.permalink }}"
 layout: layouts/base.njk
 eleventyExcludeFromCollections: true
 ---
-{{ article.html | safe }}
+<article class="article-page">
+  <header class="article-page-header">
+    <p class="article-page-kicker">
+      <span>{{ article.category }}</span>
+      {% if article.date %}
+        <span aria-hidden="true">·</span>
+        <time datetime="{{ article.date | isoDate }}">{{ article.date | readableDate }}</time>
+      {% endif %}
+    </p>
+    <h1 id="article-title">{{ article.title }}</h1>
+    {% if article.tags and article.tags.length %}
+      <div class="article-page-tags" aria-label="文章标签">
+        {% for tag in article.tags %}
+          <a class="tag-chip" href="{{ tag | tagUrl | relativeUrl(page.url) }}">#{{ tag }}</a>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </header>
 
-{% if article.tags and article.tags.length %}
-  <section class="tag-list" aria-label="文章标签">
-    {% for tag in article.tags %}
-      <a class="tag-chip" href="{{ tag | tagUrl | relativeUrl(page.url) }}">#{{ tag }}</a>
-    {% endfor %}
-  </section>
-{% endif %}
+  <div class="article-body">
+    {{ article.html | safe }}
+  </div>
+</article>
 
 {% if site.comments.provider == "utterances" %}
   <section class="comments" aria-label="评论">

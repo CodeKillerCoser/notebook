@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="180" height="180" viewBox="116 150 184 184" aria-hidden="true">
+  <defs>
+    <linearGradient id="planet" x1="156" y1="126" x2="296" y2="294" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#f8fafc"/>
+      <stop offset=".48" stop-color="#64748b"/>
+      <stop offset="1" stop-color="#0f172a"/>
+    </linearGradient>
+  </defs>
+  <circle cx="208" cy="242" r="76" fill="url(#planet)"/>
+  <path d="M143 218 C174 188 238 166 292 180" fill="none" stroke="#ffffff" stroke-width="2" opacity=".48"/>
+</svg>

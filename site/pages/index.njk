@@ -5,8 +5,6 @@ home: true
 toc:
   - id: recent
     text: 最近笔记
-  - id: star-map
-    text: 主题坐标
   - id: directories
     text: 笔记目录
 ---
@@ -25,10 +23,8 @@ toc:
   </ol>
 </section>
 
-{% include "components/star-map.njk" %}
-
 <section id="directories">
-  <h2><span class="section-index">3</span><span class="section-title">笔记目录</span></h2>
+  <h2><span class="section-index">2</span><span class="section-title">笔记目录</span></h2>
   <div class="directory-grid">
     {% for directory in notebook.topDirectories %}
       <a class="directory-card" href="{{ directory.permalink | relativeUrl(page.url) }}">

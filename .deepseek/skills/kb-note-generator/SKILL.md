@@ -20,8 +20,9 @@ description: 基于对话历史自动提取知识点，生成 Eleventy 兼容的
 ## 核心要点
 
 - 从对话历史提取知识点，生成结构化 HTML 笔记
-- 只写 `content/**/*.html` 文章片段，不写完整 HTML 页面、文章内 `<h1>`、内联 CSS、手写 hero 或 TOC
+- 只写 `content/**/*.html` 语义片段，不添加 `<article>` 包装、完整 HTML 页面、文章内 `<h1>`、内联 CSS、手写 hero 或 TOC
 - 按主题复用现有目录，并在 front matter 写 `description` 供首页/目录页展示
+- URL 由内容路径生成，不写 `permalink`
 - 运行 `npm run build`，确保关键词星图、Eleventy 页面、RSS 和 Pagefind 搜索索引同步更新
 - 提交到 `https://github.com/CodeKillerCoser/notebook` 的 `main` 分支
 - 提交信息格式：`docs(<主题>): <简短描述>`

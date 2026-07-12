@@ -1,90 +1,42 @@
-# 目录结构规范
+# 路径与元数据
 
-知识库采用层级目录组织，每个主题一个根目录。
+## 来源目录
 
-## 标准层级
+发布内容只放在：
 
-```
-<Rust>/
-├── index.html                       # 目录索引
-├── 01-基础入门/
-│   ├── Hello-World.html
-│   └── Cargo-入门.html
-├── 02-语法进阶/
-│   ├── 控制台IO.html
-│   ├── 流程控制.html
-│   └── match-模式匹配陷阱.html
-├── 03-工具链与生态/
-│   ├── Cargo-Workspace.html
-│   ├── rand-crate-版本.html
-│   └── VS-Code-配置.html
-└── 04-综合案例/
-    └── 猜数字游戏.html
+```text
+content/<主题>/<NN-分类>/<文章名>.html
 ```
 
-## 命名规范
+现有主题包括 `rust`、`AI工程`、`Agent`、`Git部署`、`UI设计` 和 `代码大全阅读笔记`。优先复用现有结构；只有内容边界稳定且会持续增长时才新增主题。
 
-| 层级 | 命名方式 | 示例 |
-|------|---------|------|
-| 根目录 | 主题英文名或简短中文 | `Rust/`, `Python/`, `Git/` |
-| 一级目录 | `NN-分类描述`（NN=两位数字） | `01-基础入门/`, `02-语法进阶/` |
-| 笔记文件 | 话题中文名 + `.html` | `Hello-World.html`, `控制台IO.html` |
-| 索引文件 | `index.html` | `index.html` |
+分类目录使用 `NN-分类描述`，通常保持两级以内。目录页、标签页和面包屑由构建器生成，不创建手写 `index.html` 页面外壳。
 
-## index.html 格式
+## Front matter
 
-```html
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title><主题> 学习笔记知识库</title>
-<style>
-  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; max-width: 900px; margin: 40px auto; padding: 0 20px; line-height: 1.7; color: #333; }
-  h1 { border-bottom: 2px solid #e36209; padding-bottom: 8px; }
-  table { border-collapse: collapse; width: 100%; margin: 16px 0; }
-  th, td { border: 1px solid #dfe2e5; padding: 8px 12px; text-align: left; }
-  th { background: #f6f8fa; }
-  a { color: #0366d6; }
-</style>
-</head>
-<body>
-<h1><主题> 学习笔记知识库</h1>
-<blockquote>简述</blockquote>
+推荐字段：
 
-<h2>目录</h2>
-
-<h3>01 - 分类A</h3>
-<table>
-  <tr><th>文档</th><th>内容</th></tr>
-  <tr><td><a href="相对路径">文档名</a></td><td>概要描述</td></tr>
-</table>
-
-<h3>02 - 分类B</h3>
-...
-</body>
-</html>
+```yaml
+---
+title: "文章标题"
+date: "2026-07-13T00:00:00+08:00"
+category: "AI 工程"
+description: "一句话说明文章解决的问题与价值。"
+tags:
+  - "AI 工程"
+  - "Agent Runtime"
+---
 ```
 
-## 分类指导
+- `title`：必填，页面唯一 `h1` 的来源。
+- `date`：推荐；省略时使用 Git 日期或文件时间。已有文章不要无故改日期。
+- `category`：推荐；省略时由一级目录推导。
+- `description`：强烈推荐，用于首页、目录页、RSS 与搜索摘要。
+- `tags`：推荐，使用稳定主题词和技术词；目录名称也会补充为标签。
+- `permalink`：不要填写，URL 固定由 `content/` 相对路径生成。
 
-### 01 - 基础入门
+## 命名
 
-环境搭建、第一个程序、基本工具使用。
-
-### 02 - 语法进阶
-
-语言核心语法、常见陷阱、惯用模式。
-
-### 03 - 工具链与生态
-
-包管理器、构建工具、第三方库、开发环境配置。
-
-### 04 - 综合案例
-
-串联多个知识点的完整项目分析。
-
-### 自定义分类
-
-如果以上分类不适配，按学习路径自定分类名，保持 2-5 个一级目录。
+- 文件名清楚表达问题，不添加无意义序号。
+- 保留技术专名的标准大小写，如 `Rust`、`GitHub Pages`、`Agent Runtime`。
+- 路径变更会改变线上 URL；移动已有文章前先检查入链。

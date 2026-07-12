@@ -7,7 +7,9 @@
     "mark": "low-entropy-route-mark.svg",
     "light": "low-entropy-route-lockup-light.svg",
     "dark": "low-entropy-route-lockup-dark.svg",
-    "paper": "low-entropy-route-lockup-paper.svg"
+    "paper": "low-entropy-route-lockup-paper.svg",
+    "cosmicMasthead": "homepage-cosmic-masthead-bg.png",
+    "planet": "low-entropy-planet.svg"
   },
   "themes": {
     "light": {

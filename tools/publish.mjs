@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
+import { load } from "cheerio";
 import matter from "gray-matter";
 import MarkdownIt from "markdown-it";
 
@@ -16,6 +17,8 @@ Options:
   --title <title>       Override title
   --tags <a,b,c>        Optional tags stored inside the content file
   --date <iso-date>     Override publish date
+  --category <name>     Override category
+  --description <text> Override homepage/search summary
   --message <message>   Commit message
   --no-build           Skip npm build and link check
   --no-commit          Skip git commit
@@ -48,6 +51,8 @@ function parseArgs(argv) {
     title: "",
     tags: "",
     date: "",
+    category: "",
+    description: "",
     message: "",
     build: true,
     commit: true,
@@ -65,6 +70,10 @@ function parseArgs(argv) {
       options.tags = argv[++index] || "";
     } else if (arg === "--date") {
       options.date = argv[++index] || "";
+    } else if (arg === "--category") {
+      options.category = argv[++index] || "";
+    } else if (arg === "--description") {
+      options.description = argv[++index] || "";
     } else if (arg === "--message") {
       options.message = argv[++index] || "";
     } else if (arg === "--no-build") {
@@ -120,6 +129,66 @@ function bodyFromHtml(html) {
   return (body ? body[1] : html).trim();
 }
 
+function comparableTitle(value = "") {
+  return stripTags(value)
+    .toLocaleLowerCase("zh-CN")
+    .replace(/[\s:：,，.。!！?？、·•—–\-_()（）《》“”"'`|]/g, "");
+}
+
+function sameTitle(left, right) {
+  const normalizedLeft = comparableTitle(left);
+  const normalizedRight = comparableTitle(right);
+  return Boolean(normalizedLeft && normalizedRight && normalizedLeft === normalizedRight);
+}
+
+function normalizeHtmlFragment(html, title) {
+  const wrapped = /<html[\s>]/i.test(html)
+    ? html
+    : `<!doctype html><html><body><div id="publish-source">${html}</div></body></html>`;
+  const $ = load(wrapped, { decodeEntities: false });
+  const body = $("body").length ? $("body") : $.root();
+  let source = $("main.article").first();
+  if (!source.length) source = $(".article-content").first();
+  if (!source.length) source = $("article").first();
+  if (!source.length) source = $("main").first();
+  if (!source.length) source = $("#publish-source").first();
+  if (!source.length) source = body;
+
+  source.find("script, style, template, link[rel='stylesheet'], header, nav, aside, .toc, .article-toc, #TOC, [data-toc]").remove();
+  source.children(".breadcrumb, .breadcrumbs, .pathline, .meta, .meta-row, .badge-row, .tags, .tag-list").remove();
+  source.find(".hero, .article-hero, .title-block").each((_, element) => {
+    const block = $(element);
+    if (block.find("h1").length) block.remove();
+  });
+
+  source.find("h1").each((_, element) => {
+    const heading = $(element);
+    if (sameTitle(heading.text(), title)) {
+      heading.remove();
+      return;
+    }
+    heading.replaceWith(`<h2>${heading.html() || ""}</h2>`);
+  });
+
+  source.find("[style]").each((_, element) => {
+    const current = $(element);
+    if (!current.closest("svg").length) current.removeAttr("style");
+  });
+  source.find(".card, .container, .layout, .page").each((_, element) => {
+    const current = $(element);
+    current.removeClass("card container layout page soft");
+    if (!current.attr("class")?.trim()) current.removeAttr("class");
+  });
+
+  return (source.html() || "").trim();
+}
+
+function descriptionFromHtml(html) {
+  const $ = load(`<main>${html}</main>`);
+  const text = stripTags($("main p").first().text());
+  return text.length > 160 ? `${text.slice(0, 157).trim()}...` : text;
+}
+
 function normalizeTags(value, parsedTags) {
   const fromOption = value.split(/[,，]/).map((tag) => tag.trim()).filter(Boolean);
   const fromFrontMatter = Array.isArray(parsedTags)
@@ -130,8 +199,10 @@ function normalizeTags(value, parsedTags) {
   return [...new Set([...fromOption, ...fromFrontMatter])];
 }
 
-function frontMatter({ title, date, tags }) {
+function frontMatter({ title, date, category, description, tags }) {
   const lines = ["---", `title: ${JSON.stringify(title)}`, `date: ${JSON.stringify(date)}`];
+  if (category) lines.push(`category: ${JSON.stringify(category)}`);
+  if (description) lines.push(`description: ${JSON.stringify(description)}`);
   if (tags.length) {
     lines.push("tags:");
     for (const tag of tags) lines.push(`  - ${JSON.stringify(tag)}`);
@@ -148,24 +219,48 @@ function renderSource(sourcePath, targetRel, options) {
 
   if (ext === ".md" || ext === ".markdown") {
     const title = options.title || parsed.data.title || titleFromMarkdown(parsed.content, fallback);
+    const html = normalizeHtmlFragment(md.render(parsed.content), title);
     return {
       title,
       tags: normalizeTags(options.tags, parsed.data.tags),
-      html: md.render(parsed.content)
+      date: parsed.data.date,
+      category: parsed.data.category,
+      description: parsed.data.description || descriptionFromHtml(html),
+      html
     };
   }
 
   if (ext === ".html" || ext === ".htm") {
     const body = bodyFromHtml(parsed.content);
     const title = options.title || parsed.data.title || titleFromHtml(parsed.content, fallback);
+    const html = normalizeHtmlFragment(body, title);
     return {
       title,
       tags: normalizeTags(options.tags, parsed.data.tags),
-      html: body
+      date: parsed.data.date,
+      category: parsed.data.category,
+      description: parsed.data.description || descriptionFromHtml(html),
+      html
     };
   }
 
   throw new Error("Source must be a Markdown or HTML file.");
+}
+
+function categoryFromTarget(targetRel) {
+  const root = targetRel.split("/")[0];
+  return ({
+    AI工程: "AI 工程",
+    Git部署: "Git 部署",
+    UI设计: "UI 设计",
+    rust: "Rust"
+  })[root] || root;
+}
+
+function isoDate(value) {
+  if (!value) return "";
+  const parsed = value instanceof Date ? value : new Date(value);
+  return Number.isNaN(parsed.getTime()) ? String(value) : parsed.toISOString();
 }
 
 const { source, target, options } = parseArgs(process.argv.slice(2));
@@ -175,10 +270,16 @@ if (!fs.existsSync(sourcePath)) throw new Error(`Source not found: ${sourcePath}
 const targetRel = safeTargetPath(target);
 const targetPath = path.join(CONTENT, targetRel);
 const rendered = renderSource(sourcePath, targetRel, options);
-const date = options.date || new Date().toISOString();
+const date = isoDate(options.date || rendered.date) || new Date().toISOString();
+const category = options.category || rendered.category || categoryFromTarget(targetRel);
+const description = options.description || rendered.description;
 
 fs.mkdirSync(path.dirname(targetPath), { recursive: true });
-fs.writeFileSync(targetPath, `${frontMatter({ title: rendered.title, date, tags: rendered.tags })}${rendered.html.trim()}\n`, "utf8");
+fs.writeFileSync(
+  targetPath,
+  `${frontMatter({ title: rendered.title, date, category, description, tags: rendered.tags })}${rendered.html.trim()}\n`,
+  "utf8"
+);
 
 console.log(`Wrote content/${targetRel}`);
 
@@ -188,7 +289,7 @@ if (options.build) {
 }
 
 if (options.commit) {
-  run("git", ["add", `content/${targetRel}`]);
+  run("git", ["add", `content/${targetRel}`, "site/_data/keywordCloud.json"]);
   const diff = spawnSync("git", ["diff", "--cached", "--quiet"], { cwd: ROOT, shell: process.platform === "win32" });
   if (diff.status !== 0) {
     const message = options.message || `docs: publish ${rendered.title}`;
@@ -197,5 +298,5 @@ if (options.commit) {
 }
 
 if (options.push) {
-  run("git", ["push", "origin", "HEAD:main"]);
+  run("git", ["push", "origin", "HEAD"]);
 }

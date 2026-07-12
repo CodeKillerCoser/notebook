@@ -82,6 +82,21 @@ function cleanHeading(value = "") {
   return String(value).replace(TITLE_PREFIX_RE, "").replace(/\s+/g, " ").trim();
 }
 
+function comparableHeading(value = "") {
+  return cleanHeading(stripTags(value))
+    .toLocaleLowerCase("zh-CN")
+    .replace(/[\s:：,，.。!！?？、·•—–\-_()（）《》“”"'`|]/g, "");
+}
+
+function isSameTitle(candidate, title) {
+  const normalizedCandidate = comparableHeading(candidate);
+  const normalizedTitle = comparableHeading(title);
+  if (!normalizedCandidate || !normalizedTitle) return false;
+  if (normalizedCandidate === normalizedTitle) return true;
+  if (Math.min(normalizedCandidate.length, normalizedTitle.length) < 4) return false;
+  return normalizedCandidate.startsWith(normalizedTitle) || normalizedTitle.startsWith(normalizedCandidate);
+}
+
 function excerptText(value = "", maxLength = 140) {
   const text = String(value).replace(/\s+/g, " ").trim();
   if (text.length <= maxLength) return text;
@@ -191,11 +206,12 @@ function normalizeTags(tags, relPath) {
   return [...new Set([...explicit.map((tag) => String(tag).trim()).filter(Boolean), ...fromPath])];
 }
 
-function readArticleHtml(content, fallbackTitle) {
+function readArticleHtml(content, fallbackTitle, preferredTitle = "") {
   const documentHtml = `<!doctype html><html><body>${content}</body></html>`;
   const $ = load(/<html[\s>]/i.test(content) ? content : documentHtml, { decodeEntities: false });
   const body = $("body").length ? $("body") : $.root();
   const title =
+    stripTags(preferredTitle) ||
     stripTags($("title").first().text()) ||
     stripTags($("h1").first().text()) ||
     fallbackTitle;
@@ -209,20 +225,72 @@ function readArticleHtml(content, fallbackTitle) {
   let source = $("main.article").first();
   if (!source.length) source = $(".article-content").first();
   if (!source.length) source = $("article").first();
+  if (!source.length) source = $("main").first();
   if (!source.length) source = body;
 
-  source.find("script, style, nav.toc, aside.toc, .article-toc, #TOC, header.hero, #title-block-header").remove();
-  const firstHeading = source.children("h1").first();
-  if (firstHeading.length && stripTags(firstHeading.text()) === title) {
-    firstHeading.remove();
+  source.find("script, style, template, link[rel='stylesheet'], nav, aside, header, .article-toc, #TOC, [data-toc]").remove();
+  source.find(".hero, .article-hero, .title-block").each((_, element) => {
+    const block = $(element);
+    if (block.find("h1").length) block.remove();
+  });
+
+  const structuralChildren = source.children().filter((_, element) => {
+    return !["script", "style", "template"].includes(element.tagName?.toLowerCase());
+  });
+  if (structuralChildren.length === 1 && structuralChildren.first().is("div, main, article")) {
+    source = structuralChildren.first();
   }
+
+  source.children(".breadcrumb, .breadcrumbs, .pathline, .meta, .meta-row, .badge-row").remove();
+  source.children("p").each((_, element) => {
+    const paragraph = $(element);
+    const directText = paragraph
+      .contents()
+      .filter((_, child) => child.type === "text")
+      .text()
+      .trim();
+    const inlineLabels = paragraph.children();
+    if (
+      !directText &&
+      inlineLabels.length &&
+      inlineLabels.filter(":not(.tag, .chip, .badge, .tag-chip)").length === 0
+    ) {
+      paragraph.remove();
+    }
+  });
+
+  source.find(".card").each((_, element) => {
+    const card = $(element);
+    card.removeClass("card soft");
+    if (!card.attr("class")?.trim()) card.removeAttr("class");
+  });
+
+  source.find("[style]").each((_, element) => {
+    const current = $(element);
+    if (!current.closest("svg").length) current.removeAttr("style");
+  });
+
+  source.find("h1").each((_, element) => {
+    const heading = $(element);
+    if (isSameTitle(heading.text(), title)) {
+      heading.remove();
+      return;
+    }
+    const replacement = $("<h2></h2>");
+    for (const [name, value] of Object.entries(heading.attr() || {})) {
+      replacement.attr(name, value);
+    }
+    replacement.html(heading.html());
+    heading.replaceWith(replacement);
+  });
+
   const firstParagraph = stripTags(source.find("p").first().text());
 
   const usedIds = new Set();
   const toc = [];
   source.find("h2, h3").each((index, element) => {
     const heading = $(element);
-    heading.find(".section-number, .section-index").remove();
+    heading.find(".section-number, .section-index, .num").remove();
     const rawText = stripTags(heading.text());
     const text = cleanHeading(rawText) || rawText || `章节 ${index + 1}`;
     const existingId = heading.attr("id");
@@ -239,9 +307,7 @@ function readArticleHtml(content, fallbackTitle) {
 
   highlightCodeBlocks($, source);
 
-  const tagName = source.get(0)?.tagName?.toLowerCase();
-  const shouldKeepSourceWrapper = tagName === "article" && Object.keys(source.attr() || {}).length > 0;
-  const html = (shouldKeepSourceWrapper ? $.html(source) : source.html())?.trim() || "";
+  const html = source.html()?.trim() || "";
   return { title, subtitle, eyebrow, chips, html, text: stripTags(html), excerpt: excerptText(firstParagraph), toc };
 }
 
@@ -258,7 +324,7 @@ function loadArticles() {
       const parts = relPath.split("/");
       const dirPath = parts.slice(0, -1).join("/");
       const fallbackTitle = path.basename(relPath, ".html");
-      const extracted = readArticleHtml(parsed.content, fallbackTitle);
+      const extracted = readArticleHtml(parsed.content, fallbackTitle, parsed.data.title);
       const title = parsed.data.title || extracted.title;
       const stat = fs.statSync(filePath);
       const date = parsed.data.date || gitDate(relPath) || stat.mtime.toISOString();

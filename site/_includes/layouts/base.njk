@@ -16,9 +16,21 @@
   {% endif %}
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script>
+    (() => {
+      try {
+        const font = localStorage.getItem("low-entropy-font-family");
+        if (["wenkai", "system-sans", "song-serif", "fangsong"].includes(font)) {
+          document.documentElement.dataset.font = font;
+        }
+      } catch (_) {}
+    })();
+  </script>
   <title>{{ pageTitle }}</title>
   <meta name="description" content="{{ pageDescription }}">
   <link rel="alternate" type="application/rss+xml" title="{{ site.title }} RSS" href="{{ '/feed.xml' | relativeUrl(page.url) }}">
+  <link rel="stylesheet" href="{{ '/assets/fonts/lxgw-wenkai/lxgwwenkaigbscreenr.css' | relativeUrl(page.url) }}">
+  <link rel="stylesheet" href="{{ '/assets/fonts/lxgw-wenkai/lxgwwenkaigbscreen.css' | relativeUrl(page.url) }}">
   <link rel="stylesheet" href="{{ '/assets/site.css' | relativeUrl(page.url) }}">
   <link rel="stylesheet" href="{{ '/assets/tokens.css' | relativeUrl(page.url) }}">
   <link rel="stylesheet" href="{{ '/assets/star-map.css' | relativeUrl(page.url) }}">
@@ -52,14 +64,17 @@
     {% set heroChips = [tagPage.name] %}
     {% set tocItems = toc %}
   {% else %}
-    {% set heroTitle = site.title if isHomePage else title or site.title %}
+    {% set heroTitle = site.tagline if isHomePage else title or site.title %}
     {% set heroEyebrow = site.eyebrow if isHomePage else eyebrow or site.eyebrow or site.title %}
-    {% set heroSubtitle = site.tagline if isHomePage else description or site.tagline or site.description %}
+    {% set heroSubtitle = site.description if isHomePage else description or site.tagline or site.description %}
     {% set activeBreadcrumbs = breadcrumbs %}
     {% set heroChips = chips or [] %}
     {% set tocItems = toc %}
   {% endif %}
 
+  {% if isHomePage %}
+    <div class="home-masthead">
+  {% endif %}
   <header class="site-topbar">
     <a class="site-brand" href="{{ '/index.html' | relativeUrl(page.url) }}">
       <img class="site-brand-mark" src="{{ '/assets/brand/low-entropy-route-mark.svg' | relativeUrl(page.url) }}" alt="" width="30" height="30">
@@ -97,17 +112,14 @@
     {% endif %}
   </nav>
 
-  <div class="page-shell">
-    <header id="title-block-header" class="hero-grid">
-      <div class="hero-spacer" aria-hidden="true"></div>
-      <div class="hero-content{% if isHomePage %} home-hero{% endif %}">
+  {% if not article %}
+    <div class="page-shell">
+      <header id="title-block-header" class="hero-grid">
+        <div class="hero-spacer" aria-hidden="true"></div>
+        <div class="hero-content{% if isHomePage %} home-hero{% endif %}">
         {% if isHomePage %}
-          <div class="home-hero-lockup">
-            <img class="home-hero-mark" src="{{ '/assets/brand/low-entropy-route-mark.svg' | relativeUrl(page.url) }}" alt="" width="148" height="148">
-            <div class="home-hero-copy">
-              <div class="eyebrow">{{ heroEyebrow }}</div>
-              <h1>{{ heroTitle }}</h1>
-            </div>
+          <div class="home-hero-copy">
+            <h1>{{ heroTitle }}</h1>
           </div>
         {% else %}
           <div class="eyebrow">{{ heroEyebrow }}</div>
@@ -116,7 +128,7 @@
         {% if heroSubtitle %}
           <p class="subtitle">{{ heroSubtitle }}</p>
         {% endif %}
-        {% if isHomePage and site.description %}
+        {% if isHomePage and site.description and heroSubtitle != site.description %}
           <p class="home-hero-note">{{ site.description }}</p>
         {% endif %}
         <div class="meta article-meta">
@@ -127,10 +139,15 @@
             <span class="chip tag-chip">{{ chip }}</span>
           {% endfor %}
         </div>
-        <hr class="article-divider">
-      </div>
-    </header>
-  </div>
+          <hr class="article-divider">
+        </div>
+      </header>
+    </div>
+  {% endif %}
+  {% if isHomePage %}
+    {% include "components/star-map.njk" %}
+    </div>
+  {% endif %}
 
   <input class="toc-state" type="checkbox" id="mobile-toc-state" aria-hidden="true">
   <label class="toc-backdrop" for="mobile-toc-state" aria-hidden="true"></label>
@@ -149,6 +166,10 @@
           {% for item in tocItems %}
             <li><a href="#{{ item.id }}">{{ item.text }}</a></li>
           {% endfor %}
+        </ol>
+      {% elif article %}
+        <ol>
+          <li><a href="#article-title">文章开头</a></li>
         </ol>
       {% elif directory %}
         <ol>

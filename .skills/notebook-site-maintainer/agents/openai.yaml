@@ -1,0 +1,4 @@
+interface:
+  display_name: "Notebook Site Maintainer"
+  short_description: "Maintain the notebook templates, themes, search, and deployment"
+  default_prompt: "Maintain the notebook site while preserving its content and visual contracts."

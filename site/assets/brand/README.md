@@ -19,11 +19,13 @@ Slogan：**在复杂系统中，持续构建秩序**
 - `low-entropy-route-lockup-light.svg`：浅色主题横版品牌图。
 - `low-entropy-route-lockup-dark.svg`：星夜主题横版品牌图。
 - `low-entropy-route-lockup-paper.svg`：纸感主题横版品牌图。
+- `homepage-cosmic-masthead-bg.png`：首页导航、Hero 与关键词星图共用的宇宙背景。
+- `low-entropy-planet.svg`：从品牌标识拆出的星球图层，用于关键词轨道中心。
 - `low-entropy-route-brand.json`：品牌名称、文案、主题色与资源索引。
 
 ## 使用建议
 
-暂未接入博客页面。后续修改首页或导航时，建议按当前主题选择对应 lockup：
+品牌 mark、宇宙背景和星球图层已接入首页。横版 lockup 可用于社交分享图或后续品牌展示区：
 
 - `atlas-light` 使用 light 版本。
 - `nebula-dark` 使用 dark 版本。

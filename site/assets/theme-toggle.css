@@ -8,7 +8,7 @@
 
 .theme-menu__button,
 .theme-menu__panel button {
-  font: 700 .88rem/1 var(--font-sans);
+  font: 700 .88rem/1 var(--font-ui);
 }
 
 .theme-menu__button {
@@ -97,6 +97,30 @@
 
 .theme-menu__panel button.is-active .theme-menu__check {
   color: var(--color-accent);
+}
+
+.font-menu .theme-menu__panel {
+  min-width: 148px;
+}
+
+.font-menu .theme-menu__panel button {
+  font-weight: 500;
+}
+
+.font-menu [data-set-font="wenkai"] {
+  font-family: "LXGW WenKai Screen R", "Kaiti SC", STKaiti, var(--font-ui);
+}
+
+.font-menu [data-set-font="system-sans"] {
+  font-family: var(--font-fallback-sans);
+}
+
+.font-menu [data-set-font="song-serif"] {
+  font-family: var(--font-serif);
+}
+
+.font-menu [data-set-font="fangsong"] {
+  font-family: FangSong, STFangsong, "FangSong_GB2312", var(--font-serif);
 }
 
 @media (max-width: 860px) {

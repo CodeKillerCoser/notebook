@@ -19,8 +19,9 @@ Reference files (read as needed):
 ## Quick Reference
 
 - Extract knowledge points from conversation history and generate structured HTML notes
-- Write only embeddable article fragments under `content/**/*.html`; do not include page shell, hero, TOC, inline CSS, or article `<h1>`
+- Write only semantic fragments under `content/**/*.html`; do not add an `<article>` wrapper, page shell, hero, TOC, inline CSS, or article `<h1>`
 - Organize by topic into existing notebook directories and include `description` for homepage/directory summaries
+- Let the content path define the URL; do not add `permalink`
 - Run `npm run build` so keywordCloud, Eleventy pages, RSS, and Pagefind stay current
 - Target repo: `https://github.com/CodeKillerCoser/notebook` (branch: `main`)
 - Commit format: `docs(<topic>): <brief description>`
