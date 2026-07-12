@@ -154,6 +154,17 @@ function normalizeHtmlFragment(html, title) {
   if (!source.length) source = $("#publish-source").first();
   if (!source.length) source = body;
 
+  const preservedContentScopes = ["ui-guide"].filter((className) => {
+    return source.hasClass(className) || source.find(`.${className}`).length;
+  });
+
+  function hasPreservedPresentation(element) {
+    const current = $(element);
+    return preservedContentScopes.some((className) => {
+      return source.hasClass(className) || current.closest(`.${className}`).length;
+    });
+  }
+
   source.find("script, style, template, link[rel='stylesheet'], header, nav, aside, .toc, .article-toc, #TOC, [data-toc]").remove();
   source.children(".breadcrumb, .breadcrumbs, .pathline, .meta, .meta-row, .badge-row, .tags, .tag-list").remove();
   source.find(".hero, .article-hero, .title-block").each((_, element) => {
@@ -172,7 +183,9 @@ function normalizeHtmlFragment(html, title) {
 
   source.find("[style]").each((_, element) => {
     const current = $(element);
-    if (!current.closest("svg").length) current.removeAttr("style");
+    if (!current.closest("svg").length && !hasPreservedPresentation(element)) {
+      current.removeAttr("style");
+    }
   });
   source.find(".card, .container, .layout, .page").each((_, element) => {
     const current = $(element);
@@ -180,7 +193,11 @@ function normalizeHtmlFragment(html, title) {
     if (!current.attr("class")?.trim()) current.removeAttr("class");
   });
 
-  return (source.html() || "").trim();
+  const normalized = (source.html() || "").trim();
+  const sourceScopes = preservedContentScopes.filter((className) => source.hasClass(className));
+  return sourceScopes.length
+    ? `<div class="${sourceScopes.join(" ")}">${normalized}</div>`
+    : normalized;
 }
 
 function descriptionFromHtml(html) {
@@ -285,6 +302,7 @@ console.log(`Wrote content/${targetRel}`);
 
 if (options.build) {
   run("npm", ["run", "build"]);
+  run("npm", ["run", "check:content"]);
   run("npm", ["run", "check:links"]);
 }
 

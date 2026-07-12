@@ -32,6 +32,8 @@ tags:
 - 图片、表格、代码、引用、列表和语义化 callout 可以保留。
 - 不使用 `.container`、`.layout`、`.page`、`.card` 等页面布局 class。
 
+少数旧文章把色板、图表、设备框等视觉案例直接编码为 HTML。此类内容必须使用站点允许的正文作用域（当前为 `.ui-guide`）：构建器会移除其页面级 `<style>`，改用全局样式表，同时保留案例自身的颜色、尺寸等展示数据。不要把这个例外用于普通文章布局。
+
 ## 旧 HTML 导入
 
 旧文章可以直接放入 `content/`。构建阶段会自动：
@@ -43,4 +45,4 @@ tags:
 - 为 `h2` / `h3` 生成稳定 ID，并为 `h2` 生成左侧目录。
 - 统一代码高亮、主题颜色、字体与移动端行为。
 
-导入后仍需运行 `npm run build` 和 `npm run check:links`，并抽查桌面与移动端页面。
+导入后仍需运行 `npm run build`、`npm run check:content` 和 `npm run check:links`，并抽查桌面与移动端页面。

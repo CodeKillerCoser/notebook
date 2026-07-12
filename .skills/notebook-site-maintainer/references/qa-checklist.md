@@ -5,6 +5,7 @@
 ```bash
 npm ci
 npm run build
+npm run check:content
 npm run check:links
 git diff --check
 ```
@@ -22,6 +23,8 @@ git diff --check
 
 - 页面只有一个模板标题。
 - `.article-body` 中没有 `h1`、自定义 TOC、Header、导航或页面级样式。
+- 图片、figure、SVG、视频、表格、details 和受控视觉案例与源文章数量一致。
+- `.ui-guide` 等受控作用域仍由全局 CSS 提供样式，案例所需的颜色和尺寸数据没有被清洗。
 - 桌面左目录/右正文，移动端没有横向滚动。
 - 表格、代码、figure 和长单词不会撑破版心。
 

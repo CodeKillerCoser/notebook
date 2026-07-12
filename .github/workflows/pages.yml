@@ -39,6 +39,9 @@ jobs:
       - name: Check local links
         run: npm run check:links
 
+      - name: Check article content integrity
+        run: npm run check:content
+
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:

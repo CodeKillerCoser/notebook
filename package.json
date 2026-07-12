@@ -10,6 +10,7 @@
     "build:site": "eleventy",
     "build:search": "pagefind --site _site --glob \"**/*.html\"",
     "build": "npm run clean && npm run build:keywords && npm run build:site && npm run build:search",
+    "check:content": "node tools/check-content-integrity.mjs",
     "check:links": "node tools/check-links.mjs",
     "publish": "node tools/publish.mjs"
   },

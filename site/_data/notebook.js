@@ -54,6 +54,8 @@ const LANGUAGE_ALIASES = {
   txt: "text"
 };
 
+const PRESERVED_CONTENT_SCOPES = ["ui-guide"];
+
 const TITLE_PREFIX_RE = /^\s*(?:第?[一二三四五六七八九十百千]+[、.．)）]\s*|[（(]?[一二三四五六七八九十]+[)）]\s*|\d+[、.．)）]\s*|[（(]\d+[)）]\s*)/u;
 
 function walk(dir) {
@@ -228,6 +230,17 @@ function readArticleHtml(content, fallbackTitle, preferredTitle = "") {
   if (!source.length) source = $("main").first();
   if (!source.length) source = body;
 
+  const contentClasses = PRESERVED_CONTENT_SCOPES.filter((className) => {
+    return source.hasClass(className) || source.find(`.${className}`).length;
+  });
+
+  function hasPreservedPresentation(element) {
+    const current = $(element);
+    return contentClasses.some((className) => {
+      return source.hasClass(className) || current.closest(`.${className}`).length;
+    });
+  }
+
   source.find("script, style, template, link[rel='stylesheet'], nav, aside, header, .article-toc, #TOC, [data-toc]").remove();
   source.find(".hero, .article-hero, .title-block").each((_, element) => {
     const block = $(element);
@@ -267,7 +280,9 @@ function readArticleHtml(content, fallbackTitle, preferredTitle = "") {
 
   source.find("[style]").each((_, element) => {
     const current = $(element);
-    if (!current.closest("svg").length) current.removeAttr("style");
+    if (!current.closest("svg").length && !hasPreservedPresentation(element)) {
+      current.removeAttr("style");
+    }
   });
 
   source.find("h1").each((_, element) => {
@@ -308,7 +323,17 @@ function readArticleHtml(content, fallbackTitle, preferredTitle = "") {
   highlightCodeBlocks($, source);
 
   const html = source.html()?.trim() || "";
-  return { title, subtitle, eyebrow, chips, html, text: stripTags(html), excerpt: excerptText(firstParagraph), toc };
+  return {
+    title,
+    subtitle,
+    eyebrow,
+    chips,
+    html,
+    text: stripTags(html),
+    excerpt: excerptText(firstParagraph),
+    toc,
+    contentClasses
+  };
 }
 
 function directoryDescription(dirPath, title) {
@@ -345,6 +370,7 @@ function loadArticles() {
         chips: Array.isArray(parsed.data.chips) ? parsed.data.chips : extracted.chips,
         html: extracted.html,
         toc: extracted.toc,
+        contentClasses: extracted.contentClasses,
         breadcrumbs: makeCrumbs(parts, true, title)
       };
     })

@@ -26,7 +26,7 @@ eleventyExcludeFromCollections: true
     {% endif %}
   </header>
 
-  <div class="article-body">
+  <div class="article-body{% if article.contentClasses and article.contentClasses.length %} {{ article.contentClasses | join(' ') }}{% endif %}">
     {{ article.html | safe }}
   </div>
 </article>
