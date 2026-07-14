@@ -28,6 +28,7 @@
   </script>
   <title>{{ pageTitle }}</title>
   <meta name="description" content="{{ pageDescription }}">
+  <link rel="icon" type="image/svg+xml" href="{{ '/assets/brand/low-entropy-route-mark.svg' | relativeUrl(page.url) }}">
   <link rel="alternate" type="application/rss+xml" title="{{ site.title }} RSS" href="{{ '/feed.xml' | relativeUrl(page.url) }}">
   <link rel="stylesheet" href="{{ '/assets/fonts/lxgw-wenkai/lxgwwenkaigbscreenr.css' | relativeUrl(page.url) }}">
   <link rel="stylesheet" href="{{ '/assets/fonts/lxgw-wenkai/lxgwwenkaigbscreen.css' | relativeUrl(page.url) }}">
@@ -75,6 +76,9 @@
   {% if isHomePage %}
     <div class="home-masthead">
   {% endif %}
+  {% if article %}
+    <div class="article-navigation-stack">
+  {% endif %}
   <header class="site-topbar">
     <a class="site-brand" href="{{ '/index.html' | relativeUrl(page.url) }}">
       <img class="site-brand-mark" src="{{ '/assets/brand/low-entropy-route-mark.svg' | relativeUrl(page.url) }}" alt="" width="30" height="30">
@@ -94,6 +98,10 @@
       </nav>
       <nav class="site-nav site-tool-nav" aria-label="站点工具">
         <a class="site-search-link{% if page.url == '/search.html' %} is-active{% endif %}" {% if page.url == '/search.html' %}aria-current="page"{% endif %} href="{{ '/search.html' | relativeUrl(page.url) }}">搜索</a>
+        <a class="site-repository-link" href="{{ site.repositoryUrl }}" target="_blank" rel="noreferrer" aria-label="在 GitHub 查看本站仓库（在新标签页打开）">
+          <span class="site-repository-icon" aria-hidden="true"></span>
+          <span>GitHub 仓库</span>
+        </a>
         <a href="{{ '/feed.xml' | relativeUrl(page.url) }}">RSS</a>
       </nav>
       {% include "components/theme-toggle.njk" %}
@@ -111,6 +119,9 @@
       {% endfor %}
     {% endif %}
   </nav>
+  {% if article %}
+    </div>
+  {% endif %}
 
   {% if not article %}
     <div class="page-shell">
@@ -199,6 +210,23 @@
     </main>
   </div>
   <script>
+    (() => {
+      const stack = document.querySelector(".article-navigation-stack");
+      if (!stack) return;
+
+      const syncArticleNavigationHeight = () => {
+        const height = Math.ceil(stack.getBoundingClientRect().height);
+        document.documentElement.style.setProperty("--article-navigation-height", `${height}px`);
+      };
+
+      syncArticleNavigationHeight();
+      if ("ResizeObserver" in window) {
+        new ResizeObserver(syncArticleNavigationHeight).observe(stack);
+      } else {
+        window.addEventListener("resize", syncArticleNavigationHeight, { passive: true });
+      }
+    })();
+
     (() => {
       const topbar = document.querySelector(".site-topbar");
       const toggle = document.querySelector(".site-menu-toggle");

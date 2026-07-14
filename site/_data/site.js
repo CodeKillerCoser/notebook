@@ -7,6 +7,7 @@ export default {
   author: "CodeKillerCoser",
   url: "https://codekillercoser.github.io/notebook",
   repository: "CodeKillerCoser/notebook",
+  repositoryUrl: "https://github.com/CodeKillerCoser/notebook",
   comments: {
     provider: "utterances",
     repo: "CodeKillerCoser/notebook",
